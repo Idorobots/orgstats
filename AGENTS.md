@@ -176,6 +176,7 @@ pip freeze > requirements.txt
 - Prefer functional programming patterns (comprehensions, pure functions)
 - Minimize dependencies - only add when truly necessary
 - Self-documenting code over excessive comments
+- Avoid using the `Any` type as much as possible. Avoid changing any existing types to `Any`.
 
 ### Python Style
 

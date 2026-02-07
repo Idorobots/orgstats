@@ -3,7 +3,6 @@
 
 import argparse
 import sys
-from typing import Any
 
 import orgparse
 
@@ -98,7 +97,7 @@ def main() -> None:
     exclude_body = load_stopwords(args.exclude_body) or BODY
 
     # Process org files
-    nodes: list[Any] = []
+    nodes: list[orgparse.node.OrgNode] = []
 
     for name in args.files:
         with open(name, encoding="utf-8") as f:
