@@ -1,12 +1,13 @@
 """Tests for the mapped() function."""
 
-import sys
 import os
+import sys
+
 
 # Add src directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from core import mapped, MAP
+from core import MAP, mapped
 
 
 def test_mapped_found_in_mapping():
@@ -40,7 +41,7 @@ def test_mapped_all_map_entries():
         "uml": "softwarearchitecture",
         "dia": "softwarearchitecture",
     }
-    
+
     for key, value in expected_mappings.items():
         result = mapped(MAP, key)
         assert result == value, f"Expected mapped(MAP, '{key}') to return '{value}', got '{result}'"
@@ -55,7 +56,7 @@ def test_mapped_empty_string():
 def test_mapped_custom_mapping():
     """Test mapped with a custom mapping dictionary."""
     custom_map = {"foo": "bar", "baz": "qux"}
-    
+
     assert mapped(custom_map, "foo") == "bar"
     assert mapped(custom_map, "baz") == "qux"
     assert mapped(custom_map, "unknown") == "unknown"
@@ -73,9 +74,9 @@ def test_mapped_case_sensitive():
     # MAP has lowercase keys
     result_lower = mapped(MAP, "test")
     result_upper = mapped(MAP, "TEST")
-    
+
     assert result_lower == "testing"  # Found in map
-    assert result_upper == "TEST"     # Not found, returns original
+    assert result_upper == "TEST"  # Not found, returns original
 
 
 def test_mapped_whitespace():

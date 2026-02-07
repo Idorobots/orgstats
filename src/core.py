@@ -4,7 +4,7 @@ from typing import Any
 
 
 MAP = {
-    'test': "testing",
+    "test": "testing",
     "sysadmin": "devops",
     "pldesign": "compilers",
     "webdev": "frontend",
@@ -18,7 +18,7 @@ MAP = {
     "softwareengineering": "softwarearchitecture",
     "soa": "softwarearchitecture",
     "uml": "softwarearchitecture",
-    "dia": "softwarearchitecture"
+    "dia": "softwarearchitecture",
 }
 
 
@@ -34,8 +34,7 @@ def mapped(mapping: dict[str, str], t: str) -> str:
     """
     if t in mapping:
         return mapping[t]
-    else:
-        return t
+    return t
 
 
 def normalize(tags: set[str]) -> set[str]:
@@ -48,15 +47,18 @@ def normalize(tags: set[str]) -> set[str]:
     Returns:
         Set of normalized and mapped tags
     """
-    norm = { t.lower()
-             .strip()
-             .replace(".", "")
-             .replace(":", "")
-             .replace("!", "")
-             .replace(",", "")
-             .replace(";", "")
-             .replace("?", "") for t in tags }
-    return { mapped(MAP, t) for t in norm }
+    norm = {
+        t.lower()
+        .strip()
+        .replace(".", "")
+        .replace(":", "")
+        .replace("!", "")
+        .replace(",", "")
+        .replace(";", "")
+        .replace("?", "")
+        for t in tags
+    }
+    return {mapped(MAP, t) for t in norm}
 
 
 def analyze(nodes: list[Any]) -> tuple[int, int, dict[str, int], dict[str, int], dict[str, int]]:
@@ -70,14 +72,14 @@ def analyze(nodes: list[Any]) -> tuple[int, int, dict[str, int], dict[str, int],
     """
     total = 0
     done = 0
-    tags = dict()
-    heading = dict()
-    words = dict()
+    tags: dict[str, int] = {}
+    heading: dict[str, int] = {}
+    words: dict[str, int] = {}
 
     for node in nodes:
         total = total + max(1, len(node.repeated_tasks))
 
-        final = node.todo == "DONE" and 1 or 0
+        final = (node.todo == "DONE" and 1) or 0
         repeats = len([n for n in node.repeated_tasks if n.after == "DONE"])
         count = max(final, repeats)
 
@@ -105,29 +107,152 @@ def analyze(nodes: list[Any]) -> tuple[int, int, dict[str, int], dict[str, int],
 
 
 TAGS = {
-    "comp", "computer", "uni", "homework", "test", "blog", "lecture", "due",
-    "cleaning", "germanvocabulary", "readingkorean", "readingenglish", "englishvocabulary",
-    "lifehacking", "tinkering"
+    "comp",
+    "computer",
+    "uni",
+    "homework",
+    "test",
+    "blog",
+    "lecture",
+    "due",
+    "cleaning",
+    "germanvocabulary",
+    "readingkorean",
+    "readingenglish",
+    "englishvocabulary",
+    "lifehacking",
+    "tinkering",
 }
 
 
 HEADING = {
-    "the", "to", "a", "for", "in", "of", "and", "on", "with", "some", "out", "&", "up", "from", "an", "into", "new", "why",
-    "suspended", "hangul", "romanization", "do", "dishes", "medial", "clean", "tidy", "sweep", "living", "room", "bathroom",
-    "kitchen", "ways", "say", "bill", "piwl", "piwm"
+    "the",
+    "to",
+    "a",
+    "for",
+    "in",
+    "of",
+    "and",
+    "on",
+    "with",
+    "some",
+    "out",
+    "&",
+    "up",
+    "from",
+    "an",
+    "into",
+    "new",
+    "why",
+    "suspended",
+    "hangul",
+    "romanization",
+    "do",
+    "dishes",
+    "medial",
+    "clean",
+    "tidy",
+    "sweep",
+    "living",
+    "room",
+    "bathroom",
+    "kitchen",
+    "ways",
+    "say",
+    "bill",
+    "piwl",
+    "piwm",
 }
 
 
-BODY = HEADING.union({
-    "end", "logbook", "cancelled", "scheduled", "suspended", "it", "this", "do", "is", "no", "not", "that", "all",
-    "but", "be", "use", "now", "will", "an", "i", "as", "or", "by", "did", "can", "->", "are", "was", "[x]", "meh", "more",
-    "until", "+", "using", "when", "into", "only", "at", "it's", "have", "about", "just", "2", "etc", "get", "didn't",
-    "can't", "lu", "lu's", "lucyna", "alicja", "my", "does", "nah", "there", "yet", "nope", "should", "i'll",
-    "khhhhaaaaannn't", "zrobiła", "robi", "dysze",
-    "pon", "wto", "śro", "czw", "pią", "sob", "nie",
-    "", "'localhost6667/lucynajaworska'", "'localhost6667/&bitlbee'", "file~/org/refileorg", "[2012-11-27", "++1d]",
-    "#+begin_src", "#+end_src", "-", "=", "|", "(", ")", "[2022-07-05"
-})
+BODY = HEADING.union(
+    {
+        "end",
+        "logbook",
+        "cancelled",
+        "scheduled",
+        "suspended",
+        "it",
+        "this",
+        "do",
+        "is",
+        "no",
+        "not",
+        "that",
+        "all",
+        "but",
+        "be",
+        "use",
+        "now",
+        "will",
+        "an",
+        "i",
+        "as",
+        "or",
+        "by",
+        "did",
+        "can",
+        "->",
+        "are",
+        "was",
+        "[x]",
+        "meh",
+        "more",
+        "until",
+        "+",
+        "using",
+        "when",
+        "into",
+        "only",
+        "at",
+        "it's",
+        "have",
+        "about",
+        "just",
+        "2",
+        "etc",
+        "get",
+        "didn't",
+        "can't",
+        "lu",
+        "lu's",
+        "lucyna",
+        "alicja",
+        "my",
+        "does",
+        "nah",
+        "there",
+        "yet",
+        "nope",
+        "should",
+        "i'll",
+        "khhhhaaaaannn't",
+        "zrobiła",
+        "robi",
+        "dysze",
+        "pon",
+        "wto",
+        "śro",
+        "czw",
+        "pią",
+        "sob",
+        "nie",
+        "",
+        "'localhost6667/lucynajaworska'",
+        "'localhost6667/&bitlbee'",
+        "file~/org/refileorg",
+        "[2012-11-27",
+        "++1d]",
+        "#+begin_src",
+        "#+end_src",
+        "-",
+        "=",
+        "|",
+        "(",
+        ")",
+        "[2022-07-05",
+    }
+)
 
 
 def clean(disallowed: set[str], tags: dict[str, int]) -> dict[str, int]:

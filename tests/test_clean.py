@@ -1,12 +1,13 @@
 """Tests for the clean() function."""
 
-import sys
 import os
+import sys
+
 
 # Add src directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from core import clean, TAGS, HEADING, BODY
+from core import BODY, HEADING, TAGS, clean
 
 
 def test_clean_basic():

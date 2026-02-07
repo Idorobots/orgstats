@@ -92,22 +92,46 @@ pytest -n auto
 - `test_cli_direct.py` - CLI direct tests (4 tests)
 
 ### Linting & Formatting
-**Status:** No linters currently configured.
+**Status:** ✅ Fully configured with Ruff and mypy
 
-**Recommended tools:**
+**Tools Configured:**
+- **Ruff** - Fast, comprehensive linter and formatter (replaces Flake8, Black, isort, pyupgrade)
+- **mypy** - Static type checker with strict mode enabled
+- **Pre-commit hook** - Automatically runs all checks before commits
+
+**Configuration:**
+- All settings in `pyproject.toml`
+- Line length: 100 characters
+- Target Python: 3.14
+- Strict type checking enabled
+- Import sorting configured
+
+**Commands:**
 ```bash
-# Install formatting tools
-pip install ruff black mypy
+# Run all linting checks
+ruff check src/ tests/
 
-# Run ruff (fast linter)
-ruff check src/
+# Auto-fix linting issues
+ruff check --fix src/ tests/
 
-# Format code with black
-black src/
+# Format code
+ruff format src/ tests/
 
-# Type checking with mypy
+# Type checking
 mypy src/
+
+# Run all checks (what pre-commit hook runs)
+ruff format --check src/ tests/ && ruff check src/ tests/ && mypy src/ && pytest
 ```
+
+**Pre-commit Hook:**
+The repository has a git pre-commit hook installed at `.git/hooks/pre-commit` that automatically:
+1. Checks code formatting
+2. Runs linter checks
+3. Runs type checking
+4. Runs test suite
+
+If any check fails, the commit is blocked. The hook activates automatically on `git commit`.
 
 ### Dependency Management
 ```bash

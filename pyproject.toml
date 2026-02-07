@@ -1,0 +1,92 @@
+[project]
+name = "orgstats"
+version = "1.0.0"
+description = "Analyze Emacs Org-mode archive files for task statistics"
+requires-python = ">=3.14"
+
+[tool.ruff]
+# Line length matching AGENTS.md guidelines
+line-length = 100
+target-version = "py314"
+
+# Exclude directories
+exclude = [
+    ".git",
+    "__pycache__",
+    "dev",
+    ".pytest_cache",
+    "htmlcov",
+    ".agent-shell",
+]
+
+[tool.ruff.lint]
+# Enable comprehensive rule sets
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "SIM",    # flake8-simplify
+    "RET",    # flake8-return
+    "ARG",    # flake8-unused-arguments
+    "PTH",    # flake8-use-pathlib
+    "PL",     # pylint
+    "RUF",    # ruff-specific rules
+]
+
+# Never enforce these rules
+ignore = [
+    "E501",    # line too long (handled by formatter)
+    "PLR2004", # magic value comparisons (ok for simple constants)
+    "PTH123",  # open() is fine for CLI arg processing
+]
+
+[tool.ruff.lint.isort]
+# Import sorting configuration
+force-single-line = false
+lines-after-imports = 2
+
+[tool.ruff.lint.per-file-ignores]
+# Tests can be more lenient
+"tests/**/*.py" = [
+    "PTH118",  # os.path.join is fine in tests
+    "PTH120",  # os.path.dirname is fine in tests
+    "PLC0415", # imports don't need to be at top level in tests
+    "PLW1510", # subprocess.run check argument not critical in tests
+    "RUF059",  # unused unpacked variables are ok in tests
+]
+
+[tool.ruff.format]
+# Use double quotes (matching AGENTS.md guidelines)
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.mypy]
+# Strict mode configuration
+python_version = "3.14"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+# Per-module options
+[[tool.mypy.overrides]]
+module = "orgparse"
+ignore_missing_imports = true

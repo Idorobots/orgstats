@@ -1,12 +1,13 @@
 """Tests for the normalize() function."""
 
-import sys
 import os
+import sys
+
 
 # Add src directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from core import normalize, MAP
+from core import normalize
 
 
 def test_normalize_basic():
@@ -35,7 +36,14 @@ def test_normalize_strips_whitespace():
 
 def test_normalize_removes_punctuation():
     """Test that punctuation is removed."""
-    tags = {"tag.with.dots", "tag:with:colons", "tag!exclaim", "tag,comma", "tag;semicolon", "tag?question"}
+    tags = {
+        "tag.with.dots",
+        "tag:with:colons",
+        "tag!exclaim",
+        "tag,comma",
+        "tag;semicolon",
+        "tag?question",
+    }
     result = normalize(tags)
     assert "tagwithdots" in result
     assert "tagwithcolons" in result
@@ -107,7 +115,7 @@ def test_normalize_all_map_entries():
         "computernetworks": "networking",
         "maintenance": "refactoring",
     }
-    
+
     for original, expected in test_cases.items():
         result = normalize({original})
         assert expected in result, f"Expected {original} to map to {expected}"

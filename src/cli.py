@@ -2,37 +2,48 @@
 """CLI interface for orgstats - Org-mode archive file analysis."""
 
 import sys
+from typing import Any
+
 import orgparse
-from core import analyze, clean, TAGS, HEADING, BODY
+
+from core import BODY, HEADING, TAGS, analyze, clean
 
 
 def main() -> None:
     """Main CLI entry point."""
-    nodes = []
+    nodes: list[Any] = []
 
     for name in sys.argv[1:]:
-        contents = ""
-        with open(name) as f:
+        with open(name, encoding="utf-8") as f:
             print("Processing " + name + "...")
 
             # NOTE Making the file parseable.
             contents = f.read().replace("24:00", "00:00")
 
             ns = orgparse.loads(contents)
-            if ns != None:
+            if ns is not None:
                 nodes = nodes + list(ns[1:])
 
     (total, done, tags, heading, body) = analyze(nodes)
 
     # Top skills
-    N = 100
-    order = lambda item: -item[1]
+    max_results = 100
+
+    def order_by_frequency(item: tuple[str, int]) -> int:
+        """Sort by frequency (descending)."""
+        return -item[1]
 
     print("\nTotal tasks: ", total)
     print("\nDone tasks: ", done)
-    print("\nTop tags:\n", list(sorted(clean(TAGS, tags).items(), key=order))[0:N])
-    print("\nTop words in headline:\n", list(sorted(clean(HEADING, heading).items(), key=order))[0:N])
-    print("\nTop words in body:\n", list(sorted(clean(BODY, body).items(), key=order))[0:N])
+    print("\nTop tags:\n", sorted(clean(TAGS, tags).items(), key=order_by_frequency)[0:max_results])
+    print(
+        "\nTop words in headline:\n",
+        sorted(clean(HEADING, heading).items(), key=order_by_frequency)[0:max_results],
+    )
+    print(
+        "\nTop words in body:\n",
+        sorted(clean(BODY, body).items(), key=order_by_frequency)[0:max_results],
+    )
 
 
 if __name__ == "__main__":
