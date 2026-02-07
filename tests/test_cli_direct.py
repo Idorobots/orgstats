@@ -93,26 +93,3 @@ def test_main_with_no_files_direct():
         sys.argv = original_argv
         sys.stdout = original_stdout
 
-
-def test_main_entry_point():
-    """Test the main.py entry point."""
-    # This will import and execute main.py's __main__ block indirectly
-    from main import main
-
-    original_argv = sys.argv
-    original_stdout = sys.stdout
-
-    try:
-        sys.stdout = StringIO()
-
-        fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
-        sys.argv = ["main.py", fixture_path]
-
-        main()
-
-        output = sys.stdout.getvalue()
-        assert "Processing" in output
-
-    finally:
-        sys.argv = original_argv
-        sys.stdout = original_stdout

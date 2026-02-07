@@ -13,12 +13,12 @@ pip install -r requirements.txt
 ## Usage
 
 ```bash
-python src/main.py <org-file> [<org-file> ...]
+python src/cli.py <org-file> [<org-file> ...]
 ```
 
 Example:
 ```bash
-python src/main.py examples/ARCHIVE_small
+python src/cli.py examples/ARCHIVE_small
 ```
 
 Output:
@@ -49,6 +49,5 @@ pytest --cov=src --cov-report=term-missing # With coverage
 ## Project Structure
 
 - `src/core.py` - Core analysis logic
-- `src/cli.py` - CLI interface
-- `src/main.py` - Entry point
-- `tests/` - Test suite (78 tests, 97% coverage)
+- `src/cli.py` - CLI interface and entry point
+- `tests/` - Test suite (92 tests, 97% coverage)

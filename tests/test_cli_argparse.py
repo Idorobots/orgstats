@@ -13,7 +13,7 @@ FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 def test_argparse_help():
     """Test --help output."""
     result = subprocess.run(
-        [sys.executable, "src/main.py", "--help"],
+        [sys.executable, "src/cli.py", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -33,7 +33,7 @@ def test_argparse_max_results_long():
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", "--max-results", "5", fixture_path],
+        [sys.executable, "src/cli.py", "--max-results", "5", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -49,7 +49,7 @@ def test_argparse_max_results_short():
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", "-n", "10", fixture_path],
+        [sys.executable, "src/cli.py", "-n", "10", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -65,7 +65,7 @@ def test_argparse_exclude_tags():
     stopwords_path = os.path.join(FIXTURES_DIR, "stopwords_tags.txt")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", "--exclude-tags", stopwords_path, fixture_path],
+        [sys.executable, "src/cli.py", "--exclude-tags", stopwords_path, fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -82,7 +82,7 @@ def test_argparse_exclude_heading():
     stopwords_path = os.path.join(FIXTURES_DIR, "stopwords_heading.txt")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", "--exclude-heading", stopwords_path, fixture_path],
+        [sys.executable, "src/cli.py", "--exclude-heading", stopwords_path, fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -98,7 +98,7 @@ def test_argparse_exclude_body():
     stopwords_path = os.path.join(FIXTURES_DIR, "stopwords_body.txt")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", "--exclude-body", stopwords_path, fixture_path],
+        [sys.executable, "src/cli.py", "--exclude-body", stopwords_path, fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -118,7 +118,7 @@ def test_argparse_all_options():
     result = subprocess.run(
         [
             sys.executable,
-            "src/main.py",
+            "src/cli.py",
             "--max-results",
             "20",
             "--exclude-tags",
@@ -143,7 +143,7 @@ def test_argparse_invalid_max_results():
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", "--max-results", "not-a-number", fixture_path],
+        [sys.executable, "src/cli.py", "--max-results", "not-a-number", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -160,7 +160,7 @@ def test_argparse_missing_stopwords_file():
     nonexistent_file = os.path.join(FIXTURES_DIR, "does_not_exist.txt")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", "--exclude-tags", nonexistent_file, fixture_path],
+        [sys.executable, "src/cli.py", "--exclude-tags", nonexistent_file, fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -176,7 +176,7 @@ def test_argparse_empty_stopwords_file():
     empty_file = os.path.join(FIXTURES_DIR, "stopwords_empty.txt")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", "--exclude-tags", empty_file, fixture_path],
+        [sys.executable, "src/cli.py", "--exclude-tags", empty_file, fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -194,7 +194,7 @@ def test_argparse_backward_compatibility():
 
     # Old style: just filenames as positional arguments
     result = subprocess.run(
-        [sys.executable, "src/main.py", fixture1, fixture2],
+        [sys.executable, "src/cli.py", fixture1, fixture2],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -209,7 +209,7 @@ def test_argparse_backward_compatibility():
 def test_argparse_no_files_provided():
     """Test behavior when no files are provided."""
     result = subprocess.run(
-        [sys.executable, "src/main.py"],
+        [sys.executable, "src/cli.py"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -224,7 +224,7 @@ def test_argparse_options_before_files():
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", "-n", "50", fixture_path],
+        [sys.executable, "src/cli.py", "-n", "50", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -239,7 +239,7 @@ def test_argparse_options_after_files():
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", fixture_path, "-n", "50"],
+        [sys.executable, "src/cli.py", fixture_path, "-n", "50"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,

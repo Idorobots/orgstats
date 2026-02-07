@@ -15,7 +15,7 @@ def test_cli_runs_successfully():
     fixture_path = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", fixture_path],
+        [sys.executable, "src/cli.py", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -33,7 +33,7 @@ def test_cli_with_multiple_files():
     fixture2 = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", fixture1, fixture2],
+        [sys.executable, "src/cli.py", fixture1, fixture2],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -50,7 +50,7 @@ def test_cli_outputs_statistics():
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", fixture_path],
+        [sys.executable, "src/cli.py", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -69,7 +69,7 @@ def test_cli_with_archive_small():
     archive_path = os.path.join(PROJECT_ROOT, "examples", "ARCHIVE_small")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", archive_path],
+        [sys.executable, "src/cli.py", archive_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -102,7 +102,7 @@ def test_cli_handles_24_00_time():
     fixture_path = os.path.join(FIXTURES_DIR, "edge_cases.org")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", fixture_path],
+        [sys.executable, "src/cli.py", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -116,7 +116,7 @@ def test_cli_handles_24_00_time():
 def test_cli_no_arguments():
     """Test CLI behavior with no arguments."""
     result = subprocess.run(
-        [sys.executable, "src/main.py"], cwd=PROJECT_ROOT, capture_output=True, text=True
+        [sys.executable, "src/cli.py"], cwd=PROJECT_ROOT, capture_output=True, text=True
     )
 
     # Should complete without error even with no files
@@ -128,7 +128,7 @@ def test_cli_tag_filtering():
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "src/main.py", fixture_path],
+        [sys.executable, "src/cli.py", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
