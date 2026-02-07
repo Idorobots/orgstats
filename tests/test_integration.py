@@ -69,7 +69,7 @@ def test_integration_multiple_tags():
     assert total == 3
     assert done == 2  # Two DONE, one TODO
 
-    # Check tag mappings (tags now contain Frequency objects)
+    # Check tag mappings
     # Test -> testing, WebDev -> webdev -> frontend, Unix -> unix -> linux
     assert "testing" in tags
     assert "frontend" in tags
@@ -96,7 +96,7 @@ def test_integration_edge_cases():
     # Only properly formatted tags like :NoBody: are parsed
     # NoBody tag should be present
     assert "nobody" in tags
-    assert tags["nobody"] == 1  # Uses Frequency.__eq__(int)
+    assert tags["nobody"] == 1
 
     # Check that special characters in heading are handled
     assert "task" in heading
@@ -200,7 +200,7 @@ def test_integration_frequency_sorting():
 
     total, done, tags, heading, words = analyze(nodes)
 
-    # Sort tags by frequency (descending) - now with Frequency objects
+    # Sort tags by frequency (descending)
     sorted_tags = sorted(tags.items(), key=lambda item: -item[1].total)
 
     # Should have at least one tag

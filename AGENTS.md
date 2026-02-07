@@ -177,6 +177,8 @@ pip freeze > requirements.txt
 - Minimize dependencies - only add when truly necessary
 - Self-documenting code over excessive comments
 - Avoid using the `Any` type as much as possible. Avoid changing any existing types to `Any`.
+- Avoid adding comments explaining which method of a class is used (things like `# Uses Frequency.__eq__(int)`).
+- Avoid adding updates to comments (`now with extra functionality`), prefer to skip the addition or rewrite the comment if the change is significant.
 
 ### Python Style
 
