@@ -50,7 +50,7 @@ def test_analyze_single_done_task():
     assert total == 1
     assert done == 1
     assert "testing" in tags
-    assert tags["testing"] == 1
+    assert tags["testing"] == 1  # Uses Frequency.__eq__(int)
 
 
 def test_analyze_single_todo_task():
@@ -88,7 +88,7 @@ def test_analyze_tag_frequencies():
 
     total, done, tags, heading, words = analyze(nodes)
 
-    assert tags["python"] == 3
+    assert tags["python"] == 3  # Uses Frequency.__eq__(int)
     assert tags["testing"] == 1
 
 
@@ -102,7 +102,7 @@ def test_analyze_heading_word_frequencies():
 
     total, done, tags, heading, words = analyze(nodes)
 
-    assert heading["implement"] == 2
+    assert heading["implement"] == 2  # Uses Frequency.__eq__(int)
     assert heading["feature"] == 1
     assert heading["tests"] == 1
     assert heading["write"] == 1
@@ -118,7 +118,7 @@ def test_analyze_body_word_frequencies():
 
     total, done, tags, heading, words = analyze(nodes)
 
-    assert words["python"] == 2
+    assert words["python"] == 2  # Uses Frequency.__eq__(int)
     assert words["code"] == 1
     assert words["implementation"] == 1
     assert words["tests"] == 1
@@ -141,7 +141,7 @@ def test_analyze_repeated_tasks():
     # done = 2 (two DONE in repeated tasks)
     assert done == 2
     # Tags should be counted with count=2
-    assert tags["recurring"] == 2
+    assert tags["recurring"] == 2  # Uses Frequency.__eq__(int)
 
 
 def test_analyze_repeated_tasks_count_in_tags():
@@ -158,7 +158,7 @@ def test_analyze_repeated_tasks_count_in_tags():
     total, done, tags, heading, words = analyze(nodes)
 
     # count = max(final=0, repeats=2) = 2
-    assert tags["daily"] == 2
+    assert tags["daily"] == 2  # Uses Frequency.__eq__(int)
     assert heading["meeting"] == 2
 
 
@@ -171,7 +171,7 @@ def test_analyze_done_task_no_repeats():
 
     assert total == 1
     assert done == 1
-    assert tags["simple"] == 1
+    assert tags["simple"] == 1  # Uses Frequency.__eq__(int)
 
 
 def test_analyze_normalizes_tags():
@@ -228,7 +228,9 @@ def test_analyze_empty_body():
     total, done, tags, heading, words = analyze(nodes)
 
     # Empty body split() returns [''], which becomes {''} in normalize
-    assert words.get("", 0) >= 0  # May have empty string
+    # Frequency objects, so check if empty string exists
+    if "" in words:
+        assert words[""].total >= 0
 
 
 def test_analyze_returns_tuple():
@@ -249,7 +251,7 @@ def test_analyze_accumulates_across_nodes():
 
     total, done, tags, heading, words = analyze(nodes)
 
-    assert tags["python"] == 2
+    assert tags["python"] == 2  # Uses Frequency.__eq__(int)
     assert heading["task"] == 2
     assert heading["one"] == 1
     assert heading["two"] == 1
@@ -273,5 +275,5 @@ def test_analyze_max_count_logic():
 
     # Node1: count = max(1, 0) = 1
     # Node2: count = max(0, 2) = 2
-    assert tags["a"] == 1
+    assert tags["a"] == 1  # Uses Frequency.__eq__(int)
     assert tags["b"] == 2

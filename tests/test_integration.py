@@ -69,7 +69,7 @@ def test_integration_multiple_tags():
     assert total == 3
     assert done == 2  # Two DONE, one TODO
 
-    # Check tag mappings
+    # Check tag mappings (tags now contain Frequency objects)
     # Test -> testing, WebDev -> webdev -> frontend, Unix -> unix -> linux
     assert "testing" in tags
     assert "frontend" in tags
@@ -96,7 +96,7 @@ def test_integration_edge_cases():
     # Only properly formatted tags like :NoBody: are parsed
     # NoBody tag should be present
     assert "nobody" in tags
-    assert tags["nobody"] == 1
+    assert tags["nobody"] == 1  # Uses Frequency.__eq__(int)
 
     # Check that special characters in heading are handled
     assert "task" in heading
@@ -139,7 +139,7 @@ def test_integration_repeated_tasks():
     # Check tag normalization (Agile, GTD -> agile, gtd -> agile, agile)
     # GTD -> gtd -> agile (mapped)
     if "agile" in tags:
-        assert tags["agile"] > 0
+        assert tags["agile"].total > 0  # Check Frequency.total field
 
 
 def test_integration_archive_small():
@@ -200,15 +200,15 @@ def test_integration_frequency_sorting():
 
     total, done, tags, heading, words = analyze(nodes)
 
-    # Sort tags by frequency (descending)
-    sorted_tags = sorted(tags.items(), key=lambda item: -item[1])
+    # Sort tags by frequency (descending) - now with Frequency objects
+    sorted_tags = sorted(tags.items(), key=lambda item: -item[1].total)
 
     # Should have at least one tag
     assert len(sorted_tags) > 0
 
     # Check that sorting is correct (descending order)
     for i in range(len(sorted_tags) - 1):
-        assert sorted_tags[i][1] >= sorted_tags[i + 1][1]
+        assert sorted_tags[i][1].total >= sorted_tags[i + 1][1].total
 
 
 def test_integration_word_uniqueness():
@@ -230,7 +230,7 @@ def test_integration_no_tags_task():
     total, done, tags, heading, words = analyze(nodes)
 
     # Simple task has no tags
-    assert len(tags) == 0 or all(v == 0 for v in tags.values())
+    assert len(tags) == 0 or all(v.total == 0 for v in tags.values())
 
 
 def test_integration_all_fixtures_parseable():

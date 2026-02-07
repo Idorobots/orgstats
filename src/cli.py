@@ -6,7 +6,7 @@ import sys
 
 import orgparse
 
-from core import BODY, HEADING, TAGS, analyze, clean
+from core import BODY, HEADING, TAGS, Frequency, analyze, clean
 
 
 def load_stopwords(filepath: str | None) -> set[str]:
@@ -113,9 +113,9 @@ def main() -> None:
     # Analyze nodes
     (total, done, tags, heading, body) = analyze(nodes)
 
-    def order_by_frequency(item: tuple[str, int]) -> int:
+    def order_by_frequency(item: tuple[str, Frequency]) -> int:
         """Sort by frequency (descending)."""
-        return -item[1]
+        return -item[1].total
 
     # Display results
     print("\nTotal tasks: ", total)

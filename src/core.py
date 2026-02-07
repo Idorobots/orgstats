@@ -1,6 +1,46 @@
 """Core logic for orgstats - Org-mode archive file analysis."""
 
+from dataclasses import dataclass
+
 import orgparse
+
+
+@dataclass
+class Frequency:  # noqa: PLW1641
+    """Represents frequency statistics for a tag/word.
+
+    Attributes:
+        total: Total count for this item
+    """
+
+    total: int = 0
+
+    def __repr__(self) -> str:
+        """Return string representation of Frequency."""
+        return f"Frequency(total={self.total})"
+
+    def __eq__(self, other: object) -> bool:
+        """Compare with another Frequency or int.
+
+        Args:
+            other: Object to compare with (Frequency or int)
+
+        Returns:
+            True if equal, False otherwise
+        """
+        if isinstance(other, Frequency):
+            return self.total == other.total
+        if isinstance(other, int):
+            return self.total == other
+        return NotImplemented
+
+    def __int__(self) -> int:
+        """Convert to int for backward compatibility and comparison.
+
+        Returns:
+            The total count as an integer
+        """
+        return self.total
 
 
 MAP = {
@@ -63,7 +103,7 @@ def normalize(tags: set[str]) -> set[str]:
 
 def analyze(
     nodes: list[orgparse.node.OrgNode],
-) -> tuple[int, int, dict[str, int], dict[str, int], dict[str, int]]:
+) -> tuple[int, int, dict[str, Frequency], dict[str, Frequency], dict[str, Frequency]]:
     """Analyze org-mode nodes and extract task statistics.
 
     Args:
@@ -74,9 +114,9 @@ def analyze(
     """
     total = 0
     done = 0
-    tags: dict[str, int] = {}
-    heading: dict[str, int] = {}
-    words: dict[str, int] = {}
+    tags: dict[str, Frequency] = {}
+    heading: dict[str, Frequency] = {}
+    words: dict[str, Frequency] = {}
 
     for node in nodes:
         total = total + max(1, len(node.repeated_tasks))
@@ -88,22 +128,19 @@ def analyze(
         done = done + count
 
         for tag in normalize(node.tags):
-            if tag in tags:
-                tags[tag] = tags[tag] + count
-            else:
-                tags[tag] = count
+            if tag not in tags:
+                tags[tag] = Frequency()
+            tags[tag].total += count
 
         for tag in normalize(set(node.heading.split())):
-            if tag in heading:
-                heading[tag] = heading[tag] + count
-            else:
-                heading[tag] = count
+            if tag not in heading:
+                heading[tag] = Frequency()
+            heading[tag].total += count
 
         for tag in normalize(set(node.body.split())):
-            if tag in words:
-                words[tag] = words[tag] + count
-            else:
-                words[tag] = count
+            if tag not in words:
+                words[tag] = Frequency()
+            words[tag].total += count
 
     return (total, done, tags, heading, words)
 
@@ -257,7 +294,7 @@ BODY = HEADING.union(
 )
 
 
-def clean(disallowed: set[str], tags: dict[str, int]) -> dict[str, int]:
+def clean(disallowed: set[str], tags: dict[str, Frequency]) -> dict[str, Frequency]:
     """Remove tags from the disallowed set (stop words).
 
     Args:
