@@ -2,7 +2,6 @@
 """CLI interface for orgstats - Org-mode archive file analysis."""
 
 import sys
-from typing import Any
 
 import orgparse
 
@@ -11,7 +10,7 @@ from core import BODY, HEADING, TAGS, analyze, clean
 
 def main() -> None:
     """Main CLI entry point."""
-    nodes: list[Any] = []
+    nodes: list[orgparse.node.OrgNode] = []
 
     for name in sys.argv[1:]:
         with open(name, encoding="utf-8") as f:

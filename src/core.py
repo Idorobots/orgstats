@@ -1,6 +1,6 @@
 """Core logic for orgstats - Org-mode archive file analysis."""
 
-from typing import Any
+import orgparse
 
 
 MAP = {
@@ -61,7 +61,9 @@ def normalize(tags: set[str]) -> set[str]:
     return {mapped(MAP, t) for t in norm}
 
 
-def analyze(nodes: list[Any]) -> tuple[int, int, dict[str, int], dict[str, int], dict[str, int]]:
+def analyze(
+    nodes: list[orgparse.node.OrgNode],
+) -> tuple[int, int, dict[str, int], dict[str, int], dict[str, int]]:
     """Analyze org-mode nodes and extract task statistics.
 
     Args:
