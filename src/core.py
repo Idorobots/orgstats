@@ -254,9 +254,15 @@ TAGS = {
     "comp",
     "computer",
     "uni",
+    "out",
+    "home",
+    "exam",
+    "note",
+    "learn",
     "homework",
     "test",
     "blog",
+    "plan",
     "lecture",
     "due",
     "cleaning",
@@ -266,6 +272,7 @@ TAGS = {
     "englishvocabulary",
     "lifehacking",
     "tinkering",
+    "speakingenglish",
 }
 
 
@@ -395,6 +402,12 @@ BODY = HEADING.union(
         "(",
         ")",
         "[2022-07-05",
+        "+1w]",
+        "(define",
+        "//",
+        "i'm",
+        "0)",
+        "[2019-02-09",
     }
 )
 
