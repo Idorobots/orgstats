@@ -3,7 +3,7 @@
 
 import sys
 import orgparse
-from core import analyze, clean, TAGS, HEADING, WORDS
+from core import analyze, clean, TAGS, HEADING, BODY
 
 
 def main() -> None:
@@ -22,15 +22,17 @@ def main() -> None:
             if ns != None:
                 nodes = nodes + list(ns[1:])
 
-    (total, done, tags, heading, words) = analyze(nodes)
+    (total, done, tags, heading, body) = analyze(nodes)
 
     # Top skills
     N = 100
+    order = lambda item: -item[1]
+
     print("\nTotal tasks: ", total)
     print("\nDone tasks: ", done)
-    print("\nTop tags:\n", list(sorted(clean(TAGS, tags).items(), key=lambda item: -item[1]))[0:N])
-    print("\nTop words in headline:\n", list(sorted(clean(HEADING, heading).items(), key=lambda item: -item[1]))[0:N])
-    print("\nTop words in body:\n", list(sorted(clean(WORDS, words).items(), key=lambda item: -item[1]))[0:N])
+    print("\nTop tags:\n", list(sorted(clean(TAGS, tags).items(), key=order))[0:N])
+    print("\nTop words in headline:\n", list(sorted(clean(HEADING, heading).items(), key=order))[0:N])
+    print("\nTop words in body:\n", list(sorted(clean(BODY, body).items(), key=order))[0:N])
 
 
 if __name__ == "__main__":

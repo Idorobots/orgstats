@@ -24,11 +24,11 @@ MAP = {
 
 def mapped(mapping: dict[str, str], t: str) -> str:
     """Map a tag to its canonical form using the provided mapping.
-    
+
     Args:
         mapping: Dictionary mapping tags to their canonical forms
         t: Tag to map
-        
+
     Returns:
         Canonical form if found in mapping, otherwise the original tag
     """
@@ -41,10 +41,10 @@ def mapped(mapping: dict[str, str], t: str) -> str:
 def normalize(tags: set[str]) -> set[str]:
     """Normalize tags by lowercasing, stripping whitespace, removing punctuation,
     and mapping to canonical forms.
-    
+
     Args:
         tags: Set of tags to normalize
-        
+
     Returns:
         Set of normalized and mapped tags
     """
@@ -61,10 +61,10 @@ def normalize(tags: set[str]) -> set[str]:
 
 def analyze(nodes: list[Any]) -> tuple[int, int, dict[str, int], dict[str, int], dict[str, int]]:
     """Analyze org-mode nodes and extract task statistics.
-    
+
     Args:
         nodes: List of org-mode nodes from orgparse
-        
+
     Returns:
         Tuple of (total_tasks, done_tasks, tag_frequencies, heading_word_frequencies, body_word_frequencies)
     """
@@ -118,7 +118,7 @@ HEADING = {
 }
 
 
-WORDS = HEADING.union({
+BODY = HEADING.union({
     "end", "logbook", "cancelled", "scheduled", "suspended", "it", "this", "do", "is", "no", "not", "that", "all",
     "but", "be", "use", "now", "will", "an", "i", "as", "or", "by", "did", "can", "->", "are", "was", "[x]", "meh", "more",
     "until", "+", "using", "when", "into", "only", "at", "it's", "have", "about", "just", "2", "etc", "get", "didn't",
@@ -130,14 +130,14 @@ WORDS = HEADING.union({
 })
 
 
-def clean(allowed: set[str], tags: dict[str, int]) -> dict[str, int]:
-    """Remove tags from the allowed set (stop words).
-    
+def clean(disallowed: set[str], tags: dict[str, int]) -> dict[str, int]:
+    """Remove tags from the disallowed set (stop words).
+
     Args:
-        allowed: Set of tags to filter out (stop words)
+        disallowed: Set of tags to filter out (stop words)
         tags: Dictionary of tag frequencies
-        
+
     Returns:
-        Dictionary with allowed tags removed
+        Dictionary with disallowed tags removed
     """
-    return {t: tags[t] for t in tags if t not in allowed}
+    return {t: tags[t] for t in tags if t not in disallowed}

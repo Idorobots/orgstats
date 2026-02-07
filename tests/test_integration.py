@@ -7,7 +7,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 import orgparse
-from core import analyze, clean, TAGS, HEADING, WORDS
+from core import analyze, clean, TAGS, HEADING, BODY
 
 # Path to fixtures directory
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
@@ -178,7 +178,7 @@ def test_integration_clean_filters_stopwords():
     # Apply cleaning
     cleaned_tags = clean(TAGS, tags)
     cleaned_heading = clean(HEADING, heading)
-    cleaned_words = clean(WORDS, words)
+    cleaned_words = clean(BODY, words)
     
     # Stop words should be removed
     for stop_word in TAGS:
@@ -187,7 +187,7 @@ def test_integration_clean_filters_stopwords():
     for stop_word in HEADING:
         assert stop_word not in cleaned_heading
     
-    for stop_word in WORDS:
+    for stop_word in BODY:
         assert stop_word not in cleaned_words
 
 
