@@ -153,6 +153,8 @@ poetry add <package>
 - Avoid adding comments unless the behavior is not obivous.
 - Avoid adding updates to comments (`now with extra functionality`), prefer to skip the addition or rewrite the comment if the change is significant.
 - Avoid mocking in tests as much as possible.
+- Avoid using default function arguments values.
+- Target test coverage is 90% or above.
 
 ### Python Style
 

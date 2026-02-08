@@ -63,10 +63,10 @@ def test_argparse_max_results_short():
 def test_argparse_exclude_tags():
     """Test --exclude-tags with custom file."""
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
-    stopwords_path = os.path.join(FIXTURES_DIR, "stopwords_tags.txt")
+    exclude_list_path = os.path.join(FIXTURES_DIR, "exclude_list_tags.txt")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--exclude-tags", stopwords_path, fixture_path],
+        [sys.executable, "-m", "orgstats", "--exclude-tags", exclude_list_path, fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -80,10 +80,10 @@ def test_argparse_exclude_tags():
 def test_argparse_exclude_heading():
     """Test --exclude-heading with custom file."""
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
-    stopwords_path = os.path.join(FIXTURES_DIR, "stopwords_heading.txt")
+    exclude_list_path = os.path.join(FIXTURES_DIR, "exclude_list_heading.txt")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--exclude-heading", stopwords_path, fixture_path],
+        [sys.executable, "-m", "orgstats", "--exclude-heading", exclude_list_path, fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -96,10 +96,10 @@ def test_argparse_exclude_heading():
 def test_argparse_exclude_body():
     """Test --exclude-body with custom file."""
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
-    stopwords_path = os.path.join(FIXTURES_DIR, "stopwords_body.txt")
+    exclude_list_path = os.path.join(FIXTURES_DIR, "exclude_list_body.txt")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--exclude-body", stopwords_path, fixture_path],
+        [sys.executable, "-m", "orgstats", "--exclude-body", exclude_list_path, fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -112,9 +112,9 @@ def test_argparse_exclude_body():
 def test_argparse_all_options():
     """Test using all options together."""
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
-    tags_path = os.path.join(FIXTURES_DIR, "stopwords_tags.txt")
-    heading_path = os.path.join(FIXTURES_DIR, "stopwords_heading.txt")
-    body_path = os.path.join(FIXTURES_DIR, "stopwords_body.txt")
+    tags_path = os.path.join(FIXTURES_DIR, "exclude_list_tags.txt")
+    heading_path = os.path.join(FIXTURES_DIR, "exclude_list_heading.txt")
+    body_path = os.path.join(FIXTURES_DIR, "exclude_list_body.txt")
 
     result = subprocess.run(
         [
@@ -156,8 +156,8 @@ def test_argparse_invalid_max_results():
     assert "invalid int value" in result.stderr or "error" in result.stderr.lower()
 
 
-def test_argparse_missing_stopwords_file():
-    """Test non-existent stopwords file."""
+def test_argparse_missing_exclude_list_file():
+    """Test non-existent exclude_list file."""
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
     nonexistent_file = os.path.join(FIXTURES_DIR, "does_not_exist.txt")
 
@@ -172,10 +172,10 @@ def test_argparse_missing_stopwords_file():
     assert "not found" in result.stderr
 
 
-def test_argparse_empty_stopwords_file():
-    """Test empty stopwords file."""
+def test_argparse_empty_exclude_list_file():
+    """Test empty exclude_list file."""
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
-    empty_file = os.path.join(FIXTURES_DIR, "stopwords_empty.txt")
+    empty_file = os.path.join(FIXTURES_DIR, "exclude_list_empty.txt")
 
     result = subprocess.run(
         [sys.executable, "-m", "orgstats", "--exclude-tags", empty_file, fixture_path],
@@ -184,7 +184,7 @@ def test_argparse_empty_stopwords_file():
         text=True,
     )
 
-    # Empty stopwords file means no filtering (returns empty set, so defaults are used)
+    # Empty exclude_list file means no filtering (returns empty set, so defaults are used)
     assert result.returncode == 0
     assert "Processing" in result.stdout
 
@@ -252,24 +252,24 @@ def test_argparse_options_after_files():
     assert "Processing" in result.stdout
 
 
-def test_load_stopwords_function():
-    """Test load_stopwords helper function directly."""
-    from orgstats.cli import load_stopwords
+def test_load_exclude_list_function():
+    """Test load_exclude_list helper function directly."""
+    from orgstats.cli import load_exclude_list
 
     # Test with None
-    result = load_stopwords(None)
+    result = load_exclude_list(None)
     assert result == set()
 
     # Test with actual file
-    stopwords_path = os.path.join(FIXTURES_DIR, "stopwords_tags.txt")
-    result = load_stopwords(stopwords_path)
+    exclude_list_path = os.path.join(FIXTURES_DIR, "exclude_list_tags.txt")
+    result = load_exclude_list(exclude_list_path)
     assert "python" in result
     assert "testing" in result
     assert "debugging" in result
 
     # Test with empty file
-    empty_path = os.path.join(FIXTURES_DIR, "stopwords_empty.txt")
-    result = load_stopwords(empty_path)
+    empty_path = os.path.join(FIXTURES_DIR, "exclude_list_empty.txt")
+    result = load_exclude_list(empty_path)
     assert result == set()
 
 

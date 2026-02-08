@@ -232,13 +232,13 @@ def parse_gamify_exp(gamify_exp_value: str | None) -> int | None:
     return None
 
 
-def normalize(tags: set[str], mapping: dict[str, str] = MAP) -> set[str]:
+def normalize(tags: set[str], mapping: dict[str, str]) -> set[str]:
     """Normalize tags by lowercasing, stripping whitespace, removing punctuation,
     and mapping to canonical forms.
 
     Args:
         tags: Set of tags to normalize
-        mapping: Dictionary mapping tags to canonical forms (default: MAP)
+        mapping: Dictionary mapping tags to canonical forms
 
     Returns:
         Set of normalized and mapped tags
@@ -366,12 +366,12 @@ def compute_time_ranges(
             time_ranges[item].update(timestamp)
 
 
-def analyze(nodes: list[orgparse.node.OrgNode], mapping: dict[str, str] = MAP) -> AnalysisResult:
+def analyze(nodes: list[orgparse.node.OrgNode], mapping: dict[str, str]) -> AnalysisResult:
     """Analyze org-mode nodes and extract task statistics.
 
     Args:
         nodes: List of org-mode nodes from orgparse
-        mapping: Dictionary mapping tags to canonical forms (default: MAP)
+        mapping: Dictionary mapping tags to canonical forms
 
     Returns:
         AnalysisResult containing task counts and frequency dictionaries

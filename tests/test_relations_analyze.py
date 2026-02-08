@@ -28,7 +28,7 @@ class MockRepeatedTask:
 def test_analyze_empty_nodes_has_empty_relations():
     """Test analyze with empty nodes returns empty relations."""
     nodes = []
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert result.tag_relations == {}
     assert result.heading_relations == {}
@@ -40,7 +40,7 @@ def test_analyze_single_tag_no_relations():
     node = MockNode(todo="DONE", tags=["Python"], heading="", body="")
     nodes = [node]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert result.tag_relations == {}
 
@@ -50,7 +50,7 @@ def test_analyze_two_tags_bidirectional_relation():
     node = MockNode(todo="DONE", tags=["Python", "Testing"], heading="", body="")
     nodes = [node]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert "python" in result.tag_relations
     assert "testing" in result.tag_relations
@@ -64,7 +64,7 @@ def test_analyze_three_tags_all_relations():
     node = MockNode(todo="DONE", tags=["TagA", "TagB", "TagC"], heading="", body="")
     nodes = [node]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert "taga" in result.tag_relations
     assert "tagb" in result.tag_relations
@@ -87,7 +87,7 @@ def test_analyze_no_self_relations():
     node = MockNode(todo="DONE", tags=["Python", "Testing"], heading="", body="")
     nodes = [node]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert "python" not in result.tag_relations["python"].relations
     assert "testing" not in result.tag_relations["testing"].relations
@@ -98,7 +98,7 @@ def test_analyze_relations_normalized():
     node = MockNode(todo="DONE", tags=["Test", "SysAdmin"], heading="", body="")
     nodes = [node]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {"test": "testing", "sysadmin": "devops"})
 
     # "Test" -> "test" -> "testing" (mapped)
     # "SysAdmin" -> "sysadmin" -> "devops" (mapped)
@@ -115,7 +115,7 @@ def test_analyze_relations_accumulate():
         MockNode(todo="DONE", tags=["Python", "Testing"], heading="", body=""),
     ]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert result.tag_relations["python"].relations["testing"] == 2
     assert result.tag_relations["testing"].relations["python"] == 2
@@ -132,7 +132,7 @@ def test_analyze_relations_with_repeated_tasks():
     )
     nodes = [node]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     # count = max(0, 2) = 2
     assert result.tag_relations["daily"].relations["meeting"] == 2
@@ -144,7 +144,7 @@ def test_analyze_heading_relations():
     node = MockNode(todo="DONE", tags=[], heading="Implement feature", body="")
     nodes = [node]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert "implement" in result.heading_relations
     assert "feature" in result.heading_relations
@@ -157,7 +157,7 @@ def test_analyze_body_relations():
     node = MockNode(todo="DONE", tags=[], heading="", body="Python code implementation")
     nodes = [node]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert "python" in result.body_relations
     assert "code" in result.body_relations
@@ -178,7 +178,7 @@ def test_analyze_relations_independent():
     )
     nodes = [node]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     # Tag relations: Python-Testing
     assert result.tag_relations["python"].relations.get("testing") == 1
@@ -206,7 +206,7 @@ def test_analyze_relations_with_different_counts():
         MockNode(todo="TODO", tags=["TagA", "TagB"], heading="", body="", repeated_tasks=repeated2),
     ]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     # First node: count = max(1, 1) = 1
     # Second node: count = max(0, 3) = 3
@@ -223,7 +223,7 @@ def test_analyze_relations_mixed_tags():
         MockNode(todo="DONE", tags=["Testing", "Debugging"], heading="", body=""),
     ]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     # Python appears with Testing (1x) and Debugging (1x)
     assert result.tag_relations["python"].relations["testing"] == 1
@@ -243,7 +243,7 @@ def test_analyze_relations_empty_tags():
     node = MockNode(todo="DONE", tags=[], heading="Task", body="Content")
     nodes = [node]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert result.tag_relations == {}
 
@@ -253,7 +253,7 @@ def test_analyze_four_tags_six_relations():
     node = MockNode(todo="DONE", tags=["A", "B", "C", "D"], heading="", body="")
     nodes = [node]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     # With 4 tags, we should have C(4,2) = 6 unique pairs
     # A-B, A-C, A-D, B-C, B-D, C-D
@@ -278,7 +278,7 @@ def test_analyze_relations_result_structure():
     node = MockNode(todo="DONE", tags=["Python", "Testing"], heading="", body="")
     nodes = [node]
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert isinstance(result.tag_relations["python"], Relations)
     assert result.tag_relations["python"].name == "python"

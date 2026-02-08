@@ -27,7 +27,7 @@ def test_integration_simple_file():
     """Test with the simple.org fixture."""
     nodes = load_org_file("simple.org")
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert result.total_tasks == 1
     assert result.done_tasks == 1
@@ -37,7 +37,7 @@ def test_integration_single_task():
     """Test with single_task.org fixture."""
     nodes = load_org_file("single_task.org")
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert result.total_tasks == 1
     assert result.done_tasks == 1
@@ -61,7 +61,16 @@ def test_integration_multiple_tags():
     """Test with multiple_tags.org fixture."""
     nodes = load_org_file("multiple_tags.org")
 
-    result = analyze(nodes)
+    result = analyze(
+        nodes,
+        {
+            "test": "testing",
+            "webdev": "frontend",
+            "unix": "linux",
+            "sysadmin": "devops",
+            "maintenance": "refactoring",
+        },
+    )
 
     assert result.total_tasks == 3
     assert result.done_tasks == 2  # Two DONE, one TODO
@@ -83,7 +92,7 @@ def test_integration_edge_cases():
     """Test with edge_cases.org fixture."""
     nodes = load_org_file("edge_cases.org")
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     # All three tasks are DONE
     assert result.total_tasks == 3
@@ -106,7 +115,7 @@ def test_integration_24_00_time_handling():
 
     # Should not crash when parsing file with 24:00
     # (file has 24:00 which is replaced with 00:00)
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert result.total_tasks > 0
     assert result.done_tasks > 0
@@ -116,7 +125,7 @@ def test_integration_empty_file():
     """Test with empty.org fixture (TODO tasks)."""
     nodes = load_org_file("empty.org")
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert result.total_tasks == 1
     assert result.done_tasks == 0  # TODO, not DONE
@@ -126,7 +135,7 @@ def test_integration_repeated_tasks():
     """Test with repeated_tasks.org fixture."""
     nodes = load_org_file("repeated_tasks.org")
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     # Note: orgparse may or may not parse repeated tasks from LOGBOOK
     # This depends on orgparse's implementation
@@ -151,7 +160,7 @@ def test_integration_archive_small():
         if ns is not None:
             nodes = list(ns[1:])
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     # All tasks in ARCHIVE_small are DONE
     assert result.total_tasks > 0
@@ -173,7 +182,7 @@ def test_integration_clean_filters_stopwords():
     """Test that clean() properly filters stop words from real data."""
     nodes = load_org_file("multiple_tags.org")
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     # Apply cleaning
     cleaned_tags = clean(TAGS, result.tag_frequencies)
@@ -195,7 +204,7 @@ def test_integration_frequency_sorting():
     """Test that results can be sorted by frequency."""
     nodes = load_org_file("multiple_tags.org")
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     # Sort tags by frequency (descending)
     sorted_tags = sorted(result.tag_frequencies.items(), key=lambda item: -item[1].total)
@@ -212,7 +221,7 @@ def test_integration_word_uniqueness():
     """Test that words in headings/body are deduplicated per task."""
     nodes = load_org_file("single_task.org")
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     # Words should be deduplicated within each task
     # but counted across tasks
@@ -224,7 +233,7 @@ def test_integration_no_tags_task():
     """Test task without any tags."""
     nodes = load_org_file("simple.org")
 
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     # Simple task has no tags
     assert len(result.tag_frequencies) == 0 or all(
@@ -246,7 +255,7 @@ def test_integration_all_fixtures_parseable():
     for fixture in fixtures:
         nodes = load_org_file(fixture)
         # Should not raise any exceptions
-        result = analyze(nodes)
+        result = analyze(nodes, {})
 
         # Basic sanity checks
         assert result.total_tasks >= 0

@@ -11,14 +11,14 @@ import orgparse
 from orgstats.core import BODY, HEADING, MAP, TAGS, Frequency, Relations, TimeRange, analyze, clean
 
 
-def load_stopwords(filepath: str | None) -> set[str]:
-    """Load stopwords from a file (one word per line).
+def load_exclude_list(filepath: str | None) -> set[str]:
+    """Load exclude list from a file (one word per line).
 
     Args:
-        filepath: Path to stopwords file, or None for empty set
+        filepath: Path to exclude list file, or None for empty set
 
     Returns:
-        Set of stopwords (lowercased, stripped)
+        Set of excluded tags (lowercased, stripped)
 
     Raises:
         SystemExit: If file cannot be read
@@ -30,7 +30,7 @@ def load_stopwords(filepath: str | None) -> set[str]:
         with open(filepath, encoding="utf-8") as f:
             return {line.strip().lower() for line in f if line.strip()}
     except FileNotFoundError:
-        print(f"Error: Stopwords file '{filepath}' not found", file=sys.stderr)
+        print(f"Error: Exclude list file '{filepath}' not found", file=sys.stderr)
         sys.exit(1)
     except PermissionError:
         print(f"Error: Permission denied for '{filepath}'", file=sys.stderr)
@@ -242,13 +242,12 @@ def main() -> None:
         sys.exit(1)
 
     # Load mapping from file or use default
-    custom_mapping = load_mapping(args.mapping)
-    mapping = custom_mapping if custom_mapping else MAP
+    mapping = load_mapping(args.mapping) or MAP
 
-    # Load stopwords from files or use defaults
-    exclude_tags = load_stopwords(args.exclude_tags) or TAGS
-    exclude_heading = load_stopwords(args.exclude_heading) or HEADING
-    exclude_body = load_stopwords(args.exclude_body) or BODY
+    # Load exclude lists from files or use defaults
+    exclude_tags = load_exclude_list(args.exclude_tags) or TAGS
+    exclude_heading = load_exclude_list(args.exclude_heading) or HEADING
+    exclude_body = load_exclude_list(args.exclude_body) or BODY
 
     # Process org files
     nodes: list[orgparse.node.OrgNode] = []

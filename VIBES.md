@@ -166,11 +166,13 @@ The `max_relations` limit should be applied after the list of relations is filte
 
 Comment: AI is back to its old ways of running tests manually despite an explicit instruction not to do that. It is also experiencing LSP errors which it "learned" to ignore, probably taking precious quota.
 
-## Configurable normalization mapping
+## ✅ Configurable normalization mapping
 Currently the `MAP` used by `normalize` to normalize the word names is hard-coded. Please make that value configurable and overridable via a CLI parameter called `--mapping`.
 The mapping parameter should take a JSON file mapping words to other words (effectively a `dict[str, str]`). The default value should be the current `MAP` value. That value should then be passed to `analyze()` and used for the normalization logic without affecting the computation logic.
 
 Please make sure to test this functionality and the new CLI parameter.
+
+Comment: AI got a bit fixated at error handling etc, but did the job alright.
 
 ## Refactor hardcoded lists
 Move the `MAP` value and the `TAGS`, `HEADING` and `BODY` exclusion lists to the cli.py module as they are no longer tightly-coupled to the core module.

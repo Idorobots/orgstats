@@ -197,7 +197,7 @@ def test_cli_tasks_output_format():
 def test_cli_tasks_combined_options():
     """Test --tasks with other CLI options."""
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
-    stopwords_path = os.path.join(FIXTURES_DIR, "stopwords_tags.txt")
+    exclude_list_path = os.path.join(FIXTURES_DIR, "exclude_list_tags.txt")
 
     result = subprocess.run(
         [
@@ -209,7 +209,7 @@ def test_cli_tasks_combined_options():
             "-n",
             "5",
             "--exclude-tags",
-            stopwords_path,
+            exclude_list_path,
             fixture_path,
         ],
         cwd=PROJECT_ROOT,

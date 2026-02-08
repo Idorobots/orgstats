@@ -92,7 +92,7 @@ def test_difficulty_simple_tasks():
     node = MockNode(
         todo="DONE", tags=["Python"], heading="Task", body="", properties={"gamify_exp": "5"}
     )
-    result = analyze([node])
+    result = analyze([node], {})
 
     assert result.tag_frequencies["python"].total == 1
     assert result.tag_frequencies["python"].simple == 1
@@ -105,7 +105,7 @@ def test_difficulty_simple_edge_case():
     node = MockNode(
         todo="DONE", tags=["Testing"], heading="", body="", properties={"gamify_exp": "9"}
     )
-    result = analyze([node])
+    result = analyze([node], {})
 
     assert result.tag_frequencies["testing"].simple == 1
     assert result.tag_frequencies["testing"].regular == 0
@@ -119,7 +119,7 @@ def test_difficulty_regular_tasks():
         MockNode(todo="DONE", tags=["Tag2"], heading="", body="", properties={"gamify_exp": "15"}),
         MockNode(todo="DONE", tags=["Tag3"], heading="", body="", properties={"gamify_exp": "19"}),
     ]
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert result.tag_frequencies["tag1"].regular == 1
     assert result.tag_frequencies["tag2"].regular == 1
@@ -135,7 +135,7 @@ def test_difficulty_hard_tasks():
             todo="DONE", tags=["Hard3"], heading="", body="", properties={"gamify_exp": "100"}
         ),
     ]
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert result.tag_frequencies["hard1"].hard == 1
     assert result.tag_frequencies["hard2"].hard == 1
@@ -145,7 +145,7 @@ def test_difficulty_hard_tasks():
 def test_difficulty_missing_gamify_exp():
     """Test that tasks without gamify_exp default to regular."""
     node = MockNode(todo="DONE", tags=["Default"], heading="", body="", properties={})
-    result = analyze([node])
+    result = analyze([node], {})
 
     assert result.tag_frequencies["default"].total == 1
     assert result.tag_frequencies["default"].simple == 0
@@ -158,7 +158,7 @@ def test_difficulty_invalid_gamify_exp():
     node = MockNode(
         todo="DONE", tags=["Invalid"], heading="", body="", properties={"gamify_exp": "invalid"}
     )
-    result = analyze([node])
+    result = analyze([node], {})
 
     assert result.tag_frequencies["invalid"].regular == 1
     assert result.tag_frequencies["invalid"].simple == 0
@@ -182,7 +182,7 @@ def test_difficulty_tuple_format():
             todo="DONE", tags=["Hard"], heading="", body="", properties={"gamify_exp": "(25 30)"}
         ),
     ]
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert result.tag_frequencies["simple"].simple == 1
     assert result.tag_frequencies["regular"].regular == 1
@@ -204,7 +204,7 @@ def test_difficulty_repeated_tasks():
         repeated_tasks=repeated,
         properties={"gamify_exp": "5"},
     )
-    result = analyze([node])
+    result = analyze([node], {})
 
     assert result.tag_frequencies["recurring"].total == 3
     assert result.tag_frequencies["recurring"].simple == 3
@@ -221,7 +221,7 @@ def test_difficulty_applies_to_heading_words():
         body="",
         properties={"gamify_exp": "5"},
     )
-    result = analyze([node])
+    result = analyze([node], {})
 
     assert result.heading_frequencies["implement"].simple == 1
     assert result.heading_frequencies["feature"].simple == 1
@@ -232,7 +232,7 @@ def test_difficulty_applies_to_body_words():
     node = MockNode(
         todo="DONE", tags=[], heading="", body="Python code", properties={"gamify_exp": "25"}
     )
-    result = analyze([node])
+    result = analyze([node], {})
 
     assert result.body_frequencies["python"].hard == 1
     assert result.body_frequencies["code"].hard == 1
@@ -247,7 +247,7 @@ def test_difficulty_all_fields_updated():
         body="Unit testing code",
         properties={"gamify_exp": "15"},
     )
-    result = analyze([node])
+    result = analyze([node], {})
 
     assert result.tag_frequencies["testing"].regular == 1
     assert result.heading_frequencies["write"].regular == 1
@@ -268,7 +268,7 @@ def test_difficulty_accumulation():
             todo="DONE", tags=["Python"], heading="", body="", properties={"gamify_exp": "25"}
         ),
     ]
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert result.tag_frequencies["python"].total == 3
     assert result.tag_frequencies["python"].simple == 1
@@ -284,7 +284,7 @@ def test_difficulty_boundary_values():
         MockNode(todo="DONE", tags=["C"], heading="", body="", properties={"gamify_exp": "19"}),
         MockNode(todo="DONE", tags=["D"], heading="", body="", properties={"gamify_exp": "20"}),
     ]
-    result = analyze(nodes)
+    result = analyze(nodes, {})
 
     assert result.tag_frequencies["a"].simple == 1
     assert result.tag_frequencies["b"].regular == 1
@@ -323,7 +323,7 @@ def test_difficulty_with_zero_count():
     node = MockNode(
         todo="TODO", tags=["Pending"], heading="", body="", properties={"gamify_exp": "5"}
     )
-    result = analyze([node])
+    result = analyze([node], {})
 
     assert result.tag_frequencies["pending"].total == 0
     assert result.tag_frequencies["pending"].simple == 0

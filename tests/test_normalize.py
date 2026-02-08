@@ -6,7 +6,7 @@ from orgstats.core import normalize
 def test_normalize_basic():
     """Test basic tag normalization."""
     tags = {"Testing", "Python"}
-    result = normalize(tags)
+    result = normalize(tags, {})
     assert "testing" in result
     assert "python" in result
 
@@ -14,14 +14,14 @@ def test_normalize_basic():
 def test_normalize_lowercasing():
     """Test that tags are lowercased."""
     tags = {"UPPERCASE", "MixedCase", "lowercase"}
-    result = normalize(tags)
+    result = normalize(tags, {})
     assert result == {"uppercase", "mixedcase", "lowercase"}
 
 
 def test_normalize_strips_whitespace():
     """Test that whitespace is stripped."""
     tags = {" spaces ", "  tabs\t", "\nNewline"}
-    result = normalize(tags)
+    result = normalize(tags, {})
     assert "spaces" in result
     assert "tabs" in result
     assert "newline" in result
@@ -37,7 +37,7 @@ def test_normalize_removes_punctuation():
         "tag;semicolon",
         "tag?question",
     }
-    result = normalize(tags)
+    result = normalize(tags, {})
     assert "tagwithdots" in result
     assert "tagwithcolons" in result
     assert "tagexclaim" in result
@@ -49,7 +49,9 @@ def test_normalize_removes_punctuation():
 def test_normalize_applies_mapping():
     """Test that tags are mapped to canonical forms."""
     tags = {"test", "sysadmin", "unix", "webdev"}
-    result = normalize(tags)
+    result = normalize(
+        tags, {"test": "testing", "sysadmin": "devops", "unix": "linux", "webdev": "frontend"}
+    )
     assert "testing" in result
     assert "devops" in result
     assert "linux" in result
@@ -59,7 +61,7 @@ def test_normalize_applies_mapping():
 def test_normalize_unmapped_tags_unchanged():
     """Test that unmapped tags remain unchanged."""
     tags = {"unmapped", "custom"}
-    result = normalize(tags)
+    result = normalize(tags, {})
     assert "unmapped" in result
     assert "custom" in result
 
@@ -67,21 +69,23 @@ def test_normalize_unmapped_tags_unchanged():
 def test_normalize_empty_set():
     """Test normalizing an empty set."""
     tags = set()
-    result = normalize(tags)
+    result = normalize(tags, {})
     assert result == set()
 
 
 def test_normalize_single_tag():
     """Test normalizing a single tag."""
     tags = {"SingleTag"}
-    result = normalize(tags)
+    result = normalize(tags, {})
     assert result == {"singletag"}
 
 
 def test_normalize_complex_scenario():
     """Test normalization with multiple transformations."""
     tags = {"Test.", ":SysAdmin:", "  UNIX  ", "webdev!"}
-    result = normalize(tags)
+    result = normalize(
+        tags, {"test": "testing", "webdev": "frontend", "sysadmin": "devops", "unix": "linux"}
+    )
     # test. -> test -> testing (mapped)
     # :sysadmin: -> sysadmin -> devops (mapped)
     # unix -> linux (mapped)
@@ -110,21 +114,21 @@ def test_normalize_all_map_entries():
     }
 
     for original, expected in test_cases.items():
-        result = normalize({original})
+        result = normalize({original}, test_cases)
         assert expected in result, f"Expected {original} to map to {expected}"
 
 
 def test_normalize_preserves_set_type():
     """Test that normalize returns a set."""
     tags = {"tag1", "tag2"}
-    result = normalize(tags)
+    result = normalize(tags, {})
     assert isinstance(result, set)
 
 
 def test_normalize_handles_duplicate_normalization():
     """Test that multiple tags normalizing to the same value result in one entry."""
     tags = {"test", "Test", "TEST"}
-    result = normalize(tags)
+    result = normalize(tags, {"test": "testing"})
     # All should normalize to "test" then map to "testing"
     assert len(result) == 1
     assert "testing" in result
@@ -133,7 +137,7 @@ def test_normalize_handles_duplicate_normalization():
 def test_normalize_empty_string():
     """Test normalizing tags including empty string."""
     tags = {"", "valid"}
-    result = normalize(tags)
+    result = normalize(tags, {})
     assert "" in result
     assert "valid" in result
 
@@ -160,6 +164,6 @@ def test_normalize_with_empty_mapping():
 def test_normalize_default_mapping_parameter():
     """Test that default mapping parameter uses MAP."""
     tags = {"test", "sysadmin"}
-    result = normalize(tags)
+    result = normalize(tags, {"test": "testing", "sysadmin": "devops"})
     assert "testing" in result
     assert "devops" in result
