@@ -217,8 +217,9 @@ def test_argparse_no_files_provided():
         text=True,
     )
 
-    # With argparse and no files, it should still work (empty list)
-    assert result.returncode == 0
+    # It should complain than at least one FILE is required.
+    assert result.returncode == 2
+    assert "the following arguments are required:" in result.stderr
 
 
 def test_argparse_options_before_files():

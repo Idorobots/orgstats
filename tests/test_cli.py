@@ -119,8 +119,8 @@ def test_cli_no_arguments():
         [sys.executable, "-m", "orgstats"], cwd=PROJECT_ROOT, capture_output=True, text=True
     )
 
-    # Should complete without error even with no files
-    assert result.returncode == 0
+    # Should report that at least one file is required.
+    assert result.returncode == 2
 
 
 def test_cli_tag_filtering():

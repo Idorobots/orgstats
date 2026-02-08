@@ -49,7 +49,7 @@ def parse_arguments() -> argparse.Namespace:
 
     parser.add_argument(
         "files",
-        nargs="*",
+        nargs="+",
         metavar="FILE",
         help="Org-mode archive files to analyze",
     )

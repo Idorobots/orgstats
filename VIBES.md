@@ -67,6 +67,11 @@ While the quota ran out I added Poetry as a build system for this project, but c
 
 Comment: The AI did well making all the changes correctly. It made a lot fewer command calls to validate that each step works, as expected, but still halucinated the need to verify runnig the application three different styles "for backwards compatibility".
 
+## ❌ Default help message
+When no files are provided to the CLI command the usage message should be printed instead of the empty results.
+
+Comment: After planning the change I figured it would take the AI longer than applying the change manually, so I aborted the plan execution.
+
 ## Devcontainers setup
 A docker container for running the repo commands in.
 

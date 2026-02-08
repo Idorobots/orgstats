@@ -67,29 +67,6 @@ def test_main_with_multiple_files_direct():
         sys.stdout = original_stdout
 
 
-def test_main_with_no_files_direct():
-    """Test main() with no files."""
-    from orgstats.cli import main
-
-    original_argv = sys.argv
-    original_stdout = sys.stdout
-
-    try:
-        sys.stdout = StringIO()
-        sys.argv = ["cli.py"]
-
-        main()
-
-        output = sys.stdout.getvalue()
-
-        # Should still run and produce output
-        assert "Total tasks:" in output
-
-    finally:
-        sys.argv = original_argv
-        sys.stdout = original_stdout
-
-
 def test_main_with_tasks_parameter():
     """Test main function with --tasks parameter."""
     from orgstats.cli import main
