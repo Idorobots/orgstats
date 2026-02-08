@@ -1,6 +1,7 @@
 """Tests for the clean() function."""
 
-from orgstats.core import BODY, HEADING, TAGS, Frequency, clean
+from orgstats.cli import BODY, HEADING, TAGS
+from orgstats.core import Frequency, clean
 
 
 def freq_dict_from_ints(d: dict[str, int]) -> dict[str, Frequency]:

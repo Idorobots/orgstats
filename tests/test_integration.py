@@ -4,7 +4,8 @@ import os
 
 import orgparse
 
-from orgstats.core import BODY, HEADING, TAGS, analyze, clean
+from orgstats.cli import BODY, HEADING, TAGS
+from orgstats.core import analyze, clean
 
 
 # Path to fixtures directory

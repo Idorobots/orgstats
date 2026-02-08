@@ -1,6 +1,7 @@
 """Tests for the mapped() function."""
 
-from orgstats.core import MAP, mapped
+from orgstats.cli import MAP
+from orgstats.core import mapped
 
 
 def test_mapped_found_in_mapping():
