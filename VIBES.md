@@ -140,7 +140,7 @@ Please don't adjust the `__repr__` functions and instead compute these values as
 
 Comment: The AI did good. No comments here.
 
-## Relations in command output
+## ✅*️ Relations in command output
 Add a new CLI parameter called `--max_relations` that takes an integer and defaults to 3.
 Display the top `max_relations` relations for each of the top results in the output.
 Each relation can be a separate line following each tag line, but make sure to indent these so they are visually distinct.
@@ -158,12 +158,59 @@ algorithms: count=1208, earliest=2013-01-07, latest=2024-12-11, top_day=2014-08-
 
 Add some rudimentary tests for this functionality (not very complex, just sanity check if the output looks a-ok).
 
-## Compute relations separately for different difficulties
+Comment: The AI did a good job, but was flabbergasted by the format chosen for the relation display. It did notice, that we're not filtering the relations the same way as we do for frequency computation and proposed it should do that. It also had the linter complain about too many parameters to a function, so it "refactored" it by wrapping some of the params into a tuple.
 
-## Compute separate time ranges separately for different difficulties
+## Relations filtering
+Tag names in relations should be filtered the same way as for freequencies computations, make sure that the exclude lists are applied to the relations "cleaning" the list before displaying the values.
+The `max_relations` limit should be applied after the list of relations is filtered.
 
-## Only compute the stuff that's needed
-Split analyze to produce results only for tags/heading/body and select that with the CLI switch.
+## Configurable normalization mapping
+Currently the `MAP` used by `normalize` to normalize the word names is hard-coded. Please make that value configurable and overridable via a CLI parameter called `--mapping`.
+The mapping parameter should take a JSON file mapping words to other words (effectively a `dict[str, str]`). The default value should be the current `MAP` value. That value should then be passed to `analyze()` and used for the normalization logic without affecting the computation logic.
+
+Please make sure to test this functionality and the new CLI parameter.
+
+## Refactor hardcoded lists
+Move the `MAP` value and the `TAGS`, `HEADING` and `BODY` exclusion lists to the cli.py module as they are no longer tightly-coupled to the core module.
+
+## Only consider the relevant tasks
+The `analyze()` function currently makes a distinction on the task type based on the value of the `gamify_exp` field which it then uses to compute frequencies for all types. I'd like to move that distinction logic outside of the `analyze()` function, so that it accepts a pre-filtered list of nodes which are then analyzed.
+
+To achieve that we first need to remove the `simple`, `regular` and `hard` fileds from the `Frequency` class and only leave the `total` field. The `compute_frequencies()` function needs to only update the `total` count.
+
+The `gamify_exp` parsing should be extracted into a separate helper function called `gamify_exp()`. It should take an `orgparse.OrgNode` and return the integer representing the value of the `gamify_exp` property, or `None` if none is present on a node. Make sure to add this functionality.
+
+The CLI parameter `--tasks` will now determine the function used for filtering the task list. Here is the logic behind this parameter:
+- When it is set to `total`, the filter function should leave all the nodes in.
+- When it is set to `simple`, the function should leave only the nodes that have a `gamify_exp()` of 10 or lower (currently considered to be "simple" tasks).
+- When it is set to `regular`, the function should leave only the nodes that have a `gamify_exp()` of between 11 and 20 (currently considered to be "regular" tasks).
+- When it is set to `hard`, the function should leave only the nodes that have a `gamify_exp()` of 21 or above (currently considered to be "hard" tasks).
+The parameter will take on more values in the future, but don't worry about that just yet.
+
+The node list passed to `analyze()` must be filtered before being passed into the function according to the value of the `--tasks` parameter. That can be done as part of the `main()` function. Please simplify the test cases for the `analyze()` function with the assumption that the node filtering will be performed beforehand.
+Make sure to test the functionality of the node list filtering.
+
+## Rename --tasks
+Rename the `--tasks` CLI parameter to `--filter` and the values that in can take to `simple`, `regular`, `hard` and `all`. The values should determine the behaviour the same as before, only the name of the `total` value is changed to `all`. The default value for this parameter should now be `all`.
+
+## Only consider the relevant data
+Only compute the statistics in tags or heading or body, depending on the value of the `--show` CLI parameter.
+To achieve that, simplify the `AnalysisResult` class to only have the following fields:
+- `total_tasks`
+- `done_tasks`
+- `tag_frequencies`
+- `tag_relations`
+- `tag_time_ranges`
+The definitions of these fields should be unchanged.
+The `analyze()` function should be updated to take a flag that determines which datum of a task should be considered, either the `tags`, the `heading` or the `body`. The computation performed by `analyze()` should only be peformed on the selected datum and only the values computed for that datum should be returned as part of the `AnalysisResult`.
+
+## Combine exclusion lists
+Combine the CLI parameters called `--exclude-*` into one parameter that accepts a single list of words. That list should be used for the tags & relations filtering. The default value should be a list containing the values from `TAGS` combined with the values from `HEADING` and `BODY` (in the case of `BODY` use the values up to and including the `""` value).
+Adjust the tests accordingly.
+
+## More filters
+- gamify_exp above
+- gamify_exp under
 
 ## hasattr() slop
 Remove it and use OrgNode instead of Mocks.
