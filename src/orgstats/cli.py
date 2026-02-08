@@ -3,10 +3,11 @@
 
 import argparse
 import sys
+from collections.abc import Callable
 
 import orgparse
 
-from orgstats.core import BODY, HEADING, TAGS, Frequency, analyze, clean
+from orgstats.core import BODY, HEADING, TAGS, Frequency, TimeRange, analyze, clean
 
 
 def load_stopwords(filepath: str | None) -> set[str]:
@@ -33,6 +34,58 @@ def load_stopwords(filepath: str | None) -> set[str]:
     except PermissionError:
         print(f"Error: Permission denied for '{filepath}'", file=sys.stderr)
         sys.exit(1)
+
+
+def get_top_day_info(time_range: TimeRange | None) -> tuple[str, int] | None:
+    """Extract top day and its count from TimeRange.
+
+    Args:
+        time_range: TimeRange object or None
+
+    Returns:
+        Tuple of (date_string, count) or None if no timeline data
+    """
+    if not time_range or not time_range.timeline:
+        return None
+    max_count = max(time_range.timeline.values())
+    top_day = min(d for d, count in time_range.timeline.items() if count == max_count)
+    return (top_day.isoformat(), max_count)
+
+
+def display_category(
+    category_name: str,
+    data: tuple[dict[str, Frequency], dict[str, TimeRange], set[str]],
+    max_results: int,
+    order_fn: Callable[[tuple[str, Frequency]], tuple[int, int]],
+) -> None:
+    """Display formatted output for a single category.
+
+    Args:
+        category_name: Display name for the category (e.g., "tags", "heading words")
+        data: Tuple of (frequencies, time_ranges, exclude_set)
+        max_results: Maximum number of results to display
+        order_fn: Function to sort items by
+    """
+    frequencies, time_ranges, exclude_set = data
+    cleaned = clean(exclude_set, frequencies)
+    sorted_items = sorted(cleaned.items(), key=order_fn)[0:max_results]
+
+    print(f"\nTop {category_name}:")
+    for name, freq in sorted_items:
+        time_range = time_ranges.get(name)
+
+        parts = [f"count={freq.total}"]
+
+        if time_range and time_range.earliest:
+            parts.append(f"earliest={time_range.earliest.date().isoformat()}")
+            if time_range.latest:
+                parts.append(f"latest={time_range.latest.date().isoformat()}")
+
+            top_day_info = get_top_day_info(time_range)
+            if top_day_info:
+                parts.append(f"top_day={top_day_info[0]} ({top_day_info[1]})")
+
+        print(f"  {name}: {', '.join(parts)}")
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -93,6 +146,15 @@ def parse_arguments() -> argparse.Namespace:
         help="Task type to display and sort by: simple, regular, hard, or total (default: total)",
     )
 
+    parser.add_argument(
+        "--show",
+        type=str,
+        choices=["tags", "heading", "body"],
+        default="tags",
+        metavar="CATEGORY",
+        help="Category to display: tags, heading, or body (default: tags)",
+    )
+
     return parser.parse_args()
 
 
@@ -129,73 +191,32 @@ def main() -> None:
         secondary = freq.total
         return (-primary, -secondary)
 
-    def format_item(item: tuple[str, Frequency]) -> tuple[str, int]:
-        """Format item to show only the selected task type count."""
-        tag, freq = item
-        count = getattr(freq, args.tasks)
-        return (tag, count)
-
     # Display results
     print("\nTotal tasks: ", result.total_tasks)
     print("\nDone tasks: ", result.done_tasks)
-    print(
-        "\nTop tags:\n",
-        [
-            format_item(item)
-            for item in sorted(
-                clean(exclude_tags, result.tag_frequencies).items(), key=order_by_frequency
-            )[0 : args.max_results]
-        ],
-    )
-    print(
-        "\nTop words in headline:\n",
-        [
-            format_item(item)
-            for item in sorted(
-                clean(exclude_heading, result.heading_frequencies).items(), key=order_by_frequency
-            )[0 : args.max_results]
-        ],
-    )
-    print(
-        "\nTop words in body:\n",
-        [
-            format_item(item)
-            for item in sorted(
-                clean(exclude_body, result.body_frequencies).items(), key=order_by_frequency
-            )[0 : args.max_results]
-        ],
-    )
 
-    # Display time range information for top entries
-    print("\nTag time ranges:")
-    for tag, _ in sorted(
-        clean(exclude_tags, result.tag_frequencies).items(), key=order_by_frequency
-    )[0 : args.max_results]:
-        time_range = result.tag_time_ranges.get(tag)
-        if time_range:
-            print(f"  {tag}: {time_range}")
-        else:
-            print(f"  {tag}: TimeRange(earliest=None, latest=None, top_day=None)")
-
-    print("\nHeading word time ranges:")
-    for word, _ in sorted(
-        clean(exclude_heading, result.heading_frequencies).items(), key=order_by_frequency
-    )[0 : args.max_results]:
-        time_range = result.heading_time_ranges.get(word)
-        if time_range:
-            print(f"  {word}: {time_range}")
-        else:
-            print(f"  {word}: TimeRange(earliest=None, latest=None, top_day=None)")
-
-    print("\nBody word time ranges:")
-    for word, _ in sorted(
-        clean(exclude_body, result.body_frequencies).items(), key=order_by_frequency
-    )[0 : args.max_results]:
-        time_range = result.body_time_ranges.get(word)
-        if time_range:
-            print(f"  {word}: {time_range}")
-        else:
-            print(f"  {word}: TimeRange(earliest=None, latest=None, top_day=None)")
+    # Display selected category
+    if args.show == "tags":
+        display_category(
+            "tags",
+            (result.tag_frequencies, result.tag_time_ranges, exclude_tags),
+            args.max_results,
+            order_by_frequency,
+        )
+    elif args.show == "heading":
+        display_category(
+            "heading words",
+            (result.heading_frequencies, result.heading_time_ranges, exclude_heading),
+            args.max_results,
+            order_by_frequency,
+        )
+    else:
+        display_category(
+            "body words",
+            (result.body_frequencies, result.body_time_ranges, exclude_body),
+            args.max_results,
+            order_by_frequency,
+        )
 
 
 if __name__ == "__main__":

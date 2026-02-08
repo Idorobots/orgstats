@@ -120,15 +120,31 @@ Do not modify the CLI output just yet.
 
 Comment: The AI implemented the change, while I was cleaning some slop resulting in broken test cases. The AI decided it wasn't responsible for these, so it left them as is. When asked to address the failures afterwards, it reinstituted the slop.
 
-## Times in command output
+## ✅ Times in command output
 Display the earliest, latest & most "intense" day for the top `max_results` entries for tags, heading and body.
 To achieve that, update the `TimeRange.__repr__` function to find the most "intense" day (highest number of entries related to that tag on that day) and show it as part of the representation `top_day=<date>`. When there are multiple days with equal number of occurrences, select the first one. If there are no occurrences in the timeline, show `None` as the top day.
 The time range results should follow the "Top tags" etc sections in the output and be limited to just the `max_results` entries, same as the top tags sections.
 This will cause a lot of output to be generated, so modify the default `max_results` parameter value to 10 instead of 100.
 Please add some rudimentary tests for this new CLI output, but don't bother with very complex test cases.
 
+Comment: The AI took the "don't bother" part very seriously and didn't write any tests for the CLI output of the time ranges. It did add some tests for the representation of `TimeRange` though.
+
 ## CLI switch to select tags, heading and body
-Compute all, display just one of these, default to tags.
+Add a CLI parameter called `--show` that takes either `tags`, `heading` or `body` with a default of `tags`.
+This switch will control what the CLI is displaying - either top tags & time range or heading or body.
+The application should compute all the values regardless of the switch (we will address that later).
+In either case, both the top frequencies and time ranges should be shown.
+
+The output should be adjusted to list each tag on a separate line with frequency, earliest and latest dates and the top day plus the count on that day.
+Please don't adjust the `__repr__` functions and instead compute these values as part of the `cli.py` module for display purposes only.
+
+
+## Compute relations separately for different difficulties
+
+## Compute separate time ranges separately for different difficulties
+
+## Only compute the stuff that's needed
+Split analyze to produce results only for tags/heading/body and select that with the CLI switch.
 
 ## hasattr() slop
 Remove it and use OrgNode instead of Mocks.

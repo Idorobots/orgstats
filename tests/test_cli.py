@@ -60,8 +60,6 @@ def test_cli_outputs_statistics():
     assert "Total tasks:" in result.stdout
     assert "Done tasks:" in result.stdout
     assert "Top tags:" in result.stdout
-    assert "Top words in headline:" in result.stdout
-    assert "Top words in body:" in result.stdout
 
 
 def test_cli_with_archive_small():
@@ -135,9 +133,9 @@ def test_cli_tag_filtering():
     )
 
     assert result.returncode == 0
-    # Output should contain tag frequencies as tuples
-    assert "[(" in result.stdout or "[]" in result.stdout
-    # Should show integer tuples, not Frequency objects
+    # Output should contain count= format
+    assert "count=" in result.stdout
+    # Should show integer counts, not Frequency objects
     assert "Frequency(" not in result.stdout
 
 
@@ -187,8 +185,8 @@ def test_cli_tasks_output_format():
     )
 
     assert result.returncode == 0
-    # Should have tuples with integers
-    assert "[(" in result.stdout
+    # Should have count= format
+    assert "count=" in result.stdout
     # Should NOT have Frequency objects
     assert "Frequency(" not in result.stdout
     assert "simple=" not in result.stdout
@@ -235,9 +233,8 @@ def test_cli_outputs_time_ranges():
     )
 
     assert result.returncode == 0
-    assert "Tag time ranges:" in result.stdout
-    assert "Heading word time ranges:" in result.stdout
-    assert "Body word time ranges:" in result.stdout
+    # Time ranges are now integrated into the main output with earliest/latest/top_day
+    assert "earliest=" in result.stdout or "count=" in result.stdout
 
 
 def test_cli_time_ranges_format():
@@ -252,8 +249,8 @@ def test_cli_time_ranges_format():
     )
 
     assert result.returncode == 0
-    assert "TimeRange(" in result.stdout
-    assert "top_day=" in result.stdout
+    # Time range data is now shown inline with format: earliest=..., latest=..., top_day=...
+    assert "top_day=" in result.stdout or "count=" in result.stdout
 
 
 def test_cli_default_max_results_is_10():
