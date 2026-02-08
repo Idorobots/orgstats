@@ -160,9 +160,11 @@ Add some rudimentary tests for this functionality (not very complex, just sanity
 
 Comment: The AI did a good job, but was flabbergasted by the format chosen for the relation display. It did notice, that we're not filtering the relations the same way as we do for frequency computation and proposed it should do that. It also had the linter complain about too many parameters to a function, so it "refactored" it by wrapping some of the params into a tuple.
 
-## Relations filtering
+## ✅*️ Relations filtering
 Tag names in relations should be filtered the same way as for freequencies computations, make sure that the exclude lists are applied to the relations "cleaning" the list before displaying the values.
 The `max_relations` limit should be applied after the list of relations is filtered.
+
+Comment: AI is back to its old ways of running tests manually despite an explicit instruction not to do that. It is also experiencing LSP errors which it "learned" to ignore, probably taking precious quota.
 
 ## Configurable normalization mapping
 Currently the `MAP` used by `normalize` to normalize the word names is hard-coded. Please make that value configurable and overridable via a CLI parameter called `--mapping`.

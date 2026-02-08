@@ -98,6 +98,7 @@ poetry run task lint-fix
 ```
 
 - It is sufficient to run the validation command, there is no need to separately check that the application works.
+- The validation command will also run the newly introduced tests, no need to run them separately.
 - Validation should be run after applying multiple changes to avoid repeated checks.
 
 ### Linting & Formatting
