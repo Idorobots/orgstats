@@ -316,7 +316,7 @@ poetry run task check
 - Be concise and straight-to-the-point.
 - Avoid emojis and colorful language.
 - Do not summarize work done unless explicitly asked to do that.
-- When a file requires multiple changes, apply them all to the file in one go instead of performing each edit separately.
+- When a file requires multiple changes, apply them all to the file in a single tool call instead of performing each edit separately.
 
 ---
 
