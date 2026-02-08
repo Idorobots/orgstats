@@ -8,7 +8,7 @@ from collections.abc import Callable
 
 import orgparse
 
-from orgstats.core import Frequency, Relations, TimeRange, analyze, clean
+from orgstats.core import Frequency, Relations, TimeRange, analyze, clean, gamify_exp
 
 
 MAP = {
@@ -283,7 +283,7 @@ def display_category(
     data: tuple[dict[str, Frequency], dict[str, TimeRange], set[str], dict[str, Relations]],
     max_results: int,
     max_relations: int,
-    order_fn: Callable[[tuple[str, Frequency]], tuple[int, int]],
+    order_fn: Callable[[tuple[str, Frequency]], int],
 ) -> None:
     """Display formatted output for a single category.
 
@@ -327,6 +327,36 @@ def display_category(
 
             for related_name, count in sorted_relations:
                 print(f"    {related_name} ({count})")
+
+
+def filter_nodes(nodes: list[orgparse.node.OrgNode], task_type: str) -> list[orgparse.node.OrgNode]:
+    """Filter nodes based on task difficulty type.
+
+    Args:
+        nodes: List of org-mode nodes to filter
+        task_type: Type of tasks to include ("simple", "regular", "hard", or "total")
+
+    Returns:
+        Filtered list of nodes
+    """
+    if task_type == "total":
+        return nodes
+
+    filtered = []
+    for node in nodes:
+        exp = gamify_exp(node)
+
+        if exp is None:
+            if task_type == "regular":
+                filtered.append(node)
+        elif (
+            (task_type == "simple" and exp < 10)
+            or (task_type == "regular" and 10 <= exp < 20)
+            or (task_type == "hard" and exp >= 20)
+        ):
+            filtered.append(node)
+
+    return filtered
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -444,15 +474,15 @@ def main() -> None:
             if ns is not None:
                 nodes = nodes + list(ns[1:])
 
-    # Analyze nodes with custom mapping
-    result = analyze(nodes, mapping)
+    # Filter nodes based on task type
+    filtered_nodes = filter_nodes(nodes, args.tasks)
 
-    def order_by_frequency(item: tuple[str, Frequency]) -> tuple[int, int]:
-        """Sort by selected task type frequency (descending), then by total."""
-        freq = item[1]
-        primary = getattr(freq, args.tasks)
-        secondary = freq.total
-        return (-primary, -secondary)
+    # Analyze filtered nodes with custom mapping
+    result = analyze(filtered_nodes, mapping)
+
+    def order_by_total(item: tuple[str, Frequency]) -> int:
+        """Sort by total count (descending)."""
+        return -item[1].total
 
     # Display results
     print("\nTotal tasks: ", result.total_tasks)
@@ -465,7 +495,7 @@ def main() -> None:
             (result.tag_frequencies, result.tag_time_ranges, exclude_tags, result.tag_relations),
             args.max_results,
             args.max_relations,
-            order_by_frequency,
+            order_by_total,
         )
     elif args.show == "heading":
         display_category(
@@ -478,7 +508,7 @@ def main() -> None:
             ),
             args.max_results,
             args.max_relations,
-            order_by_frequency,
+            order_by_total,
         )
     else:
         display_category(
@@ -491,7 +521,7 @@ def main() -> None:
             ),
             args.max_results,
             args.max_relations,
-            order_by_frequency,
+            order_by_total,
         )
 
 

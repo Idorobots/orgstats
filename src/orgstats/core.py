@@ -12,22 +12,13 @@ class Frequency:  # noqa: PLW1641
 
     Attributes:
         total: Total count for this item
-        simple: Count of simple tasks (gamify_exp < 10)
-        regular: Count of regular tasks (10 <= gamify_exp < 20)
-        hard: Count of hard tasks (gamify_exp >= 20)
     """
 
     total: int = 0
-    simple: int = 0
-    regular: int = 0
-    hard: int = 0
 
     def __repr__(self) -> str:
         """Return string representation of Frequency."""
-        return (
-            f"Frequency(total={self.total}, simple={self.simple}, "
-            f"regular={self.regular}, hard={self.hard})"
-        )
+        return f"Frequency(total={self.total})"
 
     def __eq__(self, other: object) -> bool:
         """Compare with another Frequency or int.
@@ -39,12 +30,7 @@ class Frequency:  # noqa: PLW1641
             True if equal, False otherwise
         """
         if isinstance(other, Frequency):
-            return (
-                self.total == other.total
-                and self.simple == other.simple
-                and self.regular == other.regular
-                and self.hard == other.hard
-            )
+            return self.total == other.total
         if isinstance(other, int):
             return self.total == other
         return NotImplemented
@@ -213,6 +199,20 @@ def parse_gamify_exp(gamify_exp_value: str | None) -> int | None:
     return None
 
 
+def gamify_exp(node: orgparse.node.OrgNode) -> int | None:
+    """Extract gamify_exp value from an org-mode node.
+
+    Args:
+        node: Org-mode node to extract gamify_exp from
+
+    Returns:
+        Integer value of gamify_exp, or None if not present or invalid
+    """
+    gamify_exp_raw = node.properties.get("gamify_exp", None)
+    gamify_exp_str = str(gamify_exp_raw) if gamify_exp_raw is not None else None
+    return parse_gamify_exp(gamify_exp_str)
+
+
 def normalize(tags: set[str], mapping: dict[str, str]) -> set[str]:
     """Normalize tags by lowercasing, stripping whitespace, removing punctuation,
     and mapping to canonical forms.
@@ -265,27 +265,18 @@ def compute_relations(items: set[str], relations_dict: dict[str, Relations], cou
             )
 
 
-def compute_frequencies(
-    items: set[str], frequencies: dict[str, Frequency], count: int, difficulty: str
-) -> None:
+def compute_frequencies(items: set[str], frequencies: dict[str, Frequency], count: int) -> None:
     """Compute frequency statistics for a set of items.
 
     Args:
         items: Set of items (tags or words) to compute frequencies for
         frequencies: Dictionary to store/update Frequency objects
         count: Count to increment frequencies by (for repeated tasks)
-        difficulty: Task difficulty level ("simple", "regular", or "hard")
     """
     for item in items:
         if item not in frequencies:
             frequencies[item] = Frequency()
         frequencies[item].total += count
-        if difficulty == "simple":
-            frequencies[item].simple += count
-        elif difficulty == "regular":
-            frequencies[item].regular += count
-        else:
-            frequencies[item].hard += count
 
 
 def extract_timestamp(node: orgparse.node.OrgNode) -> list[datetime]:
@@ -378,26 +369,13 @@ def analyze(nodes: list[orgparse.node.OrgNode], mapping: dict[str, str]) -> Anal
 
         done = done + count
 
-        gamify_exp_raw = node.properties.get("gamify_exp", None)
-        gamify_exp_str = str(gamify_exp_raw) if gamify_exp_raw is not None else None
-        gamify_exp = parse_gamify_exp(gamify_exp_str)
-
-        if gamify_exp is None:
-            difficulty = "regular"
-        elif gamify_exp < 10:
-            difficulty = "simple"
-        elif gamify_exp < 20:
-            difficulty = "regular"
-        else:
-            difficulty = "hard"
-
         normalized_tags = normalize(node.tags, mapping)
         normalized_heading = normalize(set(node.heading.split()), mapping)
         normalized_body = normalize(set(node.body.split()), mapping)
 
-        compute_frequencies(normalized_tags, tags, count, difficulty)
-        compute_frequencies(normalized_heading, heading, count, difficulty)
-        compute_frequencies(normalized_body, words, count, difficulty)
+        compute_frequencies(normalized_tags, tags, count)
+        compute_frequencies(normalized_heading, heading, count)
+        compute_frequencies(normalized_body, words, count)
 
         compute_relations(normalized_tags, tag_relations, count)
         compute_relations(normalized_heading, heading_relations, count)

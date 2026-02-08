@@ -174,8 +174,10 @@ Please make sure to test this functionality and the new CLI parameter.
 
 Comment: AI got a bit fixated at error handling etc, but did the job alright. It did introduce default params not to have to modify all the test cases. I sloperated that myself not changing the net slop amount it seems.
 
-## Refactor hardcoded lists
+## ✅ Refactor hardcoded lists
 Move the `MAP` value and the `TAGS`, `HEADING` and `BODY` exclusion lists to the cli.py module as they are no longer tightly-coupled to the core module.
+
+Comment. This was easy enough, no comments here.
 
 ## Only consider the relevant tasks
 The `analyze()` function currently makes a distinction on the task type based on the value of the `gamify_exp` field which it then uses to compute frequencies for all types. I'd like to move that distinction logic outside of the `analyze()` function, so that it accepts a pre-filtered list of nodes which are then analyzed.
