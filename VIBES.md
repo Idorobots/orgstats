@@ -100,7 +100,7 @@ Please refactor the relevant tests to test the new function separately.
 
 Comment: The AI has done a good job, doing exactly what I asked for without any extra bits.
 
-## Skill time ranges
+## ✅ Skill time ranges
 I'd like to compute the time ranges for all tags/words.
 For that functionality, please add a new class called `TimeRange` with two fields `earliest`, `latest`. Both of these fields will be dates the tag was first and last encountered.
 The values for these field will come from the tasks stated completion times. That is, for repeated tasks, take the earliest task that is in `DONE` state (`repeated_task.after == "DONE"`).
@@ -109,7 +109,22 @@ If closed timestamp is not available, assume the scheduled time as the time of o
 For each such occurance, the tags time range should be updated so that the `earliest` timestamp represent the earliest date encountered in the data, while the `latest` timestamp represents the latest date encountered in the data.
 Do not modify the CLI output just yet.
 
-Comment: The AI explored the structure of `orgparse.OrgNode` and repeated tasks ignoring the details presented on the prompt.
+Comment: The AI explored the structure of `orgparse.OrgNode` and repeated tasks ignoring the details presented on the prompt. It did a good job nontheless.
+
+## ✅ Skill timeline
+Expand the `TimeRange` class with another field called `timeline`. This timeline will be used to chart a tag's occurrence over time.
+The `timeline` will be a list of all occurances of the task - the dates without the time component paired with an integer representing the count of occurances on that day. You can use a dictionary `dict[date, int]` to represent that. It makes sense to update the `TimeRange.update()` function to also maintain the occurrence list.
+Make sure that the timeline's granularity is a day, so two tasks occurring on the same day at different times should both increment the same position on the timeline.
+Make sure that repeated tasks are taken into account - each repeat should be reflected on the timeline.
+Do not modify the CLI output just yet.
+
+Comment: The AI implemented the change, while I was cleaning some slop resulting in broken test cases. The AI decided it wasn't responsible for these, so it left them as is. When asked to address the failures afterwards, it reinstituted the slop.
+
+## hasattr() slop
+Remove it and use OrgNode instead of Mocks.
+
+## Times in command output
+Display the earliest, latest & most "intense" day for the top `max_results` skills.
 
 ## Devcontainers setup
 A docker container for running the repo commands in.

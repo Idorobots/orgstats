@@ -1,6 +1,6 @@
 """Tests for the compute_time_ranges() function."""
 
-from datetime import datetime
+from datetime import date, datetime
 
 from orgstats.core import TimeRange, compute_time_ranges
 
@@ -191,3 +191,90 @@ def test_compute_time_ranges_normalized_tags():
     assert "python" in time_ranges
     assert "testing" in time_ranges
     assert "devops" in time_ranges
+
+
+def test_compute_time_ranges_timeline_single_timestamp():
+    """Test single timestamp creates timeline entry."""
+    items = {"python"}
+    time_ranges = {}
+    dt = datetime(2023, 10, 20, 14, 43)
+    timestamps = [dt]
+
+    compute_time_ranges(items, time_ranges, timestamps)
+
+    timeline = time_ranges["python"].timeline
+    assert len(timeline) == 1
+    assert timeline[date(2023, 10, 20)] == 1
+
+
+def test_compute_time_ranges_timeline_multiple_timestamps():
+    """Test multiple timestamps on different days create multiple timeline entries."""
+    items = {"python"}
+    time_ranges = {}
+    dt1 = datetime(2023, 10, 18, 9, 15)
+    dt2 = datetime(2023, 10, 19, 10, 0)
+    dt3 = datetime(2023, 10, 20, 14, 43)
+    timestamps = [dt1, dt2, dt3]
+
+    compute_time_ranges(items, time_ranges, timestamps)
+
+    timeline = time_ranges["python"].timeline
+    assert len(timeline) == 3
+    assert timeline[date(2023, 10, 18)] == 1
+    assert timeline[date(2023, 10, 19)] == 1
+    assert timeline[date(2023, 10, 20)] == 1
+
+
+def test_compute_time_ranges_timeline_same_day_timestamps():
+    """Test multiple timestamps on same day increment counter."""
+    items = {"python"}
+    time_ranges = {}
+    dt1 = datetime(2023, 10, 20, 9, 15)
+    dt2 = datetime(2023, 10, 20, 14, 43)
+    timestamps = [dt1, dt2]
+
+    compute_time_ranges(items, time_ranges, timestamps)
+
+    timeline = time_ranges["python"].timeline
+    assert len(timeline) == 1
+    assert timeline[date(2023, 10, 20)] == 2
+
+
+def test_compute_time_ranges_timeline_accumulates():
+    """Test multiple calls accumulate timeline correctly."""
+    items1 = {"python"}
+    items2 = {"python"}
+    time_ranges = {}
+    dt1 = datetime(2023, 10, 18, 9, 15)
+    dt2 = datetime(2023, 10, 18, 14, 30)
+    dt3 = datetime(2023, 10, 19, 10, 0)
+
+    compute_time_ranges(items1, time_ranges, [dt1])
+    compute_time_ranges(items2, time_ranges, [dt2, dt3])
+
+    timeline = time_ranges["python"].timeline
+    assert len(timeline) == 2
+    assert timeline[date(2023, 10, 18)] == 2
+    assert timeline[date(2023, 10, 19)] == 1
+
+
+def test_compute_time_ranges_timeline_multiple_items():
+    """Test multiple items all get timeline entries."""
+    items = {"python", "testing"}
+    time_ranges = {}
+    dt1 = datetime(2023, 10, 18, 9, 15)
+    dt2 = datetime(2023, 10, 19, 10, 0)
+    timestamps = [dt1, dt2]
+
+    compute_time_ranges(items, time_ranges, timestamps)
+
+    python_timeline = time_ranges["python"].timeline
+    testing_timeline = time_ranges["testing"].timeline
+
+    assert len(python_timeline) == 2
+    assert python_timeline[date(2023, 10, 18)] == 1
+    assert python_timeline[date(2023, 10, 19)] == 1
+
+    assert len(testing_timeline) == 2
+    assert testing_timeline[date(2023, 10, 18)] == 1
+    assert testing_timeline[date(2023, 10, 19)] == 1

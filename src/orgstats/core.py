@@ -1,6 +1,6 @@
 """Core logic for orgstats - Org-mode archive file analysis."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime
 
 import orgparse
@@ -82,23 +82,31 @@ class TimeRange:
     Attributes:
         earliest: Earliest timestamp this tag/word was encountered
         latest: Latest timestamp this tag/word was encountered
+        timeline: Dictionary mapping dates to occurrence counts
     """
 
     earliest: datetime | None = None
     latest: datetime | None = None
+    timeline: dict[date, int] = field(default_factory=dict)
 
     def __repr__(self) -> str:
         """Return string representation of TimeRange."""
         return f"TimeRange(earliest={self.earliest}, latest={self.latest})"
 
-    def update(self, timestamp: datetime | date) -> None:
+    def update(self, timestamp: datetime | date | None) -> None:
         """Update time range with a new timestamp.
 
         Args:
-            timestamp: Timestamp to incorporate into the range (datetime or date)
+            timestamp: Timestamp to incorporate into the range (datetime, date, or None)
         """
+        if timestamp is None:
+            return
+
         if isinstance(timestamp, date) and not isinstance(timestamp, datetime):
             timestamp = datetime.combine(timestamp, datetime.min.time())
+
+        date_key = timestamp.date()
+        self.timeline[date_key] = self.timeline.get(date_key, 0) + 1
 
         if self.earliest is None or timestamp < self.earliest:
             self.earliest = timestamp

@@ -1,6 +1,6 @@
 """Tests for the TimeRange dataclass."""
 
-from datetime import datetime
+from datetime import date, datetime
 
 from orgstats.core import TimeRange
 
@@ -132,3 +132,100 @@ def test_time_range_multiple_updates():
 
     assert time_range.earliest == dt2
     assert time_range.latest == dt4
+
+
+def test_time_range_timeline_initialized_empty():
+    """Test TimeRange timeline initializes as empty dict."""
+    time_range = TimeRange()
+
+    assert time_range.timeline == {}
+
+
+def test_time_range_timeline_single_occurrence():
+    """Test single timestamp creates one timeline entry with count=1."""
+    time_range = TimeRange()
+    dt = datetime(2023, 10, 19, 10, 0)
+
+    time_range.update(dt)
+
+    assert len(time_range.timeline) == 1
+    assert time_range.timeline[date(2023, 10, 19)] == 1
+
+
+def test_time_range_timeline_same_day_different_times():
+    """Test two timestamps on same day increment the same counter."""
+    time_range = TimeRange()
+    dt1 = datetime(2023, 10, 19, 10, 0)
+    dt2 = datetime(2023, 10, 19, 15, 30)
+
+    time_range.update(dt1)
+    time_range.update(dt2)
+
+    assert len(time_range.timeline) == 1
+    assert time_range.timeline[date(2023, 10, 19)] == 2
+
+
+def test_time_range_timeline_multiple_days():
+    """Test timestamps on different days create separate timeline entries."""
+    time_range = TimeRange()
+    dt1 = datetime(2023, 10, 18, 9, 15)
+    dt2 = datetime(2023, 10, 19, 10, 0)
+    dt3 = datetime(2023, 10, 20, 14, 43)
+
+    time_range.update(dt1)
+    time_range.update(dt2)
+    time_range.update(dt3)
+
+    assert len(time_range.timeline) == 3
+    assert time_range.timeline[date(2023, 10, 18)] == 1
+    assert time_range.timeline[date(2023, 10, 19)] == 1
+    assert time_range.timeline[date(2023, 10, 20)] == 1
+
+
+def test_time_range_timeline_repeated_same_day():
+    """Test multiple updates with same timestamp increments counter."""
+    time_range = TimeRange()
+    dt = datetime(2023, 10, 19, 10, 0)
+
+    time_range.update(dt)
+    time_range.update(dt)
+    time_range.update(dt)
+
+    assert len(time_range.timeline) == 1
+    assert time_range.timeline[date(2023, 10, 19)] == 3
+
+
+def test_time_range_timeline_mixed_days():
+    """Test mix of same-day and different-day occurrences."""
+    time_range = TimeRange()
+    dt1 = datetime(2023, 10, 18, 9, 15)
+    dt2 = datetime(2023, 10, 18, 14, 30)
+    dt3 = datetime(2023, 10, 19, 10, 0)
+    dt4 = datetime(2023, 10, 20, 8, 0)
+    dt5 = datetime(2023, 10, 20, 16, 45)
+
+    time_range.update(dt1)
+    time_range.update(dt2)
+    time_range.update(dt3)
+    time_range.update(dt4)
+    time_range.update(dt5)
+
+    assert len(time_range.timeline) == 3
+    assert time_range.timeline[date(2023, 10, 18)] == 2
+    assert time_range.timeline[date(2023, 10, 19)] == 1
+    assert time_range.timeline[date(2023, 10, 20)] == 2
+
+
+def test_time_range_timeline_not_in_repr():
+    """Test timeline is not included in string representation."""
+    dt1 = datetime(2023, 10, 18, 9, 15)
+    dt2 = datetime(2023, 10, 20, 14, 43)
+    time_range = TimeRange(earliest=dt1, latest=dt2)
+    time_range.update(dt1)
+    time_range.update(dt2)
+
+    repr_str = repr(time_range)
+    assert "TimeRange" in repr_str
+    assert "earliest" in repr_str
+    assert "latest" in repr_str
+    assert "timeline" not in repr_str

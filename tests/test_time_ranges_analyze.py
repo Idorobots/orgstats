@@ -1,6 +1,6 @@
 """Tests for time range computation in analyze()."""
 
-from datetime import datetime
+from datetime import date, datetime
 
 from orgstats.core import analyze
 
@@ -266,3 +266,120 @@ def test_analyze_time_range_repeated_all_done():
 
     assert result.tag_time_ranges["daily"].earliest == dt1
     assert result.tag_time_ranges["daily"].latest == dt3
+
+
+def test_analyze_timeline_single_task():
+    """Test single task creates timeline with one entry."""
+    dt = datetime(2023, 10, 20, 14, 43)
+    closed = MockTimestamp(dt)
+    node = MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=closed)
+    nodes = [node]
+
+    result = analyze(nodes)
+
+    assert "python" in result.tag_time_ranges
+    timeline = result.tag_time_ranges["python"].timeline
+    assert len(timeline) == 1
+    assert timeline[date(2023, 10, 20)] == 1
+
+
+def test_analyze_timeline_multiple_tasks_different_days():
+    """Test multiple tasks on different days create multiple timeline entries."""
+    dt1 = datetime(2023, 10, 18, 9, 15)
+    dt2 = datetime(2023, 10, 19, 10, 0)
+    dt3 = datetime(2023, 10, 20, 14, 43)
+
+    nodes = [
+        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt1)),
+        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt2)),
+        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt3)),
+    ]
+
+    result = analyze(nodes)
+
+    timeline = result.tag_time_ranges["python"].timeline
+    assert len(timeline) == 3
+    assert timeline[date(2023, 10, 18)] == 1
+    assert timeline[date(2023, 10, 19)] == 1
+    assert timeline[date(2023, 10, 20)] == 1
+
+
+def test_analyze_timeline_multiple_tasks_same_day():
+    """Test multiple tasks on same day increment same timeline entry."""
+    dt1 = datetime(2023, 10, 20, 9, 15)
+    dt2 = datetime(2023, 10, 20, 14, 43)
+
+    nodes = [
+        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt1)),
+        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt2)),
+    ]
+
+    result = analyze(nodes)
+
+    timeline = result.tag_time_ranges["python"].timeline
+    assert len(timeline) == 1
+    assert timeline[date(2023, 10, 20)] == 2
+
+
+def test_analyze_timeline_repeated_tasks():
+    """Test repeated tasks all appear in timeline."""
+    dt1 = datetime(2023, 10, 18, 9, 15)
+    dt2 = datetime(2023, 10, 19, 10, 0)
+    dt3 = datetime(2023, 10, 20, 14, 43)
+
+    repeated = [
+        MockRepeatedTask("DONE", dt1),
+        MockRepeatedTask("DONE", dt2),
+        MockRepeatedTask("DONE", dt3),
+    ]
+    node = MockNode(todo="TODO", tags=["Daily"], heading="", body="", repeated_tasks=repeated)
+    nodes = [node]
+
+    result = analyze(nodes)
+
+    timeline = result.tag_time_ranges["daily"].timeline
+    assert len(timeline) == 3
+    assert timeline[date(2023, 10, 18)] == 1
+    assert timeline[date(2023, 10, 19)] == 1
+    assert timeline[date(2023, 10, 20)] == 1
+
+
+def test_analyze_timeline_repeated_tasks_same_day():
+    """Test repeated tasks on same day increment counter."""
+    dt1 = datetime(2023, 10, 20, 9, 15)
+    dt2 = datetime(2023, 10, 20, 14, 30)
+    dt3 = datetime(2023, 10, 20, 18, 0)
+
+    repeated = [
+        MockRepeatedTask("DONE", dt1),
+        MockRepeatedTask("DONE", dt2),
+        MockRepeatedTask("DONE", dt3),
+    ]
+    node = MockNode(todo="TODO", tags=["Daily"], heading="", body="", repeated_tasks=repeated)
+    nodes = [node]
+
+    result = analyze(nodes)
+
+    timeline = result.tag_time_ranges["daily"].timeline
+    assert len(timeline) == 1
+    assert timeline[date(2023, 10, 20)] == 3
+
+
+def test_analyze_timeline_mixed_repeats_and_regular():
+    """Test mix of repeated and regular tasks."""
+    dt1 = datetime(2023, 10, 18, 9, 15)
+    dt2 = datetime(2023, 10, 19, 10, 0)
+    dt3 = datetime(2023, 10, 19, 15, 0)
+
+    repeated = [MockRepeatedTask("DONE", dt1), MockRepeatedTask("DONE", dt2)]
+    nodes = [
+        MockNode(todo="TODO", tags=["Python"], heading="", body="", repeated_tasks=repeated),
+        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt3)),
+    ]
+
+    result = analyze(nodes)
+
+    timeline = result.tag_time_ranges["python"].timeline
+    assert len(timeline) == 2
+    assert timeline[date(2023, 10, 18)] == 1
+    assert timeline[date(2023, 10, 19)] == 2
