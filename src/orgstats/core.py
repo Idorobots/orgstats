@@ -221,7 +221,30 @@ def compute_relations(items: set[str], relations_dict: dict[str, Relations], cou
             )
 
 
-def analyze(nodes: list[orgparse.node.OrgNode]) -> AnalysisResult:  # noqa: PLR0912, PLR0915
+def compute_frequencies(
+    items: set[str], frequencies: dict[str, Frequency], count: int, difficulty: str
+) -> None:
+    """Compute frequency statistics for a set of items.
+
+    Args:
+        items: Set of items (tags or words) to compute frequencies for
+        frequencies: Dictionary to store/update Frequency objects
+        count: Count to increment frequencies by (for repeated tasks)
+        difficulty: Task difficulty level ("simple", "regular", or "hard")
+    """
+    for item in items:
+        if item not in frequencies:
+            frequencies[item] = Frequency()
+        frequencies[item].total += count
+        if difficulty == "simple":
+            frequencies[item].simple += count
+        elif difficulty == "regular":
+            frequencies[item].regular += count
+        else:
+            frequencies[item].hard += count
+
+
+def analyze(nodes: list[orgparse.node.OrgNode]) -> AnalysisResult:
     """Analyze org-mode nodes and extract task statistics.
 
     Args:
@@ -261,42 +284,13 @@ def analyze(nodes: list[orgparse.node.OrgNode]) -> AnalysisResult:  # noqa: PLR0
         else:
             difficulty = "hard"
 
-        for tag in normalize(node.tags):
-            if tag not in tags:
-                tags[tag] = Frequency()
-            tags[tag].total += count
-            if difficulty == "simple":
-                tags[tag].simple += count
-            elif difficulty == "regular":
-                tags[tag].regular += count
-            else:
-                tags[tag].hard += count
-
-        for tag in normalize(set(node.heading.split())):
-            if tag not in heading:
-                heading[tag] = Frequency()
-            heading[tag].total += count
-            if difficulty == "simple":
-                heading[tag].simple += count
-            elif difficulty == "regular":
-                heading[tag].regular += count
-            else:
-                heading[tag].hard += count
-
-        for tag in normalize(set(node.body.split())):
-            if tag not in words:
-                words[tag] = Frequency()
-            words[tag].total += count
-            if difficulty == "simple":
-                words[tag].simple += count
-            elif difficulty == "regular":
-                words[tag].regular += count
-            else:
-                words[tag].hard += count
-
         normalized_tags = normalize(node.tags)
         normalized_heading = normalize(set(node.heading.split()))
         normalized_body = normalize(set(node.body.split()))
+
+        compute_frequencies(normalized_tags, tags, count, difficulty)
+        compute_frequencies(normalized_heading, heading, count, difficulty)
+        compute_frequencies(normalized_body, words, count, difficulty)
 
         compute_relations(normalized_tags, tag_relations, count)
         compute_relations(normalized_heading, heading_relations, count)

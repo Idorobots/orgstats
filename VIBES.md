@@ -72,7 +72,7 @@ When no files are provided to the CLI command the usage message should be printe
 
 Comment: After planning the change I figured it would take the AI longer than applying the change manually, so I aborted the plan execution.
 
-## Pair-wise relations
+## ✅ Pair-wise relations
 I'd like to expand the analysis done in `analyze()` to inculde computation of pair-wise relations between tags/words.
 Introduce a new class called `Relations` with a field called `name` and another named `relations`. The `name` property will hold the tag while the `relations` field should be a dictionary representing the frequencies two tags are used together.
 Add fields to the `AnalysisResult` class to store the results of the computation. The fields should be called `tag_relations`, `heading_relations` and `body_relations`, and should be a mapping of tag/word name to the newly created `Relations` objects.
@@ -91,6 +91,12 @@ Make sure that there are no relations of a tag to itself.
 When repeated tasks are concerned, increment the relations for each repeated task (as if each repetition was an instance of the task).
 The results for tags, heading and body should be computed separately and returned with the `AnalysisResult`. The `gamify_exp` is not to be taken into account.
 The CLI output should not be affected yet.
+
+Comment: The AI implemented the functionality pretty well, it did miss some refactoring opportunities and disabled Linter rules complaining about code complexity.
+
+## Refactor analyze()
+The `analyze()` function is fairly large and there are some opportunities for refactoring. Please move the normalized tag lists above the for loops computing the frequencties and abstract the frequency computation into a separate function called `compute_frequencies()`. The function should take the set of items to consider, a dictionary mapping items into their frequencies and a count of repetitions. Difficulty should also be passed to the function. Please remove the linter exclusion from `analyze()` and ensure that it conforms to the linter rules.
+Please refactor the relevant tests to test the new function separately.
 
 ## Skill time ranges
 Compute time distributions for all tags
