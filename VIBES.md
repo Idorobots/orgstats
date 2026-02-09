@@ -206,6 +206,11 @@ Rename the `--tasks` CLI parameter to `--filter` and the values that in can take
 
 Comment: Somehow the AI made this into a very long and time consuming task. Exhausting the remaining 20% of quota. It was possible to continue with the plan the next day by asking the AI to carry on after the interruption.
 
+## ❌ Update the README
+Update the README file to account for the recent development.
+
+Comment: Another one that was easier to do manually than let the AI fixate on putting code coverage in the description.
+
 ## Only consider the relevant data
 Only compute the statistics in tags or heading or body, depending on the value of the `--show` CLI parameter.
 To achieve that, simplify the `AnalysisResult` class to only have the following fields:
