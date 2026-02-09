@@ -26,11 +26,11 @@ python src/cli.py --help
 # Limit number of results
 python src/cli.py -n 10 examples/ARCHIVE_small
 
-# Filter by task difficulty (sorts and displays by selected type)
-python src/cli.py --tasks simple examples/ARCHIVE_small   # Simple tasks (gamify_exp < 10)
-python src/cli.py --tasks regular examples/ARCHIVE_small  # Regular tasks (10 ≤ exp < 20)
-python src/cli.py --tasks hard examples/ARCHIVE_small     # Hard tasks (exp ≥ 20)
-python src/cli.py --tasks total examples/ARCHIVE_small    # All tasks (default)
+# Filter by task difficulty (filters by selected type)
+python src/cli.py --filter simple examples/ARCHIVE_small   # Simple tasks (gamify_exp < 10)
+python src/cli.py --filter regular examples/ARCHIVE_small  # Regular tasks (10 ≤ exp < 20)
+python src/cli.py --filter hard examples/ARCHIVE_small     # Hard tasks (exp ≥ 20)
+python src/cli.py --filter all examples/ARCHIVE_small      # All tasks (default)
 
 # Use custom stopword files
 python src/cli.py --exclude-tags tags.txt examples/ARCHIVE_small
@@ -38,13 +38,13 @@ python src/cli.py --exclude-heading heading.txt examples/ARCHIVE_small
 python src/cli.py --exclude-body body.txt examples/ARCHIVE_small
 
 # Combine options
-python src/cli.py --tasks hard -n 10 --exclude-tags tags.txt examples/ARCHIVE_small
+python src/cli.py --filter hard -n 10 --exclude-tags tags.txt examples/ARCHIVE_small
 ```
 
 ### Example Output
 
 ```bash
-python src/cli.py --tasks total examples/ARCHIVE_small
+python src/cli.py --filter all examples/ARCHIVE_small
 ```
 
 ```
@@ -65,7 +65,7 @@ Top words in body:
 
 With task filtering:
 ```bash
-python src/cli.py --tasks hard -n 5 examples/ARCHIVE_small
+python src/cli.py --filter hard -n 5 examples/ARCHIVE_small
 ```
 
 ```
@@ -76,7 +76,7 @@ Top tags:
 ### Available Options
 
 - `--max-results N`, `-n N` - Maximum number of results to display (default: 100)
-- `--tasks TYPE` - Task type to display and sort by: `simple`, `regular`, `hard`, or `total` (default: `total`)
+- `--filter TYPE`, `-f TYPE` - Filter tasks by difficulty: `simple`, `regular`, `hard`, or `all` (default: `all`)
 - `--exclude-tags FILE` - File with tags to exclude (one per line, replaces default)
 - `--exclude-heading FILE` - File with heading words to exclude (one per line, replaces default)
 - `--exclude-body FILE` - File with body words to exclude (one per line, replaces default)

@@ -1,5 +1,8 @@
+# Good Vibes
+The goal of the project was to attempt to achieve the fabled 10x productivity boost by vibe-coding as much of the project, while only focusing attention on the parts that matter. Simply put, go as fast as possible, break things and run out of quota. That last part was certainly achieved.
+
 # Initial state
-The project started as a very simple script that would do rudimentary task counting using `orgparse` (about 115 lines of Python, no tests). The remainder was implemented by Claude Sonnet 4.5 (with a touch of Opus and Haiku) on the Pro plan via Emacs agent-shell & OpenCode.
+The project started as a very simple script that would do rudimentary task counting using `orgparse` (about 115 lines of Python, no tests). The remainder was implemented by Claude Sonnet 4.5 (with a touch of Opus and Haiku) on the Pro plan via Emacs agent-shell & OpenCode. It was sloperated along the way to a small extent.
 
 Following are the prompts I used for expanding the project.
 Whenever clarifying questions were asked I provided answers (not included). Each time a plan was made with the `plan` agent, then I would switch the agent to `build` and ask it to proceed according to the plan. Some manual intervention was needed here and there to contain the slop.
@@ -198,10 +201,10 @@ Make sure to test the functionality of the node list filtering.
 
 Comment: This one was a long one, but the AI aced it. At least as far as I can tell.
 
-## Rename --tasks
+## ❌ Rename --tasks
 Rename the `--tasks` CLI parameter to `--filter` and the values that in can take to `simple`, `regular`, `hard` and `all`. The values should determine the behaviour the same as before, only the name of the `total` value is changed to `all`. The default value for this parameter should now be `all`.
 
-Comment: Somehow the AI made this into a very long and time consuming task. Exhausting the remaining quota.
+Comment: Somehow the AI made this into a very long and time consuming task. Exhausting the remaining 20% of quota. It was possible to continue with the plan the next day by asking the AI to carry on after the interruption.
 
 ## Only consider the relevant data
 Only compute the statistics in tags or heading or body, depending on the value of the `--show` CLI parameter.
