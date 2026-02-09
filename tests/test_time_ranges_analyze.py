@@ -1,62 +1,9 @@
 """Tests for time range computation in analyze()."""
 
-from datetime import date, datetime
+from datetime import date
 
 from orgstats.core import analyze
-
-
-class MockTimestamp:
-    """Mock timestamp object."""
-
-    def __init__(self, start):
-        self.start = start
-
-    def __bool__(self):
-        return True
-
-
-class MockEmptyTimestamp:
-    """Mock empty timestamp (mimics orgparse behavior when no timestamp)."""
-
-    def __init__(self):
-        self.start = None
-
-    def __bool__(self):
-        return False
-
-
-class MockRepeatedTask:
-    """Mock repeated task."""
-
-    def __init__(self, after, start):
-        self.after = after
-        self.start = start
-
-
-class MockNode:
-    """Mock node object for testing analyze()."""
-
-    def __init__(  # noqa: PLR0913
-        self,
-        todo="TODO",
-        tags=None,
-        heading="",
-        body="",
-        repeated_tasks=None,
-        properties=None,
-        closed=None,
-        scheduled=None,
-        deadline=None,
-    ):
-        self.todo = todo
-        self.tags = tags if tags is not None else []
-        self.heading = heading
-        self.body = body
-        self.repeated_tasks = repeated_tasks if repeated_tasks is not None else []
-        self.properties = properties if properties is not None else {}
-        self.closed = closed if closed is not None else MockEmptyTimestamp()
-        self.scheduled = scheduled if scheduled is not None else MockEmptyTimestamp()
-        self.deadline = deadline if deadline is not None else MockEmptyTimestamp()
+from tests.conftest import node_from_org
 
 
 def test_analyze_empty_nodes_empty_time_ranges():
@@ -69,92 +16,98 @@ def test_analyze_empty_nodes_empty_time_ranges():
 
 def test_analyze_single_task_time_range():
     """Test single task creates TimeRange."""
-    dt = datetime(2023, 10, 20, 14, 43)
-    closed = MockTimestamp(dt)
-    node = MockNode(todo="DONE", tags=["Python"], heading="Test", body="", closed=closed)
-    nodes = [node]
+    nodes = node_from_org("""
+* DONE Test :Python:
+CLOSED: [2023-10-20 Fri 14:43]
+""")
 
     result = analyze(nodes, {}, category="tags")
 
     assert "python" in result.tag_time_ranges
-    assert result.tag_time_ranges["python"].earliest == dt
-    assert result.tag_time_ranges["python"].latest == dt
+    tr = result.tag_time_ranges["python"]
+    assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 20
+    assert tr.earliest.hour == 14 and tr.earliest.minute == 43
+    assert tr.latest.year == 2023 and tr.latest.month == 10 and tr.latest.day == 20
 
 
 def test_analyze_multiple_tasks_time_range():
     """Test multiple tasks update TimeRange correctly."""
-    dt1 = datetime(2023, 10, 18, 9, 15)
-    dt2 = datetime(2023, 10, 20, 14, 43)
-
-    nodes = [
-        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt1)),
-        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt2)),
-    ]
+    nodes = node_from_org("""
+* DONE Task :Python:
+CLOSED: [2023-10-18 Wed 09:15]
+* DONE Task :Python:
+CLOSED: [2023-10-20 Fri 14:43]
+""")
 
     result = analyze(nodes, {}, category="tags")
 
-    assert result.tag_time_ranges["python"].earliest == dt1
-    assert result.tag_time_ranges["python"].latest == dt2
+    tr = result.tag_time_ranges["python"]
+    assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 18
+    assert tr.latest.year == 2023 and tr.latest.month == 10 and tr.latest.day == 20
 
 
 def test_analyze_time_range_with_repeated_tasks():
     """Test repeated tasks update TimeRange."""
-    dt1 = datetime(2023, 10, 18, 9, 15)
-    dt2 = datetime(2023, 10, 19, 10, 0)
-
-    repeated = [MockRepeatedTask("DONE", dt1), MockRepeatedTask("DONE", dt2)]
-    node = MockNode(todo="TODO", tags=["Daily"], heading="", body="", repeated_tasks=repeated)
-    nodes = [node]
+    nodes = node_from_org("""
+* TODO Task :Daily:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-18 Wed 09:15]
+- State "DONE"       from "TODO"       [2023-10-19 Thu 10:00]
+:END:
+""")
 
     result = analyze(nodes, {}, category="tags")
 
-    assert result.tag_time_ranges["daily"].earliest == dt1
-    assert result.tag_time_ranges["daily"].latest == dt2
+    tr = result.tag_time_ranges["daily"]
+    assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 18
+    assert tr.latest.year == 2023 and tr.latest.month == 10 and tr.latest.day == 19
 
 
 def test_analyze_time_range_fallback_to_closed():
     """Test fallback to closed timestamp."""
-    dt = datetime(2023, 10, 20, 14, 43)
-    closed = MockTimestamp(dt)
-    node = MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=closed)
-    nodes = [node]
+    nodes = node_from_org("""
+* DONE Task :Python:
+CLOSED: [2023-10-20 Fri 14:43]
+""")
 
     result = analyze(nodes, {}, category="tags")
 
-    assert result.tag_time_ranges["python"].earliest == dt
-    assert result.tag_time_ranges["python"].latest == dt
+    tr = result.tag_time_ranges["python"]
+    assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 20
+    assert tr.latest.year == 2023 and tr.latest.month == 10 and tr.latest.day == 20
 
 
 def test_analyze_time_range_fallback_to_scheduled():
     """Test fallback to scheduled timestamp."""
-    dt = datetime(2023, 10, 20, 0, 0)
-    scheduled = MockTimestamp(dt)
-    node = MockNode(todo="TODO", tags=["Python"], heading="", body="", scheduled=scheduled)
-    nodes = [node]
+    nodes = node_from_org("""
+* TODO Task :Python:
+SCHEDULED: <2023-10-20 Fri>
+""")
 
     result = analyze(nodes, {}, category="tags")
 
-    assert result.tag_time_ranges["python"].earliest == dt
-    assert result.tag_time_ranges["python"].latest == dt
+    tr = result.tag_time_ranges["python"]
+    assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 20
+    assert tr.latest.year == 2023 and tr.latest.month == 10 and tr.latest.day == 20
 
 
 def test_analyze_time_range_fallback_to_deadline():
     """Test fallback to deadline timestamp."""
-    dt = datetime(2023, 10, 25, 0, 0)
-    deadline = MockTimestamp(dt)
-    node = MockNode(todo="TODO", tags=["Python"], heading="", body="", deadline=deadline)
-    nodes = [node]
+    nodes = node_from_org("""
+* TODO Task :Python:
+DEADLINE: <2023-10-25 Wed>
+""")
 
     result = analyze(nodes, {}, category="tags")
 
-    assert result.tag_time_ranges["python"].earliest == dt
-    assert result.tag_time_ranges["python"].latest == dt
+    tr = result.tag_time_ranges["python"]
+    assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 25
+    assert tr.latest.year == 2023 and tr.latest.month == 10 and tr.latest.day == 25
 
 
 def test_analyze_time_range_no_timestamps_ignored():
     """Test tasks without timestamps are ignored for time ranges."""
-    node = MockNode(todo="TODO", tags=["Python"], heading="", body="")
-    nodes = [node]
+    nodes = node_from_org("* TODO Task :Python:\n")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -163,10 +116,10 @@ def test_analyze_time_range_no_timestamps_ignored():
 
 def test_analyze_time_range_normalized_tags():
     """Test time ranges use normalized tags."""
-    dt = datetime(2023, 10, 20, 14, 43)
-    closed = MockTimestamp(dt)
-    node = MockNode(todo="DONE", tags=["Test", "SysAdmin"], heading="", body="", closed=closed)
-    nodes = [node]
+    nodes = node_from_org("""
+* DONE Task :Test:SysAdmin:
+CLOSED: [2023-10-20 Fri 14:43]
+""")
 
     result = analyze(nodes, {"test": "testing", "sysadmin": "devops"}, category="tags")
 
@@ -176,10 +129,10 @@ def test_analyze_time_range_normalized_tags():
 
 def test_analyze_time_range_heading_separate():
     """Test heading time ranges computed for heading category."""
-    dt = datetime(2023, 10, 20, 14, 43)
-    closed = MockTimestamp(dt)
-    node = MockNode(todo="DONE", tags=[], heading="Implement feature", body="", closed=closed)
-    nodes = [node]
+    nodes = node_from_org("""
+* DONE Implement feature
+CLOSED: [2023-10-20 Fri 14:43]
+""")
 
     result = analyze(nodes, {}, category="heading")
 
@@ -189,10 +142,11 @@ def test_analyze_time_range_heading_separate():
 
 def test_analyze_time_range_body_separate():
     """Test body time ranges computed for body category."""
-    dt = datetime(2023, 10, 20, 14, 43)
-    closed = MockTimestamp(dt)
-    node = MockNode(todo="DONE", tags=[], heading="", body="Python code", closed=closed)
-    nodes = [node]
+    nodes = node_from_org("""
+* DONE Task
+CLOSED: [2023-10-20 Fri 14:43]
+Python code
+""")
 
     result = analyze(nodes, {}, category="body")
 
@@ -202,35 +156,36 @@ def test_analyze_time_range_body_separate():
 
 def test_analyze_time_range_earliest_latest():
     """Test earliest and latest are correctly tracked."""
-    dt1 = datetime(2023, 10, 18, 9, 15)
-    dt2 = datetime(2023, 10, 19, 10, 0)
-    dt3 = datetime(2023, 10, 20, 14, 43)
-
-    nodes = [
-        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt2)),
-        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt1)),
-        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt3)),
-    ]
+    nodes = node_from_org("""
+* DONE Task :Python:
+CLOSED: [2023-10-19 Thu 10:00]
+* DONE Task :Python:
+CLOSED: [2023-10-18 Wed 09:15]
+* DONE Task :Python:
+CLOSED: [2023-10-20 Fri 14:43]
+""")
 
     result = analyze(nodes, {}, category="tags")
 
-    assert result.tag_time_ranges["python"].earliest == dt1
-    assert result.tag_time_ranges["python"].latest == dt3
+    tr = result.tag_time_ranges["python"]
+    assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 18
+    assert tr.latest.year == 2023 and tr.latest.month == 10 and tr.latest.day == 20
 
 
 def test_analyze_time_range_same_timestamp():
     """Test multiple tasks with same timestamp."""
-    dt = datetime(2023, 10, 20, 14, 43)
-
-    nodes = [
-        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt)),
-        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt)),
-    ]
+    nodes = node_from_org("""
+* DONE Task :Python:
+CLOSED: [2023-10-20 Fri 14:43]
+* DONE Task :Python:
+CLOSED: [2023-10-20 Fri 14:43]
+""")
 
     result = analyze(nodes, {}, category="tags")
 
-    assert result.tag_time_ranges["python"].earliest == dt
-    assert result.tag_time_ranges["python"].latest == dt
+    tr = result.tag_time_ranges["python"]
+    assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 20
+    assert tr.latest.year == 2023 and tr.latest.month == 10 and tr.latest.day == 20
 
 
 def test_analyze_result_has_time_range_fields():
@@ -246,43 +201,41 @@ def test_analyze_result_has_time_range_fields():
 
 def test_analyze_time_range_multiple_tags():
     """Test multiple tags in single task update separately."""
-    dt = datetime(2023, 10, 20, 14, 43)
-    closed = MockTimestamp(dt)
-    node = MockNode(todo="DONE", tags=["Python", "Testing"], heading="", body="", closed=closed)
-    nodes = [node]
+    nodes = node_from_org("""
+* DONE Task :Python:Testing:
+CLOSED: [2023-10-20 Fri 14:43]
+""")
 
     result = analyze(nodes, {}, category="tags")
 
-    assert result.tag_time_ranges["python"].earliest == dt
-    assert result.tag_time_ranges["testing"].earliest == dt
+    assert result.tag_time_ranges["python"].earliest.day == 20
+    assert result.tag_time_ranges["testing"].earliest.day == 20
 
 
 def test_analyze_time_range_repeated_all_done():
     """Test all DONE repeated tasks contribute to time range."""
-    dt1 = datetime(2023, 10, 18, 9, 15)
-    dt2 = datetime(2023, 10, 19, 10, 0)
-    dt3 = datetime(2023, 10, 20, 14, 43)
-
-    repeated = [
-        MockRepeatedTask("DONE", dt1),
-        MockRepeatedTask("DONE", dt2),
-        MockRepeatedTask("DONE", dt3),
-    ]
-    node = MockNode(todo="TODO", tags=["Daily"], heading="", body="", repeated_tasks=repeated)
-    nodes = [node]
+    nodes = node_from_org("""
+* TODO Task :Daily:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-18 Wed 09:15]
+- State "DONE"       from "TODO"       [2023-10-19 Thu 10:00]
+- State "DONE"       from "TODO"       [2023-10-20 Fri 14:43]
+:END:
+""")
 
     result = analyze(nodes, {}, category="tags")
 
-    assert result.tag_time_ranges["daily"].earliest == dt1
-    assert result.tag_time_ranges["daily"].latest == dt3
+    tr = result.tag_time_ranges["daily"]
+    assert tr.earliest.day == 18
+    assert tr.latest.day == 20
 
 
 def test_analyze_timeline_single_task():
     """Test single task creates timeline with one entry."""
-    dt = datetime(2023, 10, 20, 14, 43)
-    closed = MockTimestamp(dt)
-    node = MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=closed)
-    nodes = [node]
+    nodes = node_from_org("""
+* DONE Task :Python:
+CLOSED: [2023-10-20 Fri 14:43]
+""")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -294,15 +247,14 @@ def test_analyze_timeline_single_task():
 
 def test_analyze_timeline_multiple_tasks_different_days():
     """Test multiple tasks on different days create multiple timeline entries."""
-    dt1 = datetime(2023, 10, 18, 9, 15)
-    dt2 = datetime(2023, 10, 19, 10, 0)
-    dt3 = datetime(2023, 10, 20, 14, 43)
-
-    nodes = [
-        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt1)),
-        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt2)),
-        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt3)),
-    ]
+    nodes = node_from_org("""
+* DONE Task :Python:
+CLOSED: [2023-10-18 Wed 09:15]
+* DONE Task :Python:
+CLOSED: [2023-10-19 Thu 10:00]
+* DONE Task :Python:
+CLOSED: [2023-10-20 Fri 14:43]
+""")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -315,13 +267,12 @@ def test_analyze_timeline_multiple_tasks_different_days():
 
 def test_analyze_timeline_multiple_tasks_same_day():
     """Test multiple tasks on same day increment same timeline entry."""
-    dt1 = datetime(2023, 10, 20, 9, 15)
-    dt2 = datetime(2023, 10, 20, 14, 43)
-
-    nodes = [
-        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt1)),
-        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt2)),
-    ]
+    nodes = node_from_org("""
+* DONE Task :Python:
+CLOSED: [2023-10-20 Fri 09:15]
+* DONE Task :Python:
+CLOSED: [2023-10-20 Fri 14:43]
+""")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -332,17 +283,14 @@ def test_analyze_timeline_multiple_tasks_same_day():
 
 def test_analyze_timeline_repeated_tasks():
     """Test repeated tasks all appear in timeline."""
-    dt1 = datetime(2023, 10, 18, 9, 15)
-    dt2 = datetime(2023, 10, 19, 10, 0)
-    dt3 = datetime(2023, 10, 20, 14, 43)
-
-    repeated = [
-        MockRepeatedTask("DONE", dt1),
-        MockRepeatedTask("DONE", dt2),
-        MockRepeatedTask("DONE", dt3),
-    ]
-    node = MockNode(todo="TODO", tags=["Daily"], heading="", body="", repeated_tasks=repeated)
-    nodes = [node]
+    nodes = node_from_org("""
+* TODO Task :Daily:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-18 Wed 09:15]
+- State "DONE"       from "TODO"       [2023-10-19 Thu 10:00]
+- State "DONE"       from "TODO"       [2023-10-20 Fri 14:43]
+:END:
+""")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -355,17 +303,14 @@ def test_analyze_timeline_repeated_tasks():
 
 def test_analyze_timeline_repeated_tasks_same_day():
     """Test repeated tasks on same day increment counter."""
-    dt1 = datetime(2023, 10, 20, 9, 15)
-    dt2 = datetime(2023, 10, 20, 14, 30)
-    dt3 = datetime(2023, 10, 20, 18, 0)
-
-    repeated = [
-        MockRepeatedTask("DONE", dt1),
-        MockRepeatedTask("DONE", dt2),
-        MockRepeatedTask("DONE", dt3),
-    ]
-    node = MockNode(todo="TODO", tags=["Daily"], heading="", body="", repeated_tasks=repeated)
-    nodes = [node]
+    nodes = node_from_org("""
+* TODO Task :Daily:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-20 Fri 09:15]
+- State "DONE"       from "TODO"       [2023-10-20 Fri 14:30]
+- State "DONE"       from "TODO"       [2023-10-20 Fri 18:00]
+:END:
+""")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -376,15 +321,15 @@ def test_analyze_timeline_repeated_tasks_same_day():
 
 def test_analyze_timeline_mixed_repeats_and_regular():
     """Test mix of repeated and regular tasks."""
-    dt1 = datetime(2023, 10, 18, 9, 15)
-    dt2 = datetime(2023, 10, 19, 10, 0)
-    dt3 = datetime(2023, 10, 19, 15, 0)
-
-    repeated = [MockRepeatedTask("DONE", dt1), MockRepeatedTask("DONE", dt2)]
-    nodes = [
-        MockNode(todo="TODO", tags=["Python"], heading="", body="", repeated_tasks=repeated),
-        MockNode(todo="DONE", tags=["Python"], heading="", body="", closed=MockTimestamp(dt3)),
-    ]
+    nodes = node_from_org("""
+* TODO Task :Python:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-18 Wed 09:15]
+- State "DONE"       from "TODO"       [2023-10-19 Thu 10:00]
+:END:
+* DONE Task :Python:
+CLOSED: [2023-10-19 Thu 15:00]
+""")
 
     result = analyze(nodes, {}, category="tags")
 

@@ -1,23 +1,17 @@
 """Tests for the filter_nodes() function."""
 
 from orgstats.cli import filter_nodes
-
-
-class MockNode:
-    """Mock node object for testing filter_nodes()."""
-
-    def __init__(self, properties=None):
-        self.properties = properties if properties is not None else {}
+from tests.conftest import node_from_org
 
 
 def test_filter_nodes_all_returns_all():
     """Test that 'all' filter returns all nodes."""
-    nodes = [
-        MockNode(properties={"gamify_exp": "5"}),
-        MockNode(properties={"gamify_exp": "15"}),
-        MockNode(properties={"gamify_exp": "25"}),
-        MockNode(properties={}),
-    ]
+    nodes = (
+        node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 5\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 15\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 25\n:END:\n")
+        + node_from_org("* DONE Task\n")
+    )
 
     result = filter_nodes(nodes, "all")
 
@@ -27,13 +21,13 @@ def test_filter_nodes_all_returns_all():
 
 def test_filter_nodes_simple_filters_correctly():
     """Test that 'simple' filter returns nodes with gamify_exp < 10."""
-    nodes = [
-        MockNode(properties={"gamify_exp": "5"}),
-        MockNode(properties={"gamify_exp": "9"}),
-        MockNode(properties={"gamify_exp": "10"}),
-        MockNode(properties={"gamify_exp": "15"}),
-        MockNode(properties={"gamify_exp": "25"}),
-    ]
+    nodes = (
+        node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 5\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 9\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 10\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 15\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 25\n:END:\n")
+    )
 
     result = filter_nodes(nodes, "simple")
 
@@ -44,14 +38,14 @@ def test_filter_nodes_simple_filters_correctly():
 
 def test_filter_nodes_regular_filters_correctly():
     """Test that 'regular' filter returns nodes with 10 <= gamify_exp < 20."""
-    nodes = [
-        MockNode(properties={"gamify_exp": "5"}),
-        MockNode(properties={"gamify_exp": "10"}),
-        MockNode(properties={"gamify_exp": "15"}),
-        MockNode(properties={"gamify_exp": "19"}),
-        MockNode(properties={"gamify_exp": "20"}),
-        MockNode(properties={"gamify_exp": "25"}),
-    ]
+    nodes = (
+        node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 5\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 10\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 15\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 19\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 20\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 25\n:END:\n")
+    )
 
     result = filter_nodes(nodes, "regular")
 
@@ -63,14 +57,14 @@ def test_filter_nodes_regular_filters_correctly():
 
 def test_filter_nodes_hard_filters_correctly():
     """Test that 'hard' filter returns nodes with gamify_exp >= 20."""
-    nodes = [
-        MockNode(properties={"gamify_exp": "5"}),
-        MockNode(properties={"gamify_exp": "15"}),
-        MockNode(properties={"gamify_exp": "19"}),
-        MockNode(properties={"gamify_exp": "20"}),
-        MockNode(properties={"gamify_exp": "25"}),
-        MockNode(properties={"gamify_exp": "100"}),
-    ]
+    nodes = (
+        node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 5\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 15\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 19\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 20\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 25\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 100\n:END:\n")
+    )
 
     result = filter_nodes(nodes, "hard")
 
@@ -82,12 +76,12 @@ def test_filter_nodes_hard_filters_correctly():
 
 def test_filter_nodes_boundary_values():
     """Test boundary values for difficulty classification."""
-    nodes = [
-        MockNode(properties={"gamify_exp": "9"}),
-        MockNode(properties={"gamify_exp": "10"}),
-        MockNode(properties={"gamify_exp": "19"}),
-        MockNode(properties={"gamify_exp": "20"}),
-    ]
+    nodes = (
+        node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 9\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 10\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 19\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 20\n:END:\n")
+    )
 
     simple_result = filter_nodes(nodes, "simple")
     regular_result = filter_nodes(nodes, "regular")
@@ -106,11 +100,11 @@ def test_filter_nodes_boundary_values():
 
 def test_filter_nodes_missing_gamify_exp_treated_as_regular():
     """Test that nodes without gamify_exp are treated as regular."""
-    nodes = [
-        MockNode(properties={}),
-        MockNode(properties={"gamify_exp": "15"}),
-        MockNode(properties={"other_property": "value"}),
-    ]
+    nodes = (
+        node_from_org("* DONE Task\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 15\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:other_property: value\n:END:\n")
+    )
 
     simple_result = filter_nodes(nodes, "simple")
     regular_result = filter_nodes(nodes, "regular")
@@ -128,11 +122,11 @@ def test_filter_nodes_missing_gamify_exp_treated_as_regular():
 
 def test_filter_nodes_invalid_gamify_exp_treated_as_regular():
     """Test that nodes with invalid gamify_exp are treated as regular."""
-    nodes = [
-        MockNode(properties={"gamify_exp": "invalid"}),
-        MockNode(properties={"gamify_exp": "abc"}),
-        MockNode(properties={"gamify_exp": ""}),
-    ]
+    nodes = (
+        node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: invalid\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: abc\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: \n:END:\n")
+    )
 
     simple_result = filter_nodes(nodes, "simple")
     regular_result = filter_nodes(nodes, "regular")
@@ -155,11 +149,11 @@ def test_filter_nodes_empty_list():
 
 def test_filter_nodes_tuple_format():
     """Test that (X Y) format is parsed correctly."""
-    nodes = [
-        MockNode(properties={"gamify_exp": "(5 10)"}),
-        MockNode(properties={"gamify_exp": "(15 20)"}),
-        MockNode(properties={"gamify_exp": "(25 30)"}),
-    ]
+    nodes = (
+        node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: (5 10)\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: (15 20)\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: (25 30)\n:END:\n")
+    )
 
     simple_result = filter_nodes(nodes, "simple")
     regular_result = filter_nodes(nodes, "regular")
@@ -177,15 +171,15 @@ def test_filter_nodes_tuple_format():
 
 def test_filter_nodes_mixed_list():
     """Test filtering a mixed list with various gamify_exp values."""
-    nodes = [
-        MockNode(properties={"gamify_exp": "5"}),
-        MockNode(properties={"gamify_exp": "15"}),
-        MockNode(properties={"gamify_exp": "25"}),
-        MockNode(properties={}),
-        MockNode(properties={"gamify_exp": "invalid"}),
-        MockNode(properties={"gamify_exp": "(8 12)"}),
-        MockNode(properties={"gamify_exp": "(18 22)"}),
-    ]
+    nodes = (
+        node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 5\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 15\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 25\n:END:\n")
+        + node_from_org("* DONE Task\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: invalid\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: (8 12)\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: (18 22)\n:END:\n")
+    )
 
     simple_result = filter_nodes(nodes, "simple")
     regular_result = filter_nodes(nodes, "regular")
@@ -198,12 +192,12 @@ def test_filter_nodes_mixed_list():
 
 def test_filter_nodes_preserves_order():
     """Test that filtering preserves the original order of nodes."""
-    nodes = [
-        MockNode(properties={"gamify_exp": "5"}),
-        MockNode(properties={"gamify_exp": "8"}),
-        MockNode(properties={"gamify_exp": "3"}),
-        MockNode(properties={"gamify_exp": "9"}),
-    ]
+    nodes = (
+        node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 5\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 8\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 3\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 9\n:END:\n")
+    )
 
     result = filter_nodes(nodes, "simple")
 
@@ -216,11 +210,11 @@ def test_filter_nodes_preserves_order():
 
 def test_filter_nodes_all_simple():
     """Test filtering when all nodes are simple."""
-    nodes = [
-        MockNode(properties={"gamify_exp": "1"}),
-        MockNode(properties={"gamify_exp": "5"}),
-        MockNode(properties={"gamify_exp": "9"}),
-    ]
+    nodes = (
+        node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 1\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 5\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 9\n:END:\n")
+    )
 
     simple_result = filter_nodes(nodes, "simple")
     regular_result = filter_nodes(nodes, "regular")
@@ -233,11 +227,11 @@ def test_filter_nodes_all_simple():
 
 def test_filter_nodes_all_regular():
     """Test filtering when all nodes are regular."""
-    nodes = [
-        MockNode(properties={"gamify_exp": "10"}),
-        MockNode(properties={"gamify_exp": "15"}),
-        MockNode(properties={"gamify_exp": "19"}),
-    ]
+    nodes = (
+        node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 10\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 15\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 19\n:END:\n")
+    )
 
     simple_result = filter_nodes(nodes, "simple")
     regular_result = filter_nodes(nodes, "regular")
@@ -250,11 +244,11 @@ def test_filter_nodes_all_regular():
 
 def test_filter_nodes_all_hard():
     """Test filtering when all nodes are hard."""
-    nodes = [
-        MockNode(properties={"gamify_exp": "20"}),
-        MockNode(properties={"gamify_exp": "50"}),
-        MockNode(properties={"gamify_exp": "100"}),
-    ]
+    nodes = (
+        node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 20\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 50\n:END:\n")
+        + node_from_org("* DONE Task\n:PROPERTIES:\n:gamify_exp: 100\n:END:\n")
+    )
 
     simple_result = filter_nodes(nodes, "simple")
     regular_result = filter_nodes(nodes, "regular")

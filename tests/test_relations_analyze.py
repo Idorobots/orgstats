@@ -1,50 +1,7 @@
 """Tests for relations computation in the analyze() function."""
 
 from orgstats.core import analyze
-
-
-class MockEmptyTimestamp:
-    """Mock empty timestamp (mimics orgparse behavior when no timestamp)."""
-
-    def __init__(self):
-        self.start = None
-
-    def __bool__(self):
-        return False
-
-
-class MockNode:
-    """Mock node object for testing analyze()."""
-
-    def __init__(  # noqa: PLR0913
-        self,
-        todo="TODO",
-        tags=None,
-        heading="",
-        body="",
-        repeated_tasks=None,
-        properties=None,
-        closed=None,
-        scheduled=None,
-        deadline=None,
-    ):
-        self.todo = todo
-        self.tags = tags if tags is not None else []
-        self.heading = heading
-        self.body = body
-        self.repeated_tasks = repeated_tasks if repeated_tasks is not None else []
-        self.properties = properties if properties is not None else {}
-        self.closed = closed if closed is not None else MockEmptyTimestamp()
-        self.scheduled = scheduled if scheduled is not None else MockEmptyTimestamp()
-        self.deadline = deadline if deadline is not None else MockEmptyTimestamp()
-
-
-class MockRepeatedTask:
-    """Mock repeated task for testing."""
-
-    def __init__(self, after="TODO", start=None):
-        self.after = after
-        self.start = start
+from tests.conftest import node_from_org
 
 
 def test_analyze_empty_nodes_has_empty_relations():
@@ -57,8 +14,7 @@ def test_analyze_empty_nodes_has_empty_relations():
 
 def test_analyze_single_tag_no_relations():
     """Test task with single tag creates no Relations objects."""
-    node = MockNode(todo="DONE", tags=["Python"], heading="", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task :Python:\n")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -67,8 +23,7 @@ def test_analyze_single_tag_no_relations():
 
 def test_analyze_two_tags_bidirectional_relation():
     """Test task with two tags creates bidirectional relation."""
-    node = MockNode(todo="DONE", tags=["Python", "Testing"], heading="", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task :Python:Testing:\n")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -81,8 +36,7 @@ def test_analyze_two_tags_bidirectional_relation():
 
 def test_analyze_three_tags_all_relations():
     """Test task with three tags creates all bidirectional relations."""
-    node = MockNode(todo="DONE", tags=["TagA", "TagB", "TagC"], heading="", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task :TagA:TagB:TagC:\n")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -104,8 +58,7 @@ def test_analyze_three_tags_all_relations():
 
 def test_analyze_no_self_relations():
     """Test that tags do not create relations with themselves."""
-    node = MockNode(todo="DONE", tags=["Python", "Testing"], heading="", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task :Python:Testing:\n")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -115,8 +68,7 @@ def test_analyze_no_self_relations():
 
 def test_analyze_relations_normalized():
     """Test that tag normalization applies to relations."""
-    node = MockNode(todo="DONE", tags=["Test", "SysAdmin"], heading="", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task :Test:SysAdmin:\n")
 
     result = analyze(nodes, {"test": "testing", "sysadmin": "devops"}, category="tags")
 
@@ -130,10 +82,10 @@ def test_analyze_relations_normalized():
 
 def test_analyze_relations_accumulate():
     """Test that relations accumulate across multiple nodes."""
-    nodes = [
-        MockNode(todo="DONE", tags=["Python", "Testing"], heading="", body=""),
-        MockNode(todo="DONE", tags=["Python", "Testing"], heading="", body=""),
-    ]
+    nodes = node_from_org("""
+* DONE Task :Python:Testing:
+* DONE Task :Python:Testing:
+""")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -143,14 +95,13 @@ def test_analyze_relations_accumulate():
 
 def test_analyze_relations_with_repeated_tasks():
     """Test that repeated tasks increment relations by count."""
-    repeated = [
-        MockRepeatedTask(after="DONE"),
-        MockRepeatedTask(after="DONE"),
-    ]
-    node = MockNode(
-        todo="TODO", tags=["Daily", "Meeting"], heading="", body="", repeated_tasks=repeated
-    )
-    nodes = [node]
+    nodes = node_from_org("""
+* TODO Task :Daily:Meeting:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-20 Fri 09:15]
+- State "DONE"       from "TODO"       [2023-10-19 Thu 09:10]
+:END:
+""")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -161,8 +112,7 @@ def test_analyze_relations_with_repeated_tasks():
 
 def test_analyze_heading_relations():
     """Test that heading word relations are computed for heading category."""
-    node = MockNode(todo="DONE", tags=[], heading="Implement feature", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Implement feature\n")
 
     result = analyze(nodes, {}, category="heading")
 
@@ -174,8 +124,7 @@ def test_analyze_heading_relations():
 
 def test_analyze_body_relations():
     """Test that body word relations are computed for body category."""
-    node = MockNode(todo="DONE", tags=[], heading="", body="Python code implementation")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task\nPython code implementation\n")
 
     result = analyze(nodes, {}, category="body")
 
@@ -193,10 +142,7 @@ def test_analyze_body_relations():
 
 def test_analyze_relations_independent():
     """Test that tag, heading, and body relations are computed independently."""
-    node = MockNode(
-        todo="DONE", tags=["Python", "Testing"], heading="Python tests", body="Python code"
-    )
-    nodes = [node]
+    nodes = node_from_org("* DONE Python tests :Python:Testing:\nPython code\n")
 
     result_tags = analyze(nodes, {}, category="tags")
     # Tag relations: Python-Testing
@@ -215,17 +161,19 @@ def test_analyze_relations_independent():
 
 def test_analyze_relations_with_different_counts():
     """Test that different nodes with different counts increment correctly."""
-    repeated1 = [MockRepeatedTask(after="DONE")]
-    repeated2 = [
-        MockRepeatedTask(after="DONE"),
-        MockRepeatedTask(after="DONE"),
-        MockRepeatedTask(after="DONE"),
-    ]
+    nodes = node_from_org("""
+* DONE Task :TagA:TagB:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-18 Wed 09:05]
+:END:
 
-    nodes = [
-        MockNode(todo="DONE", tags=["TagA", "TagB"], heading="", body="", repeated_tasks=repeated1),
-        MockNode(todo="TODO", tags=["TagA", "TagB"], heading="", body="", repeated_tasks=repeated2),
-    ]
+* TODO Task :TagA:TagB:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-20 Fri 09:15]
+- State "DONE"       from "TODO"       [2023-10-19 Thu 09:10]
+- State "DONE"       from "TODO"       [2023-10-18 Wed 09:05]
+:END:
+""")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -238,11 +186,11 @@ def test_analyze_relations_with_different_counts():
 
 def test_analyze_relations_mixed_tags():
     """Test relations with tasks that share some but not all tags."""
-    nodes = [
-        MockNode(todo="DONE", tags=["Python", "Testing"], heading="", body=""),
-        MockNode(todo="DONE", tags=["Python", "Debugging"], heading="", body=""),
-        MockNode(todo="DONE", tags=["Testing", "Debugging"], heading="", body=""),
-    ]
+    nodes = node_from_org("""
+* DONE Task :Python:Testing:
+* DONE Task :Python:Debugging:
+* DONE Task :Testing:Debugging:
+""")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -261,8 +209,7 @@ def test_analyze_relations_mixed_tags():
 
 def test_analyze_relations_empty_tags():
     """Test that tasks with no tags create no relations."""
-    node = MockNode(todo="DONE", tags=[], heading="Task", body="Content")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task\nContent\n")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -271,8 +218,7 @@ def test_analyze_relations_empty_tags():
 
 def test_analyze_four_tags_six_relations():
     """Test task with four tags creates six bidirectional relations."""
-    node = MockNode(todo="DONE", tags=["A", "B", "C", "D"], heading="", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task :A:B:C:D:\n")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -296,8 +242,7 @@ def test_analyze_relations_result_structure():
     """Test that analyze returns Relations objects with correct structure."""
     from orgstats.core import Relations
 
-    node = MockNode(todo="DONE", tags=["Python", "Testing"], heading="", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task :Python:Testing:\n")
 
     result = analyze(nodes, {}, category="tags")
 

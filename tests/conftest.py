@@ -1,5 +1,7 @@
 """Shared test fixtures and utilities for orgstats tests."""
 
+import orgparse
+
 from orgstats.core import Frequency
 
 
@@ -25,3 +27,16 @@ def freq_dict_to_ints(d: dict[str, Frequency]) -> dict[str, int]:
         Dictionary mapping strings to integers
     """
     return {k: v.total for k, v in d.items()}
+
+
+def node_from_org(org_text: str) -> list:
+    """Parse org-mode text and return list of nodes (excluding root).
+
+    Args:
+        org_text: Org-mode formatted text
+
+    Returns:
+        List of OrgNode objects (excluding root node)
+    """
+    root = orgparse.loads(org_text.replace("24:00", "00:00"))
+    return list(root[1:]) if root else []

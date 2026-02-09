@@ -1,50 +1,7 @@
 """Tests for the analyze() function."""
 
 from orgstats.core import analyze
-
-
-class MockEmptyTimestamp:
-    """Mock empty timestamp (mimics orgparse behavior when no timestamp)."""
-
-    def __init__(self):
-        self.start = None
-
-    def __bool__(self):
-        return False
-
-
-class MockNode:
-    """Mock node object for testing analyze()."""
-
-    def __init__(  # noqa: PLR0913
-        self,
-        todo="TODO",
-        tags=None,
-        heading="",
-        body="",
-        repeated_tasks=None,
-        properties=None,
-        closed=None,
-        scheduled=None,
-        deadline=None,
-    ):
-        self.todo = todo
-        self.tags = tags if tags is not None else []
-        self.heading = heading
-        self.body = body
-        self.repeated_tasks = repeated_tasks if repeated_tasks is not None else []
-        self.properties = properties if properties is not None else {}
-        self.closed = closed if closed is not None else MockEmptyTimestamp()
-        self.scheduled = scheduled if scheduled is not None else MockEmptyTimestamp()
-        self.deadline = deadline if deadline is not None else MockEmptyTimestamp()
-
-
-class MockRepeatedTask:
-    """Mock repeated task for testing."""
-
-    def __init__(self, after="TODO", start=None):
-        self.after = after
-        self.start = start
+from tests.conftest import node_from_org
 
 
 def test_analyze_empty_nodes():
@@ -61,8 +18,7 @@ def test_analyze_empty_nodes():
 
 def test_analyze_single_done_task():
     """Test analyze with a single DONE task."""
-    node = MockNode(todo="DONE", tags=["Testing"], heading="Write tests", body="Unit tests")
-    nodes = [node]
+    nodes = node_from_org("* DONE Write tests :Testing:\nUnit tests\n")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -74,22 +30,21 @@ def test_analyze_single_done_task():
 
 def test_analyze_single_todo_task():
     """Test analyze with a single TODO task."""
-    node = MockNode(todo="TODO", tags=["Feature"], heading="Implement feature", body="")
-    nodes = [node]
+    nodes = node_from_org("* TODO Implement feature :Feature:\n")
 
     result = analyze(nodes, {}, category="tags")
 
     assert result.total_tasks == 1
-    assert result.done_tasks == 0  # Not result.done_tasks
+    assert result.done_tasks == 0
 
 
 def test_analyze_multiple_tasks():
     """Test analyze with multiple tasks."""
-    nodes = [
-        MockNode(todo="DONE", tags=["Tag1"], heading="Task 1", body=""),
-        MockNode(todo="DONE", tags=["Tag2"], heading="Task 2", body=""),
-        MockNode(todo="TODO", tags=["Tag3"], heading="Task 3", body=""),
-    ]
+    nodes = node_from_org("""
+* DONE Task 1 :Tag1:
+* DONE Task 2 :Tag2:
+* TODO Task 3 :Tag3:
+""")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -99,11 +54,11 @@ def test_analyze_multiple_tasks():
 
 def test_analyze_tag_frequencies():
     """Test that tag frequencies are counted correctly."""
-    nodes = [
-        MockNode(todo="DONE", tags=["Python"], heading="", body=""),
-        MockNode(todo="DONE", tags=["Python"], heading="", body=""),
-        MockNode(todo="DONE", tags=["Python", "Testing"], heading="", body=""),
-    ]
+    nodes = node_from_org("""
+* DONE Task :Python:
+* DONE Task :Python:
+* DONE Task :Python:Testing:
+""")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -113,11 +68,11 @@ def test_analyze_tag_frequencies():
 
 def test_analyze_heading_word_frequencies():
     """Test that heading words are counted correctly when category is 'heading'."""
-    nodes = [
-        MockNode(todo="DONE", tags=[], heading="Implement feature", body=""),
-        MockNode(todo="DONE", tags=[], heading="Implement tests", body=""),
-        MockNode(todo="DONE", tags=[], heading="Write documentation", body=""),
-    ]
+    nodes = node_from_org("""
+* DONE Implement feature
+* DONE Implement tests
+* DONE Write documentation
+""")
 
     result = analyze(nodes, {}, category="heading")
 
@@ -130,10 +85,12 @@ def test_analyze_heading_word_frequencies():
 
 def test_analyze_body_word_frequencies():
     """Test that body words are counted correctly when category is 'body'."""
-    nodes = [
-        MockNode(todo="DONE", tags=[], heading="", body="Python code implementation"),
-        MockNode(todo="DONE", tags=[], heading="", body="Python tests"),
-    ]
+    nodes = node_from_org("""
+* DONE Task
+Python code implementation
+* DONE Task
+Python tests
+""")
 
     result = analyze(nodes, {}, category="body")
 
@@ -145,13 +102,14 @@ def test_analyze_body_word_frequencies():
 
 def test_analyze_repeated_tasks():
     """Test analyze with repeated tasks."""
-    repeated = [
-        MockRepeatedTask(after="DONE"),
-        MockRepeatedTask(after="DONE"),
-        MockRepeatedTask(after="TODO"),
-    ]
-    node = MockNode(todo="TODO", tags=["Recurring"], heading="", body="", repeated_tasks=repeated)
-    nodes = [node]
+    nodes = node_from_org("""
+* TODO Task :Recurring:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-20 Fri 09:15]
+- State "DONE"       from "TODO"       [2023-10-19 Thu 09:10]
+- State "TODO"       from "DONE"       [2023-10-18 Wed 09:05]
+:END:
+""")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -165,14 +123,13 @@ def test_analyze_repeated_tasks():
 
 def test_analyze_repeated_tasks_count_in_tags():
     """Test that repeated task count affects tag frequencies."""
-    repeated = [
-        MockRepeatedTask(after="DONE"),
-        MockRepeatedTask(after="DONE"),
-    ]
-    node = MockNode(
-        todo="TODO", tags=["Daily"], heading="Meeting", body="", repeated_tasks=repeated
-    )
-    nodes = [node]
+    nodes = node_from_org("""
+* TODO Meeting :Daily:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-20 Fri 09:15]
+- State "DONE"       from "TODO"       [2023-10-19 Thu 09:10]
+:END:
+""")
 
     result = analyze(nodes, {}, category="tags")
     assert result.tag_frequencies["daily"] == 2
@@ -183,8 +140,7 @@ def test_analyze_repeated_tasks_count_in_tags():
 
 def test_analyze_done_task_no_repeats():
     """Test DONE task with no repeated tasks."""
-    node = MockNode(todo="DONE", tags=["Simple"], heading="Task", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task :Simple:\n")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -195,8 +151,7 @@ def test_analyze_done_task_no_repeats():
 
 def test_analyze_normalizes_tags():
     """Test that analyze normalizes tags (via normalize function)."""
-    node = MockNode(todo="DONE", tags=["Test", "SysAdmin"], heading="", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task :Test:SysAdmin:\n")
 
     result = analyze(nodes, {"test": "testing", "sysadmin": "devops"}, category="tags")
 
@@ -208,8 +163,7 @@ def test_analyze_normalizes_tags():
 
 def test_analyze_multiple_tags_per_task():
     """Test task with multiple tags."""
-    node = MockNode(todo="DONE", tags=["Python", "Testing", "Debugging"], heading="", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task :Python:Testing:Debugging:\n")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -221,8 +175,7 @@ def test_analyze_multiple_tags_per_task():
 
 def test_analyze_empty_tags():
     """Test task with no tags."""
-    node = MockNode(todo="DONE", tags=[], heading="No tags", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE No tags\n")
 
     result = analyze(nodes, {}, category="tags")
 
@@ -231,8 +184,7 @@ def test_analyze_empty_tags():
 
 def test_analyze_empty_heading():
     """Test task with empty heading."""
-    node = MockNode(todo="DONE", tags=[], heading="", body="Content")
-    nodes = [node]
+    nodes = node_from_org("* DONE\nContent\n")
 
     result = analyze(nodes, {}, category="heading")
 
@@ -241,8 +193,7 @@ def test_analyze_empty_heading():
 
 def test_analyze_empty_body():
     """Test task with empty body."""
-    node = MockNode(todo="DONE", tags=[], heading="Title", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Title\n")
 
     result = analyze(nodes, {}, category="body")
 
@@ -269,10 +220,12 @@ def test_analyze_returns_tuple():
 
 def test_analyze_accumulates_across_nodes():
     """Test that frequencies accumulate across multiple nodes."""
-    nodes = [
-        MockNode(todo="DONE", tags=["Python"], heading="Task one", body="implementation"),
-        MockNode(todo="DONE", tags=["Python"], heading="Task two", body="implementation"),
-    ]
+    nodes = node_from_org("""
+* DONE Task one :Python:
+implementation
+* DONE Task two :Python:
+implementation
+""")
 
     result_tags = analyze(nodes, {}, category="tags")
     assert result_tags.tag_frequencies["python"] == 2
@@ -288,18 +241,22 @@ def test_analyze_accumulates_across_nodes():
 
 def test_analyze_max_count_logic():
     """Test the max(final, repeats) logic for count."""
-    # Case 1: final > repeats
-    repeated1 = [MockRepeatedTask(after="TODO")]
-    node1 = MockNode(todo="DONE", tags=["A"], heading="", body="", repeated_tasks=repeated1)
+    # Case 1: final > repeats (DONE task with TODO repeat)
+    # Case 2: repeats > final (TODO task with DONE repeats)
+    nodes = node_from_org("""
+* DONE Task :A:
+:LOGBOOK:
+- State "TODO"       from "DONE"       [2023-10-18 Wed 09:05]
+:END:
 
-    # Case 2: repeats > final
-    repeated2 = [
-        MockRepeatedTask(after="DONE"),
-        MockRepeatedTask(after="DONE"),
-    ]
-    node2 = MockNode(todo="TODO", tags=["B"], heading="", body="", repeated_tasks=repeated2)
+* TODO Task :B:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-20 Fri 09:15]
+- State "DONE"       from "TODO"       [2023-10-19 Thu 09:10]
+:END:
+""")
 
-    result = analyze([node1, node2], {}, category="tags")
+    result = analyze(nodes, {}, category="tags")
 
     # Node1: count = max(1, 0) = 1
     # Node2: count = max(0, 2) = 2
@@ -310,8 +267,7 @@ def test_analyze_max_count_logic():
 def test_analyze_with_custom_mapping():
     """Test analyze with custom mapping parameter."""
     custom_map = {"foo": "bar", "baz": "qux"}
-    node = MockNode(todo="DONE", tags=["foo", "baz", "unmapped"], heading="", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task :foo:baz:unmapped:\n")
 
     result = analyze(nodes, custom_map, category="tags")
 
@@ -325,8 +281,7 @@ def test_analyze_with_custom_mapping():
 def test_analyze_with_empty_mapping():
     """Test analyze with empty mapping (no transformations)."""
     empty_map = {}
-    node = MockNode(todo="DONE", tags=["test", "sysadmin"], heading="", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task :test:sysadmin:\n")
 
     result = analyze(nodes, empty_map, category="tags")
 
@@ -338,8 +293,7 @@ def test_analyze_with_empty_mapping():
 
 def test_analyze_default_mapping_parameter():
     """Test that default mapping parameter uses MAP."""
-    node = MockNode(todo="DONE", tags=["test", "sysadmin"], heading="", body="")
-    nodes = [node]
+    nodes = node_from_org("* DONE Task :test:sysadmin:\n")
 
     result = analyze(nodes, {"test": "testing", "sysadmin": "devops"}, category="tags")
 
@@ -350,8 +304,7 @@ def test_analyze_default_mapping_parameter():
 def test_analyze_mapping_affects_all_categories():
     """Test that custom mapping affects tags, heading, and body."""
     custom_map = {"foo": "bar"}
-    node = MockNode(todo="DONE", tags=["foo"], heading="foo word", body="foo content")
-    nodes = [node]
+    nodes = node_from_org("* DONE foo word :foo:\nfoo content\n")
 
     result_tags = analyze(nodes, custom_map, category="tags")
     assert "bar" in result_tags.tag_frequencies
