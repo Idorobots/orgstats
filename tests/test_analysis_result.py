@@ -11,27 +11,15 @@ def test_analysis_result_initialization():
         total_tasks=10,
         done_tasks=5,
         tag_frequencies={"python": Frequency(3)},
-        heading_frequencies={"test": Frequency(2)},
-        body_frequencies={"code": Frequency(1)},
         tag_relations={"python": Relations(name="python", relations={})},
-        heading_relations={},
-        body_relations={},
         tag_time_ranges={},
-        heading_time_ranges={},
-        body_time_ranges={},
     )
 
     assert result.total_tasks == 10
     assert result.done_tasks == 5
     assert result.tag_frequencies == {"python": Frequency(3)}
-    assert result.heading_frequencies == {"test": Frequency(2)}
-    assert result.body_frequencies == {"code": Frequency(1)}
     assert "python" in result.tag_relations
-    assert result.heading_relations == {}
-    assert result.body_relations == {}
     assert result.tag_time_ranges == {}
-    assert result.heading_time_ranges == {}
-    assert result.body_time_ranges == {}
 
 
 def test_analysis_result_empty_initialization():
@@ -40,27 +28,15 @@ def test_analysis_result_empty_initialization():
         total_tasks=0,
         done_tasks=0,
         tag_frequencies={},
-        heading_frequencies={},
-        body_frequencies={},
         tag_relations={},
-        heading_relations={},
-        body_relations={},
         tag_time_ranges={},
-        heading_time_ranges={},
-        body_time_ranges={},
     )
 
     assert result.total_tasks == 0
     assert result.done_tasks == 0
     assert result.tag_frequencies == {}
-    assert result.heading_frequencies == {}
-    assert result.body_frequencies == {}
     assert result.tag_relations == {}
-    assert result.heading_relations == {}
-    assert result.body_relations == {}
     assert result.tag_time_ranges == {}
-    assert result.heading_time_ranges == {}
-    assert result.body_time_ranges == {}
 
 
 def test_analysis_result_attributes():
@@ -69,27 +45,15 @@ def test_analysis_result_attributes():
         total_tasks=1,
         done_tasks=1,
         tag_frequencies={},
-        heading_frequencies={},
-        body_frequencies={},
         tag_relations={},
-        heading_relations={},
-        body_relations={},
         tag_time_ranges={},
-        heading_time_ranges={},
-        body_time_ranges={},
     )
 
     assert hasattr(result, "total_tasks")
     assert hasattr(result, "done_tasks")
     assert hasattr(result, "tag_frequencies")
-    assert hasattr(result, "heading_frequencies")
-    assert hasattr(result, "body_frequencies")
     assert hasattr(result, "tag_relations")
-    assert hasattr(result, "heading_relations")
-    assert hasattr(result, "body_relations")
     assert hasattr(result, "tag_time_ranges")
-    assert hasattr(result, "heading_time_ranges")
-    assert hasattr(result, "body_time_ranges")
 
 
 def test_analysis_result_is_dataclass():
@@ -105,14 +69,8 @@ def test_analysis_result_repr():
         total_tasks=2,
         done_tasks=1,
         tag_frequencies={"test": Frequency(1)},
-        heading_frequencies={},
-        body_frequencies={},
         tag_relations={},
-        heading_relations={},
-        body_relations={},
         tag_time_ranges={},
-        heading_time_ranges={},
-        body_time_ranges={},
     )
 
     repr_str = repr(result)
@@ -127,42 +85,24 @@ def test_analysis_result_equality():
         total_tasks=5,
         done_tasks=3,
         tag_frequencies={"python": Frequency(2)},
-        heading_frequencies={"test": Frequency(1)},
-        body_frequencies={},
         tag_relations={},
-        heading_relations={},
-        body_relations={},
         tag_time_ranges={},
-        heading_time_ranges={},
-        body_time_ranges={},
     )
 
     result2 = AnalysisResult(
         total_tasks=5,
         done_tasks=3,
         tag_frequencies={"python": Frequency(2)},
-        heading_frequencies={"test": Frequency(1)},
-        body_frequencies={},
         tag_relations={},
-        heading_relations={},
-        body_relations={},
         tag_time_ranges={},
-        heading_time_ranges={},
-        body_time_ranges={},
     )
 
     result3 = AnalysisResult(
         total_tasks=10,
         done_tasks=5,
         tag_frequencies={},
-        heading_frequencies={},
-        body_frequencies={},
         tag_relations={},
-        heading_relations={},
-        body_relations={},
         tag_time_ranges={},
-        heading_time_ranges={},
-        body_time_ranges={},
     )
 
     assert result1 == result2
@@ -177,14 +117,8 @@ def test_analysis_result_mutable_fields():
         total_tasks=0,
         done_tasks=0,
         tag_frequencies={},
-        heading_frequencies={},
-        body_frequencies={},
         tag_relations={},
-        heading_relations={},
-        body_relations={},
         tag_time_ranges={},
-        heading_time_ranges={},
-        body_time_ranges={},
     )
 
     result.total_tasks = 10
@@ -206,14 +140,8 @@ def test_analysis_result_dict_operations():
         total_tasks=3,
         done_tasks=2,
         tag_frequencies={"python": Frequency(3), "testing": Frequency(2)},
-        heading_frequencies={"task": Frequency(1)},
-        body_frequencies={},
         tag_relations={},
-        heading_relations={},
-        body_relations={},
         tag_time_ranges={},
-        heading_time_ranges={},
-        body_time_ranges={},
     )
 
     assert len(result.tag_frequencies) == 2

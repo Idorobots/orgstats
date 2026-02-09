@@ -211,7 +211,7 @@ Update the README file to account for the recent development.
 
 Comment: Another one that was easier to do manually than let the AI fixate on putting code coverage in the description.
 
-## Only consider the relevant data
+## ✅*️ Only consider the relevant data
 Only compute the statistics in tags or heading or body, depending on the value of the `--show` CLI parameter.
 To achieve that, simplify the `AnalysisResult` class to only have the following fields:
 - `total_tasks`
@@ -219,22 +219,32 @@ To achieve that, simplify the `AnalysisResult` class to only have the following 
 - `tag_frequencies`
 - `tag_relations`
 - `tag_time_ranges`
-The definitions of these fields should be unchanged.
+The definitions of these fields should remain unchanged. The logic to compute those fields should remain unchanged.
 The `analyze()` function should be updated to take a flag that determines which datum of a task should be considered, either the `tags`, the `heading` or the `body`. The computation performed by `analyze()` should only be peformed on the selected datum and only the values computed for that datum should be returned as part of the `AnalysisResult`.
+Regardless of what datum is used, the results for frequencies should end up in the `tag_frequencies` field, et cetera.
+Don't worry about backwards compatibility.
+
+Comment: The AI fixated on backwards compatibility and performance gains/penalty (it considered the fact that now one third of the computation is done, but also that the user needs to compute stuff three times). In needed a lot of convincing that this is, in fact, OK.
 
 ## Combine exclusion lists
 Combine the CLI parameters called `--exclude-*` into one parameter that accepts a single list of words. That list should be used for the tags & relations filtering. The default value should be a list containing the values from `TAGS` combined with the values from `HEADING` and `BODY` (in the case of `BODY` use the values up to and including the `""` value).
 Adjust the tests accordingly.
 
+## SCC
+Given the relations between tags, compute the strongly connected components of the graph and expand the display to the command output.
+
 ## More filters
 - gamify_exp above
 - gamify_exp under
 
-## hasattr() slop
+## hasattr() & default args slop
 Remove it and use OrgNode instead of Mocks.
 
 ## Devcontainers setup
 A docker container for running the repo commands in.
+
+## Output abstraction
+We will be adding more output options, for instance JSON output, visualization output, etc.
 
 ## Graphviz/Dot output
 

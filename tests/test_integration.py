@@ -38,23 +38,23 @@ def test_integration_single_task():
     """Test with single_task.org fixture."""
     nodes = load_org_file("single_task.org")
 
-    result = analyze(nodes, {})
-
-    assert result.total_tasks == 1
-    assert result.done_tasks == 1
-
+    result_tags = analyze(nodes, {}, category="tags")
+    assert result_tags.total_tasks == 1
+    assert result_tags.done_tasks == 1
     # Check tags (Testing, Python -> testing, python)
-    assert "testing" in result.tag_frequencies
-    assert "python" in result.tag_frequencies
+    assert "testing" in result_tags.tag_frequencies
+    assert "python" in result_tags.tag_frequencies
 
     # Check heading words
-    assert "write" in result.heading_frequencies
-    assert "comprehensive" in result.heading_frequencies
-    assert "tests" in result.heading_frequencies
+    result_heading = analyze(nodes, {}, category="heading")
+    assert "write" in result_heading.tag_frequencies
+    assert "comprehensive" in result_heading.tag_frequencies
+    assert "tests" in result_heading.tag_frequencies
 
     # Check body words
+    result_body = analyze(nodes, {}, category="body")
     assert (
-        "task" in result.body_frequencies or "this" in result.body_frequencies
+        "task" in result_body.tag_frequencies or "this" in result_body.tag_frequencies
     )  # Some words from body
 
 
@@ -106,8 +106,9 @@ def test_integration_edge_cases():
     assert result.tag_frequencies["nobody"] == 1
 
     # Check that special characters in heading are handled
-    assert "task" in result.heading_frequencies
-    assert "special" in result.heading_frequencies or "chars" in result.heading_frequencies
+    result_heading = analyze(nodes, {}, category="heading")
+    assert "task" in result_heading.tag_frequencies
+    assert "special" in result_heading.tag_frequencies or "chars" in result_heading.tag_frequencies
 
 
 def test_integration_24_00_time_handling():
@@ -173,22 +174,26 @@ def test_integration_archive_small():
     assert len(result.tag_frequencies) > 0
 
     # Check that heading words are extracted
-    assert len(result.heading_frequencies) > 0
+    result_heading = analyze(nodes, {}, category="heading")
+    assert len(result_heading.tag_frequencies) > 0
 
     # Check that body words are extracted
-    assert len(result.body_frequencies) > 0
+    result_body = analyze(nodes, {}, category="body")
+    assert len(result_body.tag_frequencies) > 0
 
 
 def test_integration_clean_filters_stopwords():
     """Test that clean() properly filters stop words from real data."""
     nodes = load_org_file("multiple_tags.org")
 
-    result = analyze(nodes, {})
+    result_tags = analyze(nodes, {}, category="tags")
+    result_heading = analyze(nodes, {}, category="heading")
+    result_body = analyze(nodes, {}, category="body")
 
     # Apply cleaning
-    cleaned_tags = clean(TAGS, result.tag_frequencies)
-    cleaned_heading = clean(HEADING, result.heading_frequencies)
-    cleaned_words = clean(BODY, result.body_frequencies)
+    cleaned_tags = clean(TAGS, result_tags.tag_frequencies)
+    cleaned_heading = clean(HEADING, result_heading.tag_frequencies)
+    cleaned_words = clean(BODY, result_body.tag_frequencies)
 
     # Stop words should be removed
     for stop_word in TAGS:
@@ -222,12 +227,13 @@ def test_integration_word_uniqueness():
     """Test that words in headings/body are deduplicated per task."""
     nodes = load_org_file("single_task.org")
 
-    result = analyze(nodes, {})
+    result_heading = analyze(nodes, {}, category="heading")
+    result_body = analyze(nodes, {}, category="body")
 
     # Words should be deduplicated within each task
     # but counted across tasks
-    assert isinstance(result.heading_frequencies, dict)
-    assert isinstance(result.body_frequencies, dict)
+    assert isinstance(result_heading.tag_frequencies, dict)
+    assert isinstance(result_body.tag_frequencies, dict)
 
 
 def test_integration_no_tags_task():
@@ -256,12 +262,12 @@ def test_integration_all_fixtures_parseable():
     for fixture in fixtures:
         nodes = load_org_file(fixture)
         # Should not raise any exceptions
-        result = analyze(nodes, {})
+        result = analyze(nodes, {}, category="tags")
 
         # Basic sanity checks
         assert result.total_tasks >= 0
         assert result.done_tasks >= 0
         assert result.done_tasks <= result.total_tasks
         assert isinstance(result.tag_frequencies, dict)
-        assert isinstance(result.heading_frequencies, dict)
-        assert isinstance(result.body_frequencies, dict)
+        assert isinstance(result.tag_relations, dict)
+        assert isinstance(result.tag_time_ranges, dict)

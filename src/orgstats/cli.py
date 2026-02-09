@@ -478,8 +478,8 @@ def main() -> None:
     # Filter nodes based on task type
     filtered_nodes = filter_nodes(nodes, args.filter)
 
-    # Analyze filtered nodes with custom mapping
-    result = analyze(filtered_nodes, mapping)
+    # Analyze filtered nodes with custom mapping for the selected category
+    result = analyze(filtered_nodes, mapping, args.show)
 
     def order_by_total(item: tuple[str, Frequency]) -> int:
         """Sort by total count (descending)."""
@@ -489,41 +489,25 @@ def main() -> None:
     print("\nTotal tasks: ", result.total_tasks)
     print("\nDone tasks: ", result.done_tasks)
 
-    # Display selected category
+    # Select appropriate exclusion list and category name
     if args.show == "tags":
-        display_category(
-            "tags",
-            (result.tag_frequencies, result.tag_time_ranges, exclude_tags, result.tag_relations),
-            args.max_results,
-            args.max_relations,
-            order_by_total,
-        )
+        exclude_set = exclude_tags
+        category_name = "tags"
     elif args.show == "heading":
-        display_category(
-            "heading words",
-            (
-                result.heading_frequencies,
-                result.heading_time_ranges,
-                exclude_heading,
-                result.heading_relations,
-            ),
-            args.max_results,
-            args.max_relations,
-            order_by_total,
-        )
+        exclude_set = exclude_heading
+        category_name = "heading words"
     else:
-        display_category(
-            "body words",
-            (
-                result.body_frequencies,
-                result.body_time_ranges,
-                exclude_body,
-                result.body_relations,
-            ),
-            args.max_results,
-            args.max_relations,
-            order_by_total,
-        )
+        exclude_set = exclude_body
+        category_name = "body words"
+
+    # Display results (always use tag_* fields, which hold the selected category's data)
+    display_category(
+        category_name,
+        (result.tag_frequencies, result.tag_time_ranges, exclude_set, result.tag_relations),
+        args.max_results,
+        args.max_relations,
+        order_by_total,
+    )
 
 
 if __name__ == "__main__":

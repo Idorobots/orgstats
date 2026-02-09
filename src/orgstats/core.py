@@ -123,28 +123,19 @@ class AnalysisResult:
     Attributes:
         total_tasks: Total number of tasks analyzed
         done_tasks: Number of completed tasks
-        tag_frequencies: Dictionary mapping tags to their frequency counts
-        heading_frequencies: Dictionary mapping heading words to their frequency counts
-        body_frequencies: Dictionary mapping body words to their frequency counts
-        tag_relations: Dictionary mapping tags to their Relations objects
-        heading_relations: Dictionary mapping heading words to their Relations objects
-        body_relations: Dictionary mapping body words to their Relations objects
-        tag_time_ranges: Dictionary mapping tags to their TimeRange objects
-        heading_time_ranges: Dictionary mapping heading words to their TimeRange objects
-        body_time_ranges: Dictionary mapping body words to their TimeRange objects
+        tag_frequencies: Dictionary mapping items to their frequency counts
+        tag_relations: Dictionary mapping items to their Relations objects
+        tag_time_ranges: Dictionary mapping items to their TimeRange objects
+
+    Note: Despite the 'tag_' prefix, these fields hold data for whichever
+    category was analyzed (tags, heading, or body).
     """
 
     total_tasks: int
     done_tasks: int
     tag_frequencies: dict[str, Frequency]
-    heading_frequencies: dict[str, Frequency]
-    body_frequencies: dict[str, Frequency]
     tag_relations: dict[str, Relations]
-    heading_relations: dict[str, Relations]
-    body_relations: dict[str, Relations]
     tag_time_ranges: dict[str, TimeRange]
-    heading_time_ranges: dict[str, TimeRange]
-    body_time_ranges: dict[str, TimeRange]
 
 
 def mapped(mapping: dict[str, str], t: str) -> str:
@@ -338,27 +329,24 @@ def compute_time_ranges(
             time_ranges[item].update(timestamp)
 
 
-def analyze(nodes: list[orgparse.node.OrgNode], mapping: dict[str, str]) -> AnalysisResult:
+def analyze(
+    nodes: list[orgparse.node.OrgNode], mapping: dict[str, str], category: str = "tags"
+) -> AnalysisResult:
     """Analyze org-mode nodes and extract task statistics.
 
     Args:
         nodes: List of org-mode nodes from orgparse
         mapping: Dictionary mapping tags to canonical forms
+        category: Which datum to analyze - "tags", "heading", or "body" (default: "tags")
 
     Returns:
-        AnalysisResult containing task counts and frequency dictionaries
+        AnalysisResult containing task counts and frequency dictionaries for the selected category
     """
     total = 0
     done = 0
-    tags: dict[str, Frequency] = {}
-    heading: dict[str, Frequency] = {}
-    words: dict[str, Frequency] = {}
-    tag_relations: dict[str, Relations] = {}
-    heading_relations: dict[str, Relations] = {}
-    body_relations: dict[str, Relations] = {}
-    tag_time_ranges: dict[str, TimeRange] = {}
-    heading_time_ranges: dict[str, TimeRange] = {}
-    body_time_ranges: dict[str, TimeRange] = {}
+    frequencies: dict[str, Frequency] = {}
+    relations: dict[str, Relations] = {}
+    time_ranges: dict[str, TimeRange] = {}
 
     for node in nodes:
         total = total + max(1, len(node.repeated_tasks))
@@ -369,35 +357,25 @@ def analyze(nodes: list[orgparse.node.OrgNode], mapping: dict[str, str]) -> Anal
 
         done = done + count
 
-        normalized_tags = normalize(node.tags, mapping)
-        normalized_heading = normalize(set(node.heading.split()), mapping)
-        normalized_body = normalize(set(node.body.split()), mapping)
+        if category == "tags":
+            items = normalize(node.tags, mapping)
+        elif category == "heading":
+            items = normalize(set(node.heading.split()), mapping)
+        else:
+            items = normalize(set(node.body.split()), mapping)
 
-        compute_frequencies(normalized_tags, tags, count)
-        compute_frequencies(normalized_heading, heading, count)
-        compute_frequencies(normalized_body, words, count)
-
-        compute_relations(normalized_tags, tag_relations, count)
-        compute_relations(normalized_heading, heading_relations, count)
-        compute_relations(normalized_body, body_relations, count)
+        compute_frequencies(items, frequencies, count)
+        compute_relations(items, relations, count)
 
         timestamps = extract_timestamp(node)
-        compute_time_ranges(normalized_tags, tag_time_ranges, timestamps)
-        compute_time_ranges(normalized_heading, heading_time_ranges, timestamps)
-        compute_time_ranges(normalized_body, body_time_ranges, timestamps)
+        compute_time_ranges(items, time_ranges, timestamps)
 
     return AnalysisResult(
         total_tasks=total,
         done_tasks=done,
-        tag_frequencies=tags,
-        heading_frequencies=heading,
-        body_frequencies=words,
-        tag_relations=tag_relations,
-        heading_relations=heading_relations,
-        body_relations=body_relations,
-        tag_time_ranges=tag_time_ranges,
-        heading_time_ranges=heading_time_ranges,
-        body_time_ranges=body_time_ranges,
+        tag_frequencies=frequencies,
+        tag_relations=relations,
+        tag_time_ranges=time_ranges,
     )
 
 

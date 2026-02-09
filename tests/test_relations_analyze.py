@@ -28,11 +28,9 @@ class MockRepeatedTask:
 def test_analyze_empty_nodes_has_empty_relations():
     """Test analyze with empty nodes returns empty relations."""
     nodes = []
-    result = analyze(nodes, {})
+    result = analyze(nodes, {}, category="tags")
 
     assert result.tag_relations == {}
-    assert result.heading_relations == {}
-    assert result.body_relations == {}
 
 
 def test_analyze_single_tag_no_relations():
@@ -140,56 +138,57 @@ def test_analyze_relations_with_repeated_tasks():
 
 
 def test_analyze_heading_relations():
-    """Test that heading word relations are computed separately."""
+    """Test that heading word relations are computed for heading category."""
     node = MockNode(todo="DONE", tags=[], heading="Implement feature", body="")
     nodes = [node]
 
-    result = analyze(nodes, {})
+    result = analyze(nodes, {}, category="heading")
 
-    assert "implement" in result.heading_relations
-    assert "feature" in result.heading_relations
-    assert result.heading_relations["implement"].relations["feature"] == 1
-    assert result.heading_relations["feature"].relations["implement"] == 1
+    assert "implement" in result.tag_relations
+    assert "feature" in result.tag_relations
+    assert result.tag_relations["implement"].relations["feature"] == 1
+    assert result.tag_relations["feature"].relations["implement"] == 1
 
 
 def test_analyze_body_relations():
-    """Test that body word relations are computed separately."""
+    """Test that body word relations are computed for body category."""
     node = MockNode(todo="DONE", tags=[], heading="", body="Python code implementation")
     nodes = [node]
 
-    result = analyze(nodes, {})
+    result = analyze(nodes, {}, category="body")
 
-    assert "python" in result.body_relations
-    assert "code" in result.body_relations
-    assert "implementation" in result.body_relations
+    assert "python" in result.tag_relations
+    assert "code" in result.tag_relations
+    assert "implementation" in result.tag_relations
 
-    assert result.body_relations["python"].relations["code"] == 1
-    assert result.body_relations["code"].relations["python"] == 1
-    assert result.body_relations["python"].relations["implementation"] == 1
-    assert result.body_relations["implementation"].relations["python"] == 1
-    assert result.body_relations["code"].relations["implementation"] == 1
-    assert result.body_relations["implementation"].relations["code"] == 1
+    assert result.tag_relations["python"].relations["code"] == 1
+    assert result.tag_relations["code"].relations["python"] == 1
+    assert result.tag_relations["python"].relations["implementation"] == 1
+    assert result.tag_relations["implementation"].relations["python"] == 1
+    assert result.tag_relations["code"].relations["implementation"] == 1
+    assert result.tag_relations["implementation"].relations["code"] == 1
 
 
 def test_analyze_relations_independent():
-    """Test that tag, heading, and body relations are independent."""
+    """Test that tag, heading, and body relations are computed independently."""
     node = MockNode(
         todo="DONE", tags=["Python", "Testing"], heading="Python tests", body="Python code"
     )
     nodes = [node]
 
-    result = analyze(nodes, {})
-
+    result_tags = analyze(nodes, {}, category="tags")
     # Tag relations: Python-Testing
-    assert result.tag_relations["python"].relations.get("testing") == 1
-    assert "tests" not in result.tag_relations["python"].relations
+    assert result_tags.tag_relations["python"].relations.get("testing") == 1
+    assert "tests" not in result_tags.tag_relations["python"].relations
 
+    result_heading = analyze(nodes, {}, category="heading")
     # Heading relations: Python-tests
-    assert result.heading_relations["python"].relations.get("tests") == 1
-    assert "testing" not in result.heading_relations.get("python", {}).relations
+    assert result_heading.tag_relations["python"].relations.get("tests") == 1
+    assert "testing" not in result_heading.tag_relations.get("python", {}).relations
 
+    result_body = analyze(nodes, {}, category="body")
     # Body relations: Python-code
-    assert result.body_relations["python"].relations.get("code") == 1
+    assert result_body.tag_relations["python"].relations.get("code") == 1
 
 
 def test_analyze_relations_with_different_counts():

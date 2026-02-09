@@ -33,14 +33,8 @@ def test_analyze_empty_nodes():
     assert result.total_tasks == 0
     assert result.done_tasks == 0
     assert result.tag_frequencies == {}
-    assert result.heading_frequencies == {}
-    assert result.body_frequencies == {}
     assert result.tag_relations == {}
-    assert result.heading_relations == {}
-    assert result.body_relations == {}
     assert result.tag_time_ranges == {}
-    assert result.heading_time_ranges == {}
-    assert result.body_time_ranges == {}
 
 
 def test_analyze_single_done_task():
@@ -96,35 +90,35 @@ def test_analyze_tag_frequencies():
 
 
 def test_analyze_heading_word_frequencies():
-    """Test that heading words are counted correctly."""
+    """Test that heading words are counted correctly when category is 'heading'."""
     nodes = [
         MockNode(todo="DONE", tags=[], heading="Implement feature", body=""),
         MockNode(todo="DONE", tags=[], heading="Implement tests", body=""),
         MockNode(todo="DONE", tags=[], heading="Write documentation", body=""),
     ]
 
-    result = analyze(nodes, {})
+    result = analyze(nodes, {}, category="heading")
 
-    assert result.heading_frequencies["implement"] == 2
-    assert result.heading_frequencies["feature"] == 1
-    assert result.heading_frequencies["tests"] == 1
-    assert result.heading_frequencies["write"] == 1
-    assert result.heading_frequencies["documentation"] == 1
+    assert result.tag_frequencies["implement"] == 2
+    assert result.tag_frequencies["feature"] == 1
+    assert result.tag_frequencies["tests"] == 1
+    assert result.tag_frequencies["write"] == 1
+    assert result.tag_frequencies["documentation"] == 1
 
 
 def test_analyze_body_word_frequencies():
-    """Test that body words are counted correctly."""
+    """Test that body words are counted correctly when category is 'body'."""
     nodes = [
         MockNode(todo="DONE", tags=[], heading="", body="Python code implementation"),
         MockNode(todo="DONE", tags=[], heading="", body="Python tests"),
     ]
 
-    result = analyze(nodes, {})
+    result = analyze(nodes, {}, category="body")
 
-    assert result.body_frequencies["python"] == 2
-    assert result.body_frequencies["code"] == 1
-    assert result.body_frequencies["implementation"] == 1
-    assert result.body_frequencies["tests"] == 1
+    assert result.tag_frequencies["python"] == 2
+    assert result.tag_frequencies["code"] == 1
+    assert result.tag_frequencies["implementation"] == 1
+    assert result.tag_frequencies["tests"] == 1
 
 
 def test_analyze_repeated_tasks():
@@ -158,11 +152,11 @@ def test_analyze_repeated_tasks_count_in_tags():
     )
     nodes = [node]
 
-    result = analyze(nodes, {})
-
-    # count = max(final=0, repeats=2) = 2
+    result = analyze(nodes, {}, category="tags")
     assert result.tag_frequencies["daily"] == 2
-    assert result.heading_frequencies["meeting"] == 2
+
+    result_heading = analyze(nodes, {}, category="heading")
+    assert result_heading.tag_frequencies["meeting"] == 2
 
 
 def test_analyze_done_task_no_repeats():
@@ -218,9 +212,9 @@ def test_analyze_empty_heading():
     node = MockNode(todo="DONE", tags=[], heading="", body="Content")
     nodes = [node]
 
-    result = analyze(nodes, {})
+    result = analyze(nodes, {}, category="heading")
 
-    assert result.heading_frequencies == {}
+    assert result.tag_frequencies == {}
 
 
 def test_analyze_empty_body():
@@ -228,12 +222,12 @@ def test_analyze_empty_body():
     node = MockNode(todo="DONE", tags=[], heading="Title", body="")
     nodes = [node]
 
-    result = analyze(nodes, {})
+    result = analyze(nodes, {}, category="body")
 
     # Empty body split() returns [''], which becomes {''} in normalize
     # Frequency objects, so check if empty string exists
-    if "" in result.body_frequencies:
-        assert result.body_frequencies[""].total >= 0
+    if "" in result.tag_frequencies:
+        assert result.tag_frequencies[""].total >= 0
 
 
 def test_analyze_returns_tuple():
@@ -247,14 +241,8 @@ def test_analyze_returns_tuple():
     assert hasattr(result, "total_tasks")
     assert hasattr(result, "done_tasks")
     assert hasattr(result, "tag_frequencies")
-    assert hasattr(result, "heading_frequencies")
-    assert hasattr(result, "body_frequencies")
     assert hasattr(result, "tag_relations")
-    assert hasattr(result, "heading_relations")
-    assert hasattr(result, "body_relations")
     assert hasattr(result, "tag_time_ranges")
-    assert hasattr(result, "heading_time_ranges")
-    assert hasattr(result, "body_time_ranges")
 
 
 def test_analyze_accumulates_across_nodes():
@@ -264,13 +252,16 @@ def test_analyze_accumulates_across_nodes():
         MockNode(todo="DONE", tags=["Python"], heading="Task two", body="implementation"),
     ]
 
-    result = analyze(nodes, {})
+    result_tags = analyze(nodes, {}, category="tags")
+    assert result_tags.tag_frequencies["python"] == 2
 
-    assert result.tag_frequencies["python"] == 2
-    assert result.heading_frequencies["task"] == 2
-    assert result.heading_frequencies["one"] == 1
-    assert result.heading_frequencies["two"] == 1
-    assert result.body_frequencies["implementation"] == 2
+    result_heading = analyze(nodes, {}, category="heading")
+    assert result_heading.tag_frequencies["task"] == 2
+    assert result_heading.tag_frequencies["one"] == 1
+    assert result_heading.tag_frequencies["two"] == 1
+
+    result_body = analyze(nodes, {}, category="body")
+    assert result_body.tag_frequencies["implementation"] == 2
 
 
 def test_analyze_max_count_logic():
@@ -340,8 +331,11 @@ def test_analyze_mapping_affects_all_categories():
     node = MockNode(todo="DONE", tags=["foo"], heading="foo word", body="foo content")
     nodes = [node]
 
-    result = analyze(nodes, custom_map)
+    result_tags = analyze(nodes, custom_map, category="tags")
+    assert "bar" in result_tags.tag_frequencies
 
-    assert "bar" in result.tag_frequencies
-    assert "bar" in result.heading_frequencies
-    assert "bar" in result.body_frequencies
+    result_heading = analyze(nodes, custom_map, category="heading")
+    assert "bar" in result_heading.tag_frequencies
+
+    result_body = analyze(nodes, custom_map, category="body")
+    assert "bar" in result_body.tag_frequencies

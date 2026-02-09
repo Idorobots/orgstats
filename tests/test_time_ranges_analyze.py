@@ -49,11 +49,9 @@ class MockNode:
 def test_analyze_empty_nodes_empty_time_ranges():
     """Test empty nodes returns empty time ranges."""
     nodes = []
-    result = analyze(nodes, {})
+    result = analyze(nodes, {}, category="tags")
 
     assert result.tag_time_ranges == {}
-    assert result.heading_time_ranges == {}
-    assert result.body_time_ranges == {}
 
 
 def test_analyze_single_task_time_range():
@@ -164,29 +162,29 @@ def test_analyze_time_range_normalized_tags():
 
 
 def test_analyze_time_range_heading_separate():
-    """Test heading time ranges computed separately."""
+    """Test heading time ranges computed for heading category."""
     dt = datetime(2023, 10, 20, 14, 43)
     closed = MockTimestamp(dt)
     node = MockNode(todo="DONE", tags=[], heading="Implement feature", body="", closed=closed)
     nodes = [node]
 
-    result = analyze(nodes, {})
+    result = analyze(nodes, {}, category="heading")
 
-    assert "implement" in result.heading_time_ranges
-    assert "feature" in result.heading_time_ranges
+    assert "implement" in result.tag_time_ranges
+    assert "feature" in result.tag_time_ranges
 
 
 def test_analyze_time_range_body_separate():
-    """Test body time ranges computed separately."""
+    """Test body time ranges computed for body category."""
     dt = datetime(2023, 10, 20, 14, 43)
     closed = MockTimestamp(dt)
     node = MockNode(todo="DONE", tags=[], heading="", body="Python code", closed=closed)
     nodes = [node]
 
-    result = analyze(nodes, {})
+    result = analyze(nodes, {}, category="body")
 
-    assert "python" in result.body_time_ranges
-    assert "code" in result.body_time_ranges
+    assert "python" in result.tag_time_ranges
+    assert "code" in result.tag_time_ranges
 
 
 def test_analyze_time_range_earliest_latest():
@@ -227,12 +225,10 @@ def test_analyze_result_has_time_range_fields():
     from orgstats.core import AnalysisResult
 
     nodes = []
-    result = analyze(nodes, {})
+    result = analyze(nodes, {}, category="tags")
 
     assert isinstance(result, AnalysisResult)
     assert hasattr(result, "tag_time_ranges")
-    assert hasattr(result, "heading_time_ranges")
-    assert hasattr(result, "body_time_ranges")
 
 
 def test_analyze_time_range_multiple_tags():
