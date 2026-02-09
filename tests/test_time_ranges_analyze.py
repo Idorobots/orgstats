@@ -9,7 +9,7 @@ from tests.conftest import node_from_org
 def test_analyze_empty_nodes_empty_time_ranges():
     """Test empty nodes returns empty time ranges."""
     nodes = []
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     assert result.tag_time_ranges == {}
 
@@ -21,7 +21,7 @@ def test_analyze_single_task_time_range():
 CLOSED: [2023-10-20 Fri 14:43]
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     assert "python" in result.tag_time_ranges
     tr = result.tag_time_ranges["python"]
@@ -39,7 +39,7 @@ CLOSED: [2023-10-18 Wed 09:15]
 CLOSED: [2023-10-20 Fri 14:43]
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     tr = result.tag_time_ranges["python"]
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 18
@@ -56,7 +56,7 @@ def test_analyze_time_range_with_repeated_tasks():
 :END:
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     tr = result.tag_time_ranges["daily"]
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 18
@@ -70,7 +70,7 @@ def test_analyze_time_range_fallback_to_closed():
 CLOSED: [2023-10-20 Fri 14:43]
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     tr = result.tag_time_ranges["python"]
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 20
@@ -84,7 +84,7 @@ def test_analyze_time_range_fallback_to_scheduled():
 SCHEDULED: <2023-10-20 Fri>
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     tr = result.tag_time_ranges["python"]
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 20
@@ -98,7 +98,7 @@ def test_analyze_time_range_fallback_to_deadline():
 DEADLINE: <2023-10-25 Wed>
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     tr = result.tag_time_ranges["python"]
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 25
@@ -109,7 +109,7 @@ def test_analyze_time_range_no_timestamps_ignored():
     """Test tasks without timestamps are ignored for time ranges."""
     nodes = node_from_org("* TODO Task :Python:\n")
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     assert result.tag_time_ranges == {}
 
@@ -121,7 +121,9 @@ def test_analyze_time_range_normalized_tags():
 CLOSED: [2023-10-20 Fri 14:43]
 """)
 
-    result = analyze(nodes, {"test": "testing", "sysadmin": "devops"}, category="tags")
+    result = analyze(
+        nodes, {"test": "testing", "sysadmin": "devops"}, category="tags", max_relations=3
+    )
 
     assert "testing" in result.tag_time_ranges
     assert "devops" in result.tag_time_ranges
@@ -134,7 +136,7 @@ def test_analyze_time_range_heading_separate():
 CLOSED: [2023-10-20 Fri 14:43]
 """)
 
-    result = analyze(nodes, {}, category="heading")
+    result = analyze(nodes, {}, category="heading", max_relations=3)
 
     assert "implement" in result.tag_time_ranges
     assert "feature" in result.tag_time_ranges
@@ -148,7 +150,7 @@ CLOSED: [2023-10-20 Fri 14:43]
 Python code
 """)
 
-    result = analyze(nodes, {}, category="body")
+    result = analyze(nodes, {}, category="body", max_relations=3)
 
     assert "python" in result.tag_time_ranges
     assert "code" in result.tag_time_ranges
@@ -165,7 +167,7 @@ CLOSED: [2023-10-18 Wed 09:15]
 CLOSED: [2023-10-20 Fri 14:43]
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     tr = result.tag_time_ranges["python"]
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 18
@@ -181,7 +183,7 @@ CLOSED: [2023-10-20 Fri 14:43]
 CLOSED: [2023-10-20 Fri 14:43]
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     tr = result.tag_time_ranges["python"]
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 20
@@ -193,7 +195,7 @@ def test_analyze_result_has_time_range_fields():
     from orgstats.core import AnalysisResult
 
     nodes = []
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     assert isinstance(result, AnalysisResult)
     assert result.tag_time_ranges == {}
@@ -206,7 +208,7 @@ def test_analyze_time_range_multiple_tags():
 CLOSED: [2023-10-20 Fri 14:43]
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     assert result.tag_time_ranges["python"].earliest.day == 20
     assert result.tag_time_ranges["testing"].earliest.day == 20
@@ -223,7 +225,7 @@ def test_analyze_time_range_repeated_all_done():
 :END:
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     tr = result.tag_time_ranges["daily"]
     assert tr.earliest.day == 18
@@ -237,7 +239,7 @@ def test_analyze_timeline_single_task():
 CLOSED: [2023-10-20 Fri 14:43]
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     assert "python" in result.tag_time_ranges
     timeline = result.tag_time_ranges["python"].timeline
@@ -256,7 +258,7 @@ CLOSED: [2023-10-19 Thu 10:00]
 CLOSED: [2023-10-20 Fri 14:43]
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     timeline = result.tag_time_ranges["python"].timeline
     assert len(timeline) == 3
@@ -274,7 +276,7 @@ CLOSED: [2023-10-20 Fri 09:15]
 CLOSED: [2023-10-20 Fri 14:43]
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     timeline = result.tag_time_ranges["python"].timeline
     assert len(timeline) == 1
@@ -292,7 +294,7 @@ def test_analyze_timeline_repeated_tasks():
 :END:
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     timeline = result.tag_time_ranges["daily"].timeline
     assert len(timeline) == 3
@@ -312,7 +314,7 @@ def test_analyze_timeline_repeated_tasks_same_day():
 :END:
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     timeline = result.tag_time_ranges["daily"].timeline
     assert len(timeline) == 1
@@ -331,7 +333,7 @@ def test_analyze_timeline_mixed_repeats_and_regular():
 CLOSED: [2023-10-19 Thu 15:00]
 """)
 
-    result = analyze(nodes, {}, category="tags")
+    result = analyze(nodes, {}, category="tags", max_relations=3)
 
     timeline = result.tag_time_ranges["python"].timeline
     assert len(timeline) == 2

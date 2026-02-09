@@ -13,6 +13,7 @@ def test_analysis_result_initialization():
         tag_frequencies={"python": Frequency(3)},
         tag_relations={"python": Relations(name="python", relations={})},
         tag_time_ranges={},
+        tag_groups=[],
     )
 
     assert result.total_tasks == 10
@@ -20,6 +21,7 @@ def test_analysis_result_initialization():
     assert result.tag_frequencies == {"python": Frequency(3)}
     assert "python" in result.tag_relations
     assert result.tag_time_ranges == {}
+    assert result.tag_groups == []
 
 
 def test_analysis_result_empty_initialization():
@@ -30,6 +32,7 @@ def test_analysis_result_empty_initialization():
         tag_frequencies={},
         tag_relations={},
         tag_time_ranges={},
+        tag_groups=[],
     )
 
     assert result.total_tasks == 0
@@ -37,6 +40,7 @@ def test_analysis_result_empty_initialization():
     assert result.tag_frequencies == {}
     assert result.tag_relations == {}
     assert result.tag_time_ranges == {}
+    assert result.tag_groups == []
 
 
 def test_analysis_result_attributes():
@@ -47,6 +51,7 @@ def test_analysis_result_attributes():
         tag_frequencies={},
         tag_relations={},
         tag_time_ranges={},
+        tag_groups=[],
     )
 
     assert result.total_tasks == 1
@@ -54,6 +59,7 @@ def test_analysis_result_attributes():
     assert result.tag_frequencies == {}
     assert result.tag_relations == {}
     assert result.tag_time_ranges == {}
+    assert result.tag_groups == []
 
 
 def test_analysis_result_is_dataclass():
@@ -71,6 +77,7 @@ def test_analysis_result_repr():
         tag_frequencies={"test": Frequency(1)},
         tag_relations={},
         tag_time_ranges={},
+        tag_groups=[],
     )
 
     repr_str = repr(result)
@@ -87,6 +94,7 @@ def test_analysis_result_equality():
         tag_frequencies={"python": Frequency(2)},
         tag_relations={},
         tag_time_ranges={},
+        tag_groups=[],
     )
 
     result2 = AnalysisResult(
@@ -95,6 +103,7 @@ def test_analysis_result_equality():
         tag_frequencies={"python": Frequency(2)},
         tag_relations={},
         tag_time_ranges={},
+        tag_groups=[],
     )
 
     result3 = AnalysisResult(
@@ -103,6 +112,7 @@ def test_analysis_result_equality():
         tag_frequencies={},
         tag_relations={},
         tag_time_ranges={},
+        tag_groups=[],
     )
 
     assert result1 == result2
@@ -111,7 +121,7 @@ def test_analysis_result_equality():
 
 def test_analysis_result_mutable_fields():
     """Test that AnalysisResult fields can be modified."""
-    from orgstats.core import Relations, TimeRange
+    from orgstats.core import Group, Relations, TimeRange
 
     result = AnalysisResult(
         total_tasks=0,
@@ -119,6 +129,7 @@ def test_analysis_result_mutable_fields():
         tag_frequencies={},
         tag_relations={},
         tag_time_ranges={},
+        tag_groups=[],
     )
 
     result.total_tasks = 10
@@ -126,12 +137,14 @@ def test_analysis_result_mutable_fields():
     result.tag_frequencies["new"] = Frequency(1)
     result.tag_relations["test"] = Relations(name="test", relations={})
     result.tag_time_ranges["python"] = TimeRange()
+    result.tag_groups.append(Group(tags=["python", "testing"]))
 
     assert result.total_tasks == 10
     assert result.done_tasks == 5
     assert "new" in result.tag_frequencies
     assert "test" in result.tag_relations
     assert "python" in result.tag_time_ranges
+    assert len(result.tag_groups) == 1
 
 
 def test_analysis_result_dict_operations():
@@ -142,6 +155,7 @@ def test_analysis_result_dict_operations():
         tag_frequencies={"python": Frequency(3), "testing": Frequency(2)},
         tag_relations={},
         tag_time_ranges={},
+        tag_groups=[],
     )
 
     assert len(result.tag_frequencies) == 2

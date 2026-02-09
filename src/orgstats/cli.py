@@ -444,7 +444,7 @@ def main() -> None:
     filtered_nodes = filter_nodes(nodes, args.filter)
 
     # Analyze filtered nodes with custom mapping for the selected category
-    result = analyze(filtered_nodes, mapping, args.show)
+    result = analyze(filtered_nodes, mapping, args.show, args.max_relations)
 
     def order_by_total(item: tuple[str, Frequency]) -> int:
         """Sort by total count (descending)."""
@@ -466,6 +466,20 @@ def main() -> None:
         args.max_relations,
         order_by_total,
     )
+
+    # Display tag groups
+    if result.tag_groups:
+        filtered_groups = []
+        for group in result.tag_groups:
+            filtered_tags = [tag for tag in group.tags if tag not in exclude_set]
+            if len(filtered_tags) >= 2:
+                filtered_groups.append(filtered_tags)
+
+        if filtered_groups:
+            print("\nTag groups:")
+            for group_tags in filtered_groups:
+                print(f"  {', '.join(group_tags)}")
+                print()
 
 
 if __name__ == "__main__":

@@ -244,18 +244,68 @@ Using `hasattr()` in the logic to make writing tests easier is bad style and you
 
 Comment: This went well, it did remove all the occurances of `hasattr` and fixed the tests pretty accurately. It did create extra slop by introducing `MockedEmptyTimestamp` in each file that uses mocks, which isn't ideal.
 
-## Mock slop
+## ✅*️ Mock slop
 Please remove the node mocks from the test code. Use `orgparse.node.OrgNode` and `orgparse.date.OrgDateRepeatedTask` instead of the mocks. If it makes sense for a specific test, you can create fixtures for most of the tests and load those fixtures to test againts real-life node values..
 The goal is not to use any mocking in the tests.
 
 Comment: The AI did a bunch of investigating, figuring out how to use `orgparse` nodes and then formulated a rather lengthy plan. It took a while to implement, but was otherwise uneventful. It took 40% of the quota (!).
 
-## SCC
-Given the relations between tags, compute the strongly connected components of the graph and expand the display to the command output.
+## ✅ SCC
+Given the relations between tags, compute the strongly connected components of the graph.
+A strongly connected component is a subgraph in which all the nodes are reachable from all the other nodes. In this case, this will be all the tags that are related. Each strongly connected component will form a group of tags. Each group is a separate component - that is, between two distinct groups there are no relations.
+
+Add a new class called `Group` to the core module. The class will represent the grouped tags. It should have a single field for now called `tags: list[str]`. We will eventually expand that in the future.
+
+Create a new function called `compute_groups()` that will do tag grouping based on strongly connected components algorithm. For the computation only consider `max_relations` count of relations for each tag. That is, pass the value of `max_relations` to the function and limit the graph to just the `max_relations` top relations when grouping the tags. Make sure to add tests that test the implementation of this function.
+
+Extend the `AnalysisResults` class to include a new field called `tag_groups: list[Group]`. This will hold the strongly connected components grouping.
+
+Extend the `analyze()` function to compute the strongly connected components and save the values in the `tag_groups` field. Pass the `max_relations` configuration parameter to the function, so that it can be used by `compute_groups()`. Do not use default argument values for this parameter. Make sure to update the tests to pass the value along.
+
+The grouping computation will be performed on the filtered node list and limited to just the `max_relations` of relations.
+
+Expand the display to include a section on groups right after the top tags. For each group in the results list the tags in that group like this:
+
+```
+Tag groups:
+  projectmanagement, jira
+
+  debugging, erlang, electronics, xmpp
+
+  ...
+```
+
+Comment: The AI computed a sound plan, but then ran out of quota before it could finish implementing it. The bulk of the quota was spent on the tool calls for all the single-line edits. After the quota reset, it finished the implementation properly.
+
+## Devcontainers setup
+A docker container for running the repo commands in.
+
+## Typed tests
+Please add type signatures to the test functions and ensure that the type checking passes fine for all the test files.
+
+## ASCII plots
+Use an ascii plotting library to plot tag activity over time. Each plot should be a bar chart with at most 50 buckets. Each bucket will represent 1/50 of the total time range within which te tag was active. If the tag was active for more than 50 days, group the activity into buckets, sum the occurances and plot the sums. If the tag was active for fewer than 50 days, plot only as many buckets as makes sense. Make sure to take into account all days, even those with no tag activity on that day. These should have a value of 0. You can first expand the timeline with the missing days of no activity, then determine the buckets and compute sums of activity per bucket and then plot the results.
+There should be an indication of the start and end dates besides the plot.
 
 ## More filters
 - gamify_exp above
 - gamify_exp under
+
+## General stats
+- Tasks suspended
+- Tasks cancelled
+- Tasks delegated
+- All of the above on a bar chart
+
+- chart of tasks done per day of week
+
+- average tasks done per day
+
+- Over-all time range, earliest task, latest task, including activity plot limited to done tasks
+- Adjust the tag plots to also reflect the same "global"" time range.
+- Add CLI parameters for from & until, with defaults and filter the tasks to only consider the tasks within the given time range.
+
+## Better heading & body parsing
 
 ## Output abstraction
 We will be adding more output options, for instance JSON output, visualization output, etc.

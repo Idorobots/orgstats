@@ -62,6 +62,17 @@ class Relations:
 
 
 @dataclass
+class Group:
+    """Represents a group of related tags (strongly connected component).
+
+    Attributes:
+        tags: List of tag names in this group, sorted alphabetically
+    """
+
+    tags: list[str]
+
+
+@dataclass
 class TimeRange:
     """Represents time range for a tag/word occurrence.
 
@@ -126,6 +137,7 @@ class AnalysisResult:
         tag_frequencies: Dictionary mapping items to their frequency counts
         tag_relations: Dictionary mapping items to their Relations objects
         tag_time_ranges: Dictionary mapping items to their TimeRange objects
+        tag_groups: List of tag groups (strongly connected components)
 
     Note: Despite the 'tag_' prefix, these fields hold data for whichever
     category was analyzed (tags, heading, or body).
@@ -136,6 +148,7 @@ class AnalysisResult:
     tag_frequencies: dict[str, Frequency]
     tag_relations: dict[str, Relations]
     tag_time_ranges: dict[str, TimeRange]
+    tag_groups: list[Group]
 
 
 def mapped(mapping: dict[str, str], t: str) -> str:
@@ -329,8 +342,65 @@ def compute_time_ranges(
             time_ranges[item].update(timestamp)
 
 
+def compute_groups(relations: dict[str, Relations], max_relations: int) -> list[Group]:
+    """Compute strongly connected components from tag relations using Tarjan's algorithm.
+
+    Args:
+        relations: Dictionary mapping tags to their Relations objects
+        max_relations: Maximum number of relations to consider per tag
+
+    Returns:
+        List of Group objects representing strongly connected components
+    """
+    if not relations:
+        return []
+
+    graph: dict[str, list[str]] = {}
+    for tag, rel_obj in relations.items():
+        sorted_relations = sorted(rel_obj.relations.items(), key=lambda x: -x[1])
+        top_relations = sorted_relations[:max_relations]
+        graph[tag] = [rel_name for rel_name, _ in top_relations]
+
+    index_counter = [0]
+    stack: list[str] = []
+    lowlinks: dict[str, int] = {}
+    index: dict[str, int] = {}
+    on_stack: dict[str, bool] = {}
+    sccs: list[list[str]] = []
+
+    def strongconnect(node: str) -> None:
+        index[node] = index_counter[0]
+        lowlinks[node] = index_counter[0]
+        index_counter[0] += 1
+        stack.append(node)
+        on_stack[node] = True
+
+        for successor in graph.get(node, []):
+            if successor not in index:
+                strongconnect(successor)
+                lowlinks[node] = min(lowlinks[node], lowlinks[successor])
+            elif on_stack.get(successor, False):
+                lowlinks[node] = min(lowlinks[node], index[successor])
+
+        if lowlinks[node] == index[node]:
+            component: list[str] = []
+            while True:
+                successor = stack.pop()
+                on_stack[successor] = False
+                component.append(successor)
+                if successor == node:
+                    break
+            sccs.append(component)
+
+    for node in graph:
+        if node not in index:
+            strongconnect(node)
+
+    return [Group(tags=sorted(scc)) for scc in sccs]
+
+
 def analyze(
-    nodes: list[orgparse.node.OrgNode], mapping: dict[str, str], category: str
+    nodes: list[orgparse.node.OrgNode], mapping: dict[str, str], category: str, max_relations: int
 ) -> AnalysisResult:
     """Analyze org-mode nodes and extract task statistics.
 
@@ -338,6 +408,7 @@ def analyze(
         nodes: List of org-mode nodes from orgparse
         mapping: Dictionary mapping tags to canonical forms
         category: Which datum to analyze - "tags", "heading", or "body" (default: "tags")
+        max_relations: Maximum number of relations to consider for grouping
 
     Returns:
         AnalysisResult containing task counts and frequency dictionaries for the selected category
@@ -370,12 +441,15 @@ def analyze(
         timestamps = extract_timestamp(node)
         compute_time_ranges(items, time_ranges, timestamps)
 
+    tag_groups = compute_groups(relations, max_relations)
+
     return AnalysisResult(
         total_tasks=total,
         done_tasks=done,
         tag_frequencies=frequencies,
         tag_relations=relations,
         tag_time_ranges=time_ranges,
+        tag_groups=tag_groups,
     )
 
 
