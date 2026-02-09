@@ -49,11 +49,11 @@ def test_analysis_result_attributes():
         tag_time_ranges={},
     )
 
-    assert hasattr(result, "total_tasks")
-    assert hasattr(result, "done_tasks")
-    assert hasattr(result, "tag_frequencies")
-    assert hasattr(result, "tag_relations")
-    assert hasattr(result, "tag_time_ranges")
+    assert result.total_tasks == 1
+    assert result.done_tasks == 1
+    assert result.tag_frequencies == {}
+    assert result.tag_relations == {}
+    assert result.tag_time_ranges == {}
 
 
 def test_analysis_result_is_dataclass():

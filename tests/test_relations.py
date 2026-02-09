@@ -23,8 +23,8 @@ def test_relations_attributes():
     """Test that Relations has all expected attributes."""
     relations = Relations(name="test", relations={})
 
-    assert hasattr(relations, "name")
-    assert hasattr(relations, "relations")
+    assert relations.name == "test"
+    assert relations.relations == {}
 
 
 def test_relations_is_dataclass():

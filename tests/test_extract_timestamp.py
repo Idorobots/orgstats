@@ -11,6 +11,19 @@ class MockTimestamp:
     def __init__(self, start):
         self.start = start
 
+    def __bool__(self):
+        return True
+
+
+class MockEmptyTimestamp:
+    """Mock empty timestamp (mimics orgparse behavior when no timestamp)."""
+
+    def __init__(self):
+        self.start = None
+
+    def __bool__(self):
+        return False
+
 
 class MockRepeatedTask:
     """Mock repeated task."""
@@ -25,9 +38,9 @@ class MockNode:
 
     def __init__(self, repeated_tasks=None, closed=None, scheduled=None, deadline=None):
         self.repeated_tasks = repeated_tasks if repeated_tasks is not None else []
-        self.closed = closed
-        self.scheduled = scheduled
-        self.deadline = deadline
+        self.closed = closed if closed is not None else MockEmptyTimestamp()
+        self.scheduled = scheduled if scheduled is not None else MockEmptyTimestamp()
+        self.deadline = deadline if deadline is not None else MockEmptyTimestamp()
 
 
 def test_extract_timestamp_empty_node():

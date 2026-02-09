@@ -3,11 +3,30 @@
 from orgstats.core import analyze
 
 
+class MockEmptyTimestamp:
+    """Mock empty timestamp (mimics orgparse behavior when no timestamp)."""
+
+    def __init__(self):
+        self.start = None
+
+    def __bool__(self):
+        return False
+
+
 class MockNode:
     """Mock node object for testing analyze()."""
 
     def __init__(  # noqa: PLR0913
-        self, todo="TODO", tags=None, heading="", body="", repeated_tasks=None, properties=None
+        self,
+        todo="TODO",
+        tags=None,
+        heading="",
+        body="",
+        repeated_tasks=None,
+        properties=None,
+        closed=None,
+        scheduled=None,
+        deadline=None,
     ):
         self.todo = todo
         self.tags = tags if tags is not None else []
@@ -15,6 +34,9 @@ class MockNode:
         self.body = body
         self.repeated_tasks = repeated_tasks if repeated_tasks is not None else []
         self.properties = properties if properties is not None else {}
+        self.closed = closed if closed is not None else MockEmptyTimestamp()
+        self.scheduled = scheduled if scheduled is not None else MockEmptyTimestamp()
+        self.deadline = deadline if deadline is not None else MockEmptyTimestamp()
 
 
 class MockRepeatedTask:
@@ -238,11 +260,11 @@ def test_analyze_returns_tuple():
     result = analyze(nodes, {}, category="tags")
 
     assert isinstance(result, AnalysisResult)
-    assert hasattr(result, "total_tasks")
-    assert hasattr(result, "done_tasks")
-    assert hasattr(result, "tag_frequencies")
-    assert hasattr(result, "tag_relations")
-    assert hasattr(result, "tag_time_ranges")
+    assert result.total_tasks == 0
+    assert result.done_tasks == 0
+    assert result.tag_frequencies == {}
+    assert result.tag_relations == {}
+    assert result.tag_time_ranges == {}
 
 
 def test_analyze_accumulates_across_nodes():

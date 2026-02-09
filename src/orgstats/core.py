@@ -293,15 +293,15 @@ def extract_timestamp(node: orgparse.node.OrgNode) -> list[datetime]:
             timestamps.extend([rt.start for rt in done_tasks])
             return timestamps
 
-    if hasattr(node, "closed") and node.closed and node.closed.start:
+    if node.closed and node.closed.start:
         timestamps.append(node.closed.start)
         return timestamps
 
-    if hasattr(node, "scheduled") and node.scheduled and node.scheduled.start:
+    if node.scheduled and node.scheduled.start:
         timestamps.append(node.scheduled.start)
         return timestamps
 
-    if hasattr(node, "deadline") and node.deadline and node.deadline.start:
+    if node.deadline and node.deadline.start:
         timestamps.append(node.deadline.start)
         return timestamps
 

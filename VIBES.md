@@ -238,12 +238,15 @@ Using default argument vaulues is forbidden in this project.
 
 Comment: It computed a sound plan of operation, but then ran out of quota to actually execute it. It was possible to resume the execution of the plan after the quota reset.
 
-## Hasattr slop
+## ✅*️ Hasattr slop
 Please remove the usage of `hasattr(node, atrt)` from the function `extract_timestamp()` and adjust the tests to work correctly without using `hasattr()`.
 Using `hasattr()` in the logic to make writing tests easier is bad style and you should feel bad about it.
 
-## Devcontainers setup
-A docker container for running the repo commands in.
+Comment: This went well, it did remove all the occurances of `hasattr` and fixed the tests pretty accurately. It did create extra slop by introducing `MockedEmptyTimestamp` in each file that uses mocks, which isn't ideal.
+
+## Mock slop
+Please remove the node mocks from the test code. Use `orgparse.node.OrgNode` and `orgparse.date.OrgDateRepeatedTask` instead of the mocks. Ideally, create fixtures for most of the tests and load those fixtures to test againts real-life node values..
+The goal is not to use any mocking in the tests.
 
 ## SCC
 Given the relations between tags, compute the strongly connected components of the graph and expand the display to the command output.
