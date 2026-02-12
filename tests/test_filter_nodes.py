@@ -1,6 +1,6 @@
 """Tests for the filter_nodes() function."""
 
-from typing import Any
+import orgparse
 
 from orgstats.cli import filter_nodes
 from tests.conftest import node_from_org
@@ -141,7 +141,7 @@ def test_filter_nodes_invalid_gamify_exp_treated_as_regular() -> None:
 
 def test_filter_nodes_empty_list() -> None:
     """Test filtering an empty list returns empty list."""
-    nodes: list[Any] = []
+    nodes: list[orgparse.node.OrgNode] = []
 
     assert filter_nodes(nodes, "all") == []
     assert filter_nodes(nodes, "simple") == []

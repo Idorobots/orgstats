@@ -1,6 +1,6 @@
 """Tests for relations computation in the analyze() function."""
 
-from typing import Any
+import orgparse
 
 from orgstats.core import analyze
 from tests.conftest import node_from_org
@@ -8,7 +8,7 @@ from tests.conftest import node_from_org
 
 def test_analyze_empty_nodes_has_empty_relations() -> None:
     """Test analyze with empty nodes returns empty relations."""
-    nodes: list[Any] = []
+    nodes: list[orgparse.node.OrgNode] = []
     result = analyze(nodes, {}, category="tags", max_relations=3)
 
     assert result.tag_relations == {}

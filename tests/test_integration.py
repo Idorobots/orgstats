@@ -1,7 +1,6 @@
 """Integration tests using real Org-mode files."""
 
 import os
-from typing import Any
 
 import orgparse
 
@@ -13,7 +12,7 @@ from orgstats.core import analyze, clean
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
-def load_org_file(filename: str) -> list[Any]:
+def load_org_file(filename: str) -> list[orgparse.node.OrgNode]:
     """Load and parse an Org-mode file."""
     filepath = os.path.join(FIXTURES_DIR, filename)
     with open(filepath) as f:

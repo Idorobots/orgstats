@@ -1,7 +1,8 @@
 """Tests for time range computation in analyze()."""
 
 from datetime import date
-from typing import Any
+
+import orgparse
 
 from orgstats.core import analyze
 from tests.conftest import node_from_org
@@ -9,7 +10,7 @@ from tests.conftest import node_from_org
 
 def test_analyze_empty_nodes_empty_time_ranges() -> None:
     """Test empty nodes returns empty time ranges."""
-    nodes: list[Any] = []
+    nodes: list[orgparse.node.OrgNode] = []
     result = analyze(nodes, {}, category="tags", max_relations=3)
 
     assert result.tag_time_ranges == {}
@@ -212,7 +213,7 @@ def test_analyze_result_has_time_range_fields() -> None:
     """Test AnalysisResult includes time range fields."""
     from orgstats.core import AnalysisResult
 
-    nodes: list[Any] = []
+    nodes: list[orgparse.node.OrgNode] = []
     result = analyze(nodes, {}, category="tags", max_relations=3)
 
     assert isinstance(result, AnalysisResult)
