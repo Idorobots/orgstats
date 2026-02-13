@@ -149,6 +149,7 @@ class AnalysisResult:
     Attributes:
         total_tasks: Total number of tasks analyzed
         task_states: Histogram of task states (TODO, DONE, DELEGATED, CANCELLED, SUSPENDED, other)
+        task_days: Histogram of DONE task completions by day of week
         tag_frequencies: Dictionary mapping items to their frequency counts
         tag_relations: Dictionary mapping items to their Relations objects
         tag_time_ranges: Dictionary mapping items to their TimeRange objects
@@ -160,10 +161,24 @@ class AnalysisResult:
 
     total_tasks: int
     task_states: Histogram
+    task_days: Histogram
     tag_frequencies: dict[str, Frequency]
     tag_relations: dict[str, Relations]
     tag_time_ranges: dict[str, TimeRange]
     tag_groups: list[Group]
+
+
+def weekday_to_string(weekday: int) -> str:
+    """Map Python weekday integer to capitalized day name.
+
+    Args:
+        weekday: Integer from datetime.weekday() (0=Monday, 6=Sunday)
+
+    Returns:
+        Capitalized day name (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday)
+    """
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    return days[weekday]
 
 
 def mapped(mapping: dict[str, str], t: str) -> str:
@@ -433,6 +448,7 @@ def analyze(
     relations: dict[str, Relations] = {}
     time_ranges: dict[str, TimeRange] = {}
     task_states = Histogram(values={"none": 0})
+    task_days = Histogram(values={})
 
     for node in nodes:
         total = total + max(1, len(node.repeated_tasks))
@@ -464,11 +480,20 @@ def analyze(
         timestamps = extract_timestamp(node)
         compute_time_ranges(items, time_ranges, timestamps)
 
+        is_done_task = node.todo == "DONE"
+        done_repeats = [rt for rt in node.repeated_tasks if rt.after == "DONE"]
+
+        if is_done_task or done_repeats:
+            for timestamp in timestamps:
+                day_name = weekday_to_string(timestamp.weekday())
+                task_days.values[day_name] = task_days.values.get(day_name, 0) + 1
+
     tag_groups = compute_groups(relations, max_relations)
 
     return AnalysisResult(
         total_tasks=total,
         task_states=task_states,
+        task_days=task_days,
         tag_frequencies=frequencies,
         tag_relations=relations,
         tag_time_ranges=time_ranges,

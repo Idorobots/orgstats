@@ -521,6 +521,12 @@ def main() -> None:
     for state, count in sorted_states:
         print(f"  {state}: {count}")
 
+    print("\nTask completion by day of week:")
+    day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    for day in day_order:
+        count = result.task_days.values.get(day, 0)
+        print(f"  {day}: {count}")
+
     # Select appropriate category name
     category_names = {"tags": "tags", "heading": "heading words", "body": "body words"}
     category_name = category_names[args.show]

@@ -10,6 +10,7 @@ def test_analysis_result_initialization() -> None:
     result = AnalysisResult(
         total_tasks=10,
         task_states=Histogram(values={"DONE": 5, "TODO": 5}),
+        task_days=Histogram(values={}),
         tag_frequencies={"python": Frequency(3)},
         tag_relations={"python": Relations(name="python", relations={})},
         tag_time_ranges={},
@@ -19,6 +20,7 @@ def test_analysis_result_initialization() -> None:
     assert result.total_tasks == 10
     assert result.task_states.values["DONE"] == 5
     assert result.task_states.values["TODO"] == 5
+    assert result.task_days.values == {}
     assert result.tag_frequencies == {"python": Frequency(3)}
     assert "python" in result.tag_relations
     assert result.tag_time_ranges == {}
@@ -30,6 +32,7 @@ def test_analysis_result_empty_initialization() -> None:
     result = AnalysisResult(
         total_tasks=0,
         task_states=Histogram(values={"DONE": 0, "TODO": 0}),
+        task_days=Histogram(values={}),
         tag_frequencies={},
         tag_relations={},
         tag_time_ranges={},
@@ -39,6 +42,7 @@ def test_analysis_result_empty_initialization() -> None:
     assert result.total_tasks == 0
     assert result.task_states.values["DONE"] == 0
     assert result.task_states.values["TODO"] == 0
+    assert result.task_days.values == {}
     assert result.tag_frequencies == {}
     assert result.tag_relations == {}
     assert result.tag_time_ranges == {}
@@ -50,6 +54,7 @@ def test_analysis_result_attributes() -> None:
     result = AnalysisResult(
         total_tasks=1,
         task_states=Histogram(values={"DONE": 1, "TODO": 0}),
+        task_days=Histogram(values={}),
         tag_frequencies={},
         tag_relations={},
         tag_time_ranges={},
@@ -58,6 +63,7 @@ def test_analysis_result_attributes() -> None:
 
     assert result.total_tasks == 1
     assert result.task_states.values["DONE"] == 1
+    assert result.task_days.values == {}
     assert result.tag_frequencies == {}
     assert result.tag_relations == {}
     assert result.tag_time_ranges == {}
@@ -76,6 +82,7 @@ def test_analysis_result_repr() -> None:
     result = AnalysisResult(
         total_tasks=2,
         task_states=Histogram(values={"DONE": 1, "TODO": 1}),
+        task_days=Histogram(values={}),
         tag_frequencies={"test": Frequency(1)},
         tag_relations={},
         tag_time_ranges={},
@@ -93,6 +100,7 @@ def test_analysis_result_equality() -> None:
     result1 = AnalysisResult(
         total_tasks=5,
         task_states=Histogram(values={"DONE": 3, "TODO": 2}),
+        task_days=Histogram(values={}),
         tag_frequencies={"python": Frequency(2)},
         tag_relations={},
         tag_time_ranges={},
@@ -102,6 +110,7 @@ def test_analysis_result_equality() -> None:
     result2 = AnalysisResult(
         total_tasks=5,
         task_states=Histogram(values={"DONE": 3, "TODO": 2}),
+        task_days=Histogram(values={}),
         tag_frequencies={"python": Frequency(2)},
         tag_relations={},
         tag_time_ranges={},
@@ -111,6 +120,7 @@ def test_analysis_result_equality() -> None:
     result3 = AnalysisResult(
         total_tasks=10,
         task_states=Histogram(values={"DONE": 5, "TODO": 5}),
+        task_days=Histogram(values={}),
         tag_frequencies={},
         tag_relations={},
         tag_time_ranges={},
@@ -128,6 +138,7 @@ def test_analysis_result_mutable_fields() -> None:
     result = AnalysisResult(
         total_tasks=0,
         task_states=Histogram(values={"DONE": 0, "TODO": 0}),
+        task_days=Histogram(values={}),
         tag_frequencies={},
         tag_relations={},
         tag_time_ranges={},
@@ -137,6 +148,7 @@ def test_analysis_result_mutable_fields() -> None:
     result.total_tasks = 10
     result.task_states.values["DONE"] = 5
     result.task_states.values["TODO"] = 5
+    result.task_days.values["Monday"] = 3
     result.tag_frequencies["new"] = Frequency(1)
     result.tag_relations["test"] = Relations(name="test", relations={})
     result.tag_time_ranges["python"] = TimeRange()
@@ -145,6 +157,7 @@ def test_analysis_result_mutable_fields() -> None:
     assert result.total_tasks == 10
     assert result.task_states.values["DONE"] == 5
     assert result.task_states.values["TODO"] == 5
+    assert result.task_days.values["Monday"] == 3
     assert "new" in result.tag_frequencies
     assert "test" in result.tag_relations
     assert "python" in result.tag_time_ranges
@@ -156,6 +169,7 @@ def test_analysis_result_dict_operations() -> None:
     result = AnalysisResult(
         total_tasks=3,
         task_states=Histogram(values={"DONE": 2, "TODO": 1}),
+        task_days=Histogram(values={}),
         tag_frequencies={"python": Frequency(3), "testing": Frequency(2)},
         tag_relations={},
         tag_time_ranges={},

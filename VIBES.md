@@ -339,17 +339,19 @@ Please update the CLI output to show all detected states, including the `none` s
 
 Comment: They AI was extatic about the backwards compatibility breaking possibilities and needed convincing that it's fine. It then implemented the feature pretty well, revealing exactly how broken the previous implementation was. It also made the task state counts inconsistent - counting states twice if a task wask repeated. I asked the AI to fix that issue within the same session, just to find out that the quota run out again.
 
-## General stats - day histogram
+## ✅*️ General stats - day histogram
 I'd like to add another histogram to the analysis - this time a distribution of tasks completed on different days of the week.
 
 For the day of week histogram:
 - extend `AnalysisResult` with a new field called `task_days: Histogram`,
 - take into account only the tasks in the following states: `DONE`,
 - increment the histogram `values` for each occurance of the task - that includes repeated tasks too,
-- use the timestamp of a task to extract the date and use `datetime.weekday()` to extract the day of week - you might need to map that value to a string representation: `mon`, `tue`, `wed`, `thu`, `fri`, `sat`, `sun`,
+- use the timestamp of a task to extract the date and use `datetime.weekday()` to extract the day of week - you might need to map that value to a string representation: `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, `Sunday`,
 - the timestamp should be computed the same way as was done in `extract_timestamp()`,
 
 Display the values for week days in the CLI output. You can add that after the todo state breakdown.
+
+Comment: The AI did a good job and implemented a feature that produces a result. The result however doesn't match the counts on the state histogram.
 
 ## General stats - time range
 I'd like to compute a global time range of all tasks completed that are in the archive.
