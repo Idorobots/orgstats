@@ -121,8 +121,8 @@ def test_analyze_repeated_tasks() -> None:
 
     # result.total_tasks = max(1, len(repeated_tasks)) = max(1, 3) = 3
     assert result.total_tasks == 3
-    # Node is TODO (1) + 2 DONE repeats + 1 TODO repeat = 3 TODO, 2 DONE
-    assert result.task_states.values["TODO"] == 2
+    # Repeated tasks only: 2 DONE repeats + 1 TODO repeat = 1 TODO, 2 DONE
+    assert result.task_states.values["TODO"] == 1
     assert result.task_states.values["DONE"] == 2
     # Tags should be counted with count=2
     assert result.tag_frequencies["recurring"] == 2
@@ -416,7 +416,8 @@ def test_analyze_repeated_tasks_different_states() -> None:
     result = analyze(nodes, {}, category="tags", max_relations=3)
 
     assert result.total_tasks == 2
-    assert result.task_states.values["TODO"] == 1
+    # Only repeated tasks are counted (main node TODO state is ignored)
+    assert result.task_states.values.get("TODO", 0) == 0
     assert result.task_states.values["DONE"] == 1
     assert result.task_states.values["CANCELLED"] == 1
 
@@ -446,3 +447,73 @@ def test_analyze_all_task_states_mixed() -> None:
     assert result.task_states.values["SUSPENDED"] == 1
     assert result.task_states.values["DELEGATED"] == 1
     assert result.task_states.values["none"] == 1
+
+
+def test_analyze_state_counts_match_total_tasks() -> None:
+    """Test that sum of state counts equals total_tasks."""
+    nodes = node_from_org("""
+* TODO Task 1 :A:
+* DONE Task 2 :B:
+* TODO Task 3 :C:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-20 Fri 09:15]
+- State "DONE"       from "TODO"       [2023-10-19 Thu 09:10]
+:END:
+""")
+
+    result = analyze(nodes, {}, category="tags", max_relations=3)
+
+    # Sum all state counts
+    total_state_counts = sum(result.task_states.values.values())
+
+    # Should equal total_tasks
+    assert total_state_counts == result.total_tasks
+
+
+def test_analyze_state_counts_match_with_no_repeats() -> None:
+    """Test state count sum equals total_tasks when no tasks have repeats."""
+    nodes = node_from_org("""
+* TODO Task 1 :A:
+* DONE Task 2 :B:
+* CANCELLED Task 3 :C:
+* Task 4 without state :D:
+""")
+
+    result = analyze(nodes, {}, category="tags", max_relations=3)
+
+    # Sum all state counts
+    total_state_counts = sum(result.task_states.values.values())
+
+    # Should equal total_tasks
+    assert total_state_counts == result.total_tasks
+    assert result.total_tasks == 4
+
+
+def test_analyze_state_counts_match_with_all_repeats() -> None:
+    """Test state count sum equals total_tasks when all tasks have repeats."""
+    import orgparse
+
+    content = """#+TODO: TODO | DONE
+
+* TODO Task 1 :A:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-20 Fri 09:15]
+:END:
+
+* TODO Task 2 :B:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-10-19 Thu 09:10]
+- State "DONE"       from "TODO"       [2023-10-18 Wed 09:05]
+:END:
+"""
+    ns = orgparse.loads(content)
+    nodes = list(ns[1:]) if ns else []
+
+    result = analyze(nodes, {}, category="tags", max_relations=3)
+
+    # Sum all state counts
+    total_state_counts = sum(result.task_states.values.values())
+
+    # Should equal total_tasks
+    assert total_state_counts == result.total_tasks
+    assert result.total_tasks == 3

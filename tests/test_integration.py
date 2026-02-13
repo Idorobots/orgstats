@@ -40,7 +40,7 @@ def test_integration_single_task() -> None:
 
     result_tags = analyze(nodes, {}, category="tags", max_relations=3)
     assert result_tags.total_tasks == 1
-    assert result_tags.task_states.values["DONE"] == 2
+    assert result_tags.task_states.values["DONE"] == 1
     # Check tags (Testing, Python -> testing, python)
     assert "testing" in result_tags.tag_frequencies
     assert "python" in result_tags.tag_frequencies
@@ -76,7 +76,7 @@ def test_integration_multiple_tags() -> None:
     )
 
     assert result.total_tasks == 3
-    assert result.task_states.values["DONE"] == 4
+    assert result.task_states.values["DONE"] == 2
     assert result.task_states.values["TODO"] == 1
 
     # Check tag mappings
@@ -98,9 +98,9 @@ def test_integration_edge_cases() -> None:
 
     result = analyze(nodes, {}, category="tags", max_relations=3)
 
-    # All three tasks are DONE (node + repeated tasks)
+    # All three tasks are DONE (only repeated tasks counted)
     assert result.total_tasks == 3
-    assert result.task_states.values["DONE"] == 6
+    assert result.task_states.values["DONE"] == 3
 
     # Note: orgparse doesn't parse tags with punctuation in the heading line
     # Only properly formatted tags like :NoBody: are parsed

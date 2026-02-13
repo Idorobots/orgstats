@@ -437,12 +437,15 @@ def analyze(
     for node in nodes:
         total = total + max(1, len(node.repeated_tasks))
 
-        node_state = node.todo if node.todo else "none"
-        task_states.values[node_state] = task_states.values.get(node_state, 0) + 1
-
-        for repeated_task in node.repeated_tasks:
-            repeat_state = repeated_task.after if repeated_task.after else "none"
-            task_states.values[repeat_state] = task_states.values.get(repeat_state, 0) + 1
+        if node.repeated_tasks:
+            # If there are repeated tasks, only count them (main node state is redundant)
+            for repeated_task in node.repeated_tasks:
+                repeat_state = repeated_task.after if repeated_task.after else "none"
+                task_states.values[repeat_state] = task_states.values.get(repeat_state, 0) + 1
+        else:
+            # If no repeated tasks, count the main node state
+            node_state = node.todo if node.todo else "none"
+            task_states.values[node_state] = task_states.values.get(node_state, 0) + 1
 
         final = (node.todo == "DONE" and 1) or 0
         repeats = len([n for n in node.repeated_tasks if n.after == "DONE"])
