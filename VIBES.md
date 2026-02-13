@@ -353,6 +353,27 @@ Display the values for week days in the CLI output. You can add that after the t
 
 Comment: The AI did a good job and implemented a feature that produces a result. The result however doesn't match the counts on the state histogram.
 
+## ✅*️ Fix timestamps
+Hey, when I ran the CLI on my archive it produces a histogram that sums up to a different value than the count for `DONE` tasks on the state histogram. I think the state histogram is correct, so it must be the day histogram that is off. Is it possible that some tasks do not have a timestamp at all? I.e. they are in a DONE state, but don't have any repeats or either of closed, scheduled or deadline dates?
+
+I see that might be the case in my Archive:
+
+```
+* DONE Add "PROJECT" section to the main TODO list.
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2012-01-22 nie 15:51
+  :ARCHIVE_FILE: ~/org/refile.org
+  :ARCHIVE_CATEGORY: refile
+  :ARCHIVE_TODO: DONE
+  :ARCHIVE_ITAGS: REFILE
+  :END:
+[2012-01-22 nie 15:25]
+```
+
+Can you check if orgparse returs any timestamps for this ticket and, if so, adjust the timestamp extraction algorithm to take that into account?
+
+Comment: I found an example of a bad timestamp in the archive, so the AI could just focus on fixing, not debugging. This was run in the same session as the previous task, to make sure the context is rich and the AI did well. The code still returns inconsistent results.
+
 ## General stats - time range
 I'd like to compute a global time range of all tasks completed that are in the archive.
 

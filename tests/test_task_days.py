@@ -296,3 +296,29 @@ CLOSED: [2023-10-23 Mon 10:00]
     assert result_tags.task_days.values == result_heading.task_days.values
     assert result_heading.task_days.values == result_body.task_days.values
     assert result_tags.task_days.values["Monday"] == 1
+
+
+def test_done_task_with_datelist_timestamp() -> None:
+    """Test DONE task with datelist timestamp (timestamp in body)."""
+    nodes = node_from_org("""
+* DONE Task
+[2023-10-23 Mon 14:30]
+""")
+
+    result = analyze(nodes, {}, category="tags", max_relations=3)
+
+    assert result.task_days.values["Monday"] == 1
+
+
+def test_done_task_with_multiple_datelist_timestamps() -> None:
+    """Test DONE task with multiple datelist timestamps."""
+    nodes = node_from_org("""
+* DONE Task
+[2023-10-23 Mon 14:30]
+[2023-10-24 Tue 10:00]
+""")
+
+    result = analyze(nodes, {}, category="tags", max_relations=3)
+
+    assert result.task_days.values["Monday"] == 1
+    assert result.task_days.values["Tuesday"] == 1
