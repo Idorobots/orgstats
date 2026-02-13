@@ -16,10 +16,6 @@ class Frequency:  # noqa: PLW1641
 
     total: int = 0
 
-    def __repr__(self) -> str:
-        """Return string representation of Frequency."""
-        return f"Frequency(total={self.total})"
-
     def __eq__(self, other: object) -> bool:
         """Compare with another Frequency or int.
 
@@ -54,10 +50,6 @@ class Histogram:
 
     values: dict[str, int] = field(default_factory=dict)
 
-    def __repr__(self) -> str:
-        """Return string representation of Histogram."""
-        return f"Histogram(values={self.values})"
-
     def update(self, key: str, amount: int) -> None:
         """Update the count for a given key by the specified amount.
 
@@ -79,10 +71,6 @@ class Relations:
 
     name: str
     relations: dict[str, int]
-
-    def __repr__(self) -> str:
-        """Return string representation of Relations."""
-        return f"Relations(name={self.name!r}, relations={self.relations})"
 
 
 @dataclass
@@ -340,9 +328,7 @@ def compute_task_stats(nodes: list[orgparse.node.OrgNode]) -> tuple[int, int]:
     for node in nodes:
         total = total + max(1, len(node.repeated_tasks))
 
-        final = 1 if node.todo == "DONE" else 0
-        repeats = len([rt for rt in node.repeated_tasks if rt.after == "DONE"])
-        node_max_repeat = max(final, repeats)
+        node_max_repeat = _compute_done_count(node)
         max_repeat_count = max(max_repeat_count, node_max_repeat)
 
     return (total, max_repeat_count)
@@ -393,15 +379,15 @@ def compute_task_state_histogram(nodes: list[orgparse.node.OrgNode]) -> Histogra
     Returns:
         Histogram with counts for each task state
     """
-    task_states = Histogram(values={"none": 0})
+    task_states = Histogram(values={})
 
     for node in nodes:
         if node.repeated_tasks:
             for repeated_task in node.repeated_tasks:
-                repeat_state = repeated_task.after if repeated_task.after else "none"
+                repeat_state = repeated_task.after or "none"
                 task_states.update(repeat_state, 1)
         else:
-            node_state = node.todo if node.todo else "none"
+            node_state = node.todo or "none"
             task_states.update(node_state, 1)
 
     return task_states
@@ -422,10 +408,9 @@ def compute_day_of_week_histogram(nodes: list[orgparse.node.OrgNode]) -> Histogr
     task_days = Histogram(values={})
 
     for node in nodes:
-        is_done_task = node.todo == "DONE"
-        done_repeats = [rt for rt in node.repeated_tasks if rt.after == "DONE"]
+        done_count = _compute_done_count(node)
 
-        if is_done_task or done_repeats:
+        if done_count > 0:
             timestamps = extract_timestamp(node)
             if timestamps:
                 for timestamp in timestamps:
@@ -451,10 +436,9 @@ def compute_global_timerange(nodes: list[orgparse.node.OrgNode]) -> TimeRange:
     global_timerange = TimeRange()
 
     for node in nodes:
-        is_done_task = node.todo == "DONE"
-        done_repeats = [rt for rt in node.repeated_tasks if rt.after == "DONE"]
+        done_count = _compute_done_count(node)
 
-        if is_done_task or done_repeats:
+        if done_count > 0:
             timestamps = extract_timestamp(node)
             for timestamp in timestamps:
                 global_timerange.update(timestamp)

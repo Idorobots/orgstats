@@ -447,7 +447,7 @@ Update the AGENTS.md file to ensure that it explicitly prohibits disabling linte
 
 **Comment:** AI did refactor the code fine, but introduced a lot of mutation, which needs to be addressed separately.
 
-## ✅ Mutation slop
+## ✅*️ Mutation slop
 Refactor the functions in `core.py` module not to use mutation as much. The `compute_*` functions can use mutation internally to update a value that is defined there and later returned, but they shouldn't mutate any values passed into the function.
 Update the `analyze()` function not to define the intermediate results and instead call the `compute_*` functions to produce the values directly. It should only pass the relevant data to those functions.
 
@@ -470,7 +470,7 @@ Ideally, intermediate results would be re-used as much as possible. It is OK to 
 
 Please refactor the tests as well to match the redefined functions. If there are opportunities to simplify the tests, please go for it.
 
-**Comment:** Expected this to take a long time and not have a great outcome. It did run out of quota, but was able to continue afterwards.
+**Comment:** Expected this to take a long time and not have a great outcome. It did run out of quota, but was able to continue afterwards. It wanted to extract some helper functions, but then proceded not to use them.
 
 ## Another fix for task states
 
