@@ -35,7 +35,7 @@ def test_single_done_task_with_closed_timestamp() -> None:
 CLOSED: [2023-10-23 Mon 10:00]
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values.get("Monday", 0) == 1
     assert result.task_days.values.get("Tuesday", 0) == 0
@@ -52,7 +52,7 @@ def test_repeated_done_tasks_multiple_days() -> None:
 :END:
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values["Monday"] == 1
     assert result.task_days.values["Tuesday"] == 1
@@ -71,7 +71,7 @@ def test_repeated_done_tasks_same_day() -> None:
 :END:
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values["Monday"] == 3
     assert result.task_days.values.get("Tuesday", 0) == 0
@@ -84,7 +84,7 @@ def test_todo_task_not_counted() -> None:
 SCHEDULED: <2023-10-23 Mon>
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values.get("Monday", 0) == 0
     assert result.task_days.values == {}
@@ -101,7 +101,7 @@ def test_mixed_repeated_tasks_only_done_counted() -> None:
 :END:
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values["Monday"] == 1
     assert result.task_days.values.get("Tuesday", 0) == 0
@@ -114,7 +114,7 @@ def test_done_task_without_timestamp() -> None:
 * DONE Task
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values.get("unknown", 0) == 1
 
@@ -144,7 +144,7 @@ CLOSED: [2023-10-28 Sat 10:00]
 CLOSED: [2023-10-29 Sun 10:00]
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values["Monday"] == 1
     assert result.task_days.values["Tuesday"] == 1
@@ -162,7 +162,7 @@ def test_task_days_in_analyze_result() -> None:
 CLOSED: [2023-10-23 Mon 10:00]
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert isinstance(result.task_days, Histogram)
     assert result.task_days.values["Monday"] == 1
@@ -172,7 +172,7 @@ def test_empty_nodes_task_days() -> None:
     """Test empty nodes list produces empty histogram."""
     nodes: list[orgparse.node.OrgNode] = []
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values == {}
 
@@ -187,7 +187,7 @@ CLOSED: [2023-10-23 Mon 10:00]
     ns = orgparse.loads(content)
     nodes = list(ns[1:]) if ns else []
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values.get("Monday", 0) == 0
     assert result.task_days.values == {}
@@ -203,7 +203,7 @@ CLOSED: [2023-10-23 Mon 10:00]
     ns = orgparse.loads(content)
     nodes = list(ns[1:]) if ns else []
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values.get("Monday", 0) == 0
     assert result.task_days.values == {}
@@ -216,7 +216,7 @@ def test_done_task_with_scheduled_timestamp() -> None:
 SCHEDULED: <2023-10-23 Mon>
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values["Monday"] == 1
 
@@ -228,7 +228,7 @@ def test_done_task_with_deadline_timestamp() -> None:
 DEADLINE: <2023-10-23 Mon>
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values["Monday"] == 1
 
@@ -243,7 +243,7 @@ CLOSED: [2023-10-24 Tue 10:00]
 :END:
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values["Monday"] == 1
     assert result.task_days.values.get("Tuesday", 0) == 0
@@ -262,7 +262,7 @@ CLOSED: [2023-10-23 Mon 14:00]
 CLOSED: [2023-10-23 Mon 18:00]
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values["Monday"] == 3
 
@@ -277,7 +277,7 @@ CLOSED: [2023-10-23 Mon 10:00]
 :END:
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values["Monday"] == 1
 
@@ -289,9 +289,9 @@ def test_task_days_independent_of_category() -> None:
 CLOSED: [2023-10-23 Mon 10:00]
 """)
 
-    result_tags = analyze(nodes, {}, category="tags", max_relations=3)
-    result_heading = analyze(nodes, {}, category="heading", max_relations=3)
-    result_body = analyze(nodes, {}, category="body", max_relations=3)
+    result_tags = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
+    result_heading = analyze(nodes, {}, category="heading", max_relations=3, done_keys=["DONE"])
+    result_body = analyze(nodes, {}, category="body", max_relations=3, done_keys=["DONE"])
 
     assert result_tags.task_days.values == result_heading.task_days.values
     assert result_heading.task_days.values == result_body.task_days.values
@@ -305,7 +305,7 @@ def test_done_task_with_datelist_timestamp() -> None:
 [2023-10-23 Mon 14:30]
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values["Monday"] == 1
 
@@ -318,7 +318,7 @@ def test_done_task_with_multiple_datelist_timestamps() -> None:
 [2023-10-24 Tue 10:00]
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values["Monday"] == 1
     assert result.task_days.values["Tuesday"] == 1
@@ -330,7 +330,7 @@ def test_done_task_without_any_timestamp_unknown() -> None:
 * DONE Task
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values.get("unknown", 0) == 1
     assert result.task_days.values.get("Monday", 0) == 0
@@ -346,7 +346,7 @@ def test_multiple_done_tasks_without_timestamp() -> None:
 * DONE Task 3
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values["unknown"] == 3
 
@@ -365,7 +365,7 @@ CLOSED: [2023-10-24 Tue 14:00]
 * DONE Another without timestamp
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values["Monday"] == 1
     assert result.task_days.values["Tuesday"] == 1
@@ -382,7 +382,7 @@ CLOSED: [2023-10-23 Mon 10:00]
 CLOSED: [2023-10-24 Tue 14:00]
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values.get("unknown", 0) == 0
     assert "unknown" not in result.task_days.values
@@ -405,7 +405,7 @@ CLOSED: [2023-10-24 Tue 14:00]
 SCHEDULED: <2023-10-25 Wed>
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     done_count = result.task_states.values.get("DONE", 0)
     day_sum = sum(
@@ -428,7 +428,7 @@ def test_todo_task_without_timestamp_not_counted() -> None:
 * TODO Task 2
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values.get("unknown", 0) == 0
     assert result.task_days.values == {}
@@ -443,7 +443,7 @@ def test_cancelled_task_without_timestamp_not_counted() -> None:
     ns = orgparse.loads(content)
     nodes = list(ns[1:]) if ns else []
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.task_days.values.get("unknown", 0) == 0
     assert result.task_days.values == {}

@@ -29,14 +29,27 @@ def freq_dict_to_ints(d: dict[str, Frequency]) -> dict[str, int]:
     return {k: v.total for k, v in d.items()}
 
 
-def node_from_org(org_text: str) -> list[orgparse.node.OrgNode]:
+def node_from_org(
+    org_text: str, todo_keys: list[str] | None = None, done_keys: list[str] | None = None
+) -> list[orgparse.node.OrgNode]:
     """Parse org-mode text and return list of nodes (excluding root).
 
     Args:
         org_text: Org-mode formatted text
+        todo_keys: List of TODO state keywords (default: ["TODO"])
+        done_keys: List of DONE state keywords (default: ["DONE"])
 
     Returns:
         List of OrgNode objects (excluding root node)
     """
-    root = orgparse.loads(org_text.replace("24:00", "00:00"))
+    if todo_keys is None:
+        todo_keys = ["TODO"]
+    if done_keys is None:
+        done_keys = ["DONE"]
+
+    todo_config = f"#+TODO: {' '.join(todo_keys)} | {' '.join(done_keys)}\n\n"
+    content = org_text.replace("24:00", "00:00")
+    content = todo_config + content
+
+    root = orgparse.loads(content)
     return list(root[1:]) if root else []

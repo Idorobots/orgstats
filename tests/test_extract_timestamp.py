@@ -9,7 +9,7 @@ from tests.conftest import node_from_org
 def test_extract_timestamp_empty_node() -> None:
     """Test node with no timestamps returns empty list."""
     nodes = node_from_org("* TODO Task\n")
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
     assert timestamps == []
 
 
@@ -23,7 +23,7 @@ CLOSED: [2023-10-25 Wed 10:00]
 :END:
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 1
     assert timestamps[0].day == 20
@@ -40,7 +40,7 @@ def test_extract_timestamp_repeated_tasks_all_done() -> None:
 :END:
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 3
     days = sorted([t.day for t in timestamps])
@@ -58,7 +58,7 @@ def test_extract_timestamp_repeated_tasks_mixed() -> None:
 :END:
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 2
     days = sorted([t.day for t in timestamps])
@@ -75,7 +75,7 @@ CLOSED: [2023-10-25 Wed 10:00]
 :END:
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 1
     assert timestamps[0].day == 25
@@ -88,7 +88,7 @@ def test_extract_timestamp_closed_fallback() -> None:
 CLOSED: [2023-10-20 Fri 14:43]
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 1
     assert timestamps[0].day == 20 and timestamps[0].hour == 14 and timestamps[0].minute == 43
@@ -101,7 +101,7 @@ def test_extract_timestamp_scheduled_fallback() -> None:
 SCHEDULED: <2023-10-20 Fri>
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 1
     assert timestamps[0].day == 20
@@ -114,7 +114,7 @@ def test_extract_timestamp_deadline_fallback() -> None:
 DEADLINE: <2023-10-25 Wed>
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 1
     assert timestamps[0].day == 25
@@ -132,7 +132,7 @@ DEADLINE: <2023-10-25 Wed>
 :END:
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 1
     assert timestamps[0].day == 20
@@ -145,7 +145,7 @@ def test_extract_timestamp_closed_none() -> None:
 SCHEDULED: <2023-10-20 Fri>
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 1
     assert timestamps[0].day == 20
@@ -158,7 +158,7 @@ def test_extract_timestamp_scheduled_none() -> None:
 DEADLINE: <2023-10-25 Wed>
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 1
     assert timestamps[0].day == 25
@@ -168,7 +168,7 @@ def test_extract_timestamp_deadline_none() -> None:
     """Test handles deadline=None gracefully."""
     nodes = node_from_org("* TODO Task\n")
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert timestamps == []
 
@@ -180,7 +180,7 @@ def test_extract_timestamp_returns_datetime_objects() -> None:
 CLOSED: [2023-10-20 Fri 14:43]
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 1
     assert isinstance(timestamps[0], datetime)
@@ -193,7 +193,7 @@ def test_extract_timestamp_date_only() -> None:
 SCHEDULED: <2023-10-20 Fri>
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 1
     assert timestamps[0].day == 20
@@ -208,7 +208,7 @@ def test_extract_timestamp_single_done_in_repeats() -> None:
 :END:
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 1
     assert timestamps[0].day == 20 and timestamps[0].hour == 14 and timestamps[0].minute == 43
@@ -221,7 +221,7 @@ def test_extract_timestamp_datelist_fallback() -> None:
 [2023-10-20 Fri 14:30]
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 1
     assert timestamps[0].day == 20 and timestamps[0].hour == 14 and timestamps[0].minute == 30
@@ -235,7 +235,7 @@ def test_extract_timestamp_datelist_multiple() -> None:
 [2023-10-21 Sat 10:00]
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 2
     assert timestamps[0].day == 20
@@ -250,7 +250,7 @@ DEADLINE: <2023-10-25 Wed>
 [2023-10-20 Fri 14:30]
 """)
 
-    timestamps = extract_timestamp(nodes[0])
+    timestamps = extract_timestamp(nodes[0], ["DONE"])
 
     assert len(timestamps) == 1
     assert timestamps[0].day == 25

@@ -609,7 +609,7 @@ def main() -> None:
 
     nodes = load_org_files(args.files, todo_keys, done_keys)
     filtered_nodes = filter_nodes(nodes, args.filter)
-    result = analyze(filtered_nodes, mapping, args.show, args.max_relations)
+    result = analyze(filtered_nodes, mapping, args.show, args.max_relations, done_keys)
 
     display_results(result, args, exclude_set)
 

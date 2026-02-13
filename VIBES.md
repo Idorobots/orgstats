@@ -472,9 +472,21 @@ Please refactor the tests as well to match the redefined functions. If there are
 
 **Comment:** Expected this to take a long time and not have a great outcome. It did run out of quota, but was able to continue afterwards. It wanted to extract some helper functions, but then proceded not to use them.
 
-## Another fix for task states
-
 ## Treat all --done-keys equally
+As you noticed previously, we are only treating `DONE` task type as locically completed. I'd like that to be changed so that all the types in `--done-keys` are treated as if the tasks were completed. To achieve that you will need to refactor the code in the core module to pass in the list of done keys and handle task todo state filtering to take those extra keys into account.
+
+Specifically, we want the following behaviours:
+- frequencies should take into account all `--done-keys`,
+- time ranges (both global & per-tag) should take into account all `--done-keys`,
+- tag relations should take into account all `--done-keys`,
+- tag groups should be computed using the relations, so they will take the `--done-keys` into account automatically,
+- average tasks completed per day should take into account all `--done-keys`,
+- max completions per day should take into account all `--done-keys`,
+- max repeats should take into account all `--done-keys`.
+
+An exception to this is the state histogram - there we still want individual task states to be incremented, not a general "completed" state.
+
+**Comment:** The AI was inclined to add a default argument to avoid having to clean up the code. It implemented the change fine, but didn't add any tests, so I asked it to do that afterwards.
 
 ## More task filters
 - gamify_exp above

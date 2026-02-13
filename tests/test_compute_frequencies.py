@@ -8,7 +8,7 @@ def test_compute_frequencies_empty_nodes() -> None:
     """Test with empty nodes list creates no entries."""
     nodes = node_from_org("")
 
-    frequencies = compute_frequencies(nodes, {}, "tags")
+    frequencies = compute_frequencies(nodes, {}, "tags", ["DONE"])
 
     assert frequencies == {}
 
@@ -17,7 +17,7 @@ def test_compute_frequencies_single_tag() -> None:
     """Test single tag creates Frequency with correct count."""
     nodes = node_from_org("* DONE Task :Python:\n")
 
-    frequencies = compute_frequencies(nodes, {}, "tags")
+    frequencies = compute_frequencies(nodes, {}, "tags", ["DONE"])
 
     assert "python" in frequencies
     assert frequencies["python"].total == 1
@@ -27,7 +27,7 @@ def test_compute_frequencies_multiple_tags() -> None:
     """Test multiple tags all get counted."""
     nodes = node_from_org("* DONE Task :Python:Testing:Debugging:\n")
 
-    frequencies = compute_frequencies(nodes, {}, "tags")
+    frequencies = compute_frequencies(nodes, {}, "tags", ["DONE"])
 
     assert len(frequencies) == 3
     assert "python" in frequencies
@@ -42,7 +42,7 @@ def test_compute_frequencies_todo_task() -> None:
     """Test TODO task has count of 0."""
     nodes = node_from_org("* TODO Task :Python:\n")
 
-    frequencies = compute_frequencies(nodes, {}, "tags")
+    frequencies = compute_frequencies(nodes, {}, "tags", ["DONE"])
 
     assert frequencies == {}
 
@@ -58,7 +58,7 @@ def test_compute_frequencies_repeated_tasks() -> None:
 :END:
 """)
 
-    frequencies = compute_frequencies(nodes, {}, "tags")
+    frequencies = compute_frequencies(nodes, {}, "tags", ["DONE"])
 
     assert frequencies["python"].total == 3
 
@@ -70,7 +70,7 @@ def test_compute_frequencies_accumulates() -> None:
 * DONE Task :Python:Testing:
 """)
 
-    frequencies = compute_frequencies(nodes, {}, "tags")
+    frequencies = compute_frequencies(nodes, {}, "tags", ["DONE"])
 
     assert frequencies["python"].total == 2
     assert frequencies["testing"].total == 1
@@ -80,7 +80,9 @@ def test_compute_frequencies_with_mapping() -> None:
     """Test that mapping is applied."""
     nodes = node_from_org("* DONE Task :Test:SysAdmin:\n")
 
-    frequencies = compute_frequencies(nodes, {"test": "testing", "sysadmin": "devops"}, "tags")
+    frequencies = compute_frequencies(
+        nodes, {"test": "testing", "sysadmin": "devops"}, "tags", ["DONE"]
+    )
 
     assert "testing" in frequencies
     assert "devops" in frequencies
@@ -95,7 +97,7 @@ def test_compute_frequencies_heading_category() -> None:
 * DONE Implement tests
 """)
 
-    frequencies = compute_frequencies(nodes, {}, "heading")
+    frequencies = compute_frequencies(nodes, {}, "heading", ["DONE"])
 
     assert frequencies["implement"].total == 2
     assert frequencies["feature"].total == 1
@@ -111,7 +113,7 @@ Python code
 Python tests
 """)
 
-    frequencies = compute_frequencies(nodes, {}, "body")
+    frequencies = compute_frequencies(nodes, {}, "body", ["DONE"])
 
     assert frequencies["python"].total == 2
     assert frequencies["code"].total == 1

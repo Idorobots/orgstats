@@ -295,29 +295,31 @@ def _extract_items(node: orgparse.node.OrgNode, mapping: dict[str, str], categor
     return normalize(set(node.body.split()), mapping)
 
 
-def _compute_done_count(node: orgparse.node.OrgNode) -> int:
+def _compute_done_count(node: orgparse.node.OrgNode, done_keys: list[str]) -> int:
     """Calculate done count for a node.
 
     This is max(final, repeats) where:
-    - final = 1 if node.todo == "DONE" else 0
-    - repeats = count of repeated tasks with after == "DONE"
+    - final = 1 if node.todo is in done_keys else 0
+    - repeats = count of repeated tasks with after in done_keys
 
     Args:
         node: Org-mode node
+        done_keys: List of completion state keywords
 
     Returns:
-        Count of DONE completions for this node
+        Count of completed tasks for this node
     """
-    final = 1 if node.todo == "DONE" else 0
-    repeats = len([rt for rt in node.repeated_tasks if rt.after == "DONE"])
+    final = 1 if node.todo in done_keys else 0
+    repeats = len([rt for rt in node.repeated_tasks if rt.after in done_keys])
     return max(final, repeats)
 
 
-def compute_task_stats(nodes: list[orgparse.node.OrgNode]) -> tuple[int, int]:
+def compute_task_stats(nodes: list[orgparse.node.OrgNode], done_keys: list[str]) -> tuple[int, int]:
     """Compute total task count and maximum repeat count.
 
     Args:
         nodes: List of org-mode nodes
+        done_keys: List of completion state keywords
 
     Returns:
         Tuple of (total_tasks, max_repeat_count)
@@ -328,7 +330,7 @@ def compute_task_stats(nodes: list[orgparse.node.OrgNode]) -> tuple[int, int]:
     for node in nodes:
         total = total + max(1, len(node.repeated_tasks))
 
-        node_max_repeat = _compute_done_count(node)
+        node_max_repeat = _compute_done_count(node, done_keys)
         max_repeat_count = max(max_repeat_count, node_max_repeat)
 
     return (total, max_repeat_count)
@@ -393,14 +395,17 @@ def compute_task_state_histogram(nodes: list[orgparse.node.OrgNode]) -> Histogra
     return task_states
 
 
-def compute_day_of_week_histogram(nodes: list[orgparse.node.OrgNode]) -> Histogram:
-    """Compute histogram of completion days for DONE tasks.
+def compute_day_of_week_histogram(
+    nodes: list[orgparse.node.OrgNode], done_keys: list[str]
+) -> Histogram:
+    """Compute histogram of completion days for completed tasks.
 
-    Extracts timestamps from DONE tasks and counts by day of week.
+    Extracts timestamps from completed tasks and counts by day of week.
     Tasks without timestamps are counted as "unknown".
 
     Args:
         nodes: List of org-mode nodes
+        done_keys: List of completion state keywords
 
     Returns:
         Histogram with counts for each day of week (Monday-Sunday, unknown)
@@ -408,10 +413,10 @@ def compute_day_of_week_histogram(nodes: list[orgparse.node.OrgNode]) -> Histogr
     task_days = Histogram(values={})
 
     for node in nodes:
-        done_count = _compute_done_count(node)
+        done_count = _compute_done_count(node, done_keys)
 
         if done_count > 0:
-            timestamps = extract_timestamp(node)
+            timestamps = extract_timestamp(node, done_keys)
             if timestamps:
                 for timestamp in timestamps:
                     day_name = weekday_to_string(timestamp.weekday())
@@ -422,24 +427,25 @@ def compute_day_of_week_histogram(nodes: list[orgparse.node.OrgNode]) -> Histogr
     return task_days
 
 
-def compute_global_timerange(nodes: list[orgparse.node.OrgNode]) -> TimeRange:
-    """Compute global time range across all DONE tasks.
+def compute_global_timerange(nodes: list[orgparse.node.OrgNode], done_keys: list[str]) -> TimeRange:
+    """Compute global time range across all completed tasks.
 
-    Extracts timestamps from all DONE tasks and builds a unified TimeRange.
+    Extracts timestamps from all completed tasks and builds a unified TimeRange.
 
     Args:
         nodes: List of org-mode nodes
+        done_keys: List of completion state keywords
 
     Returns:
-        TimeRange spanning all DONE task timestamps
+        TimeRange spanning all completed task timestamps
     """
     global_timerange = TimeRange()
 
     for node in nodes:
-        done_count = _compute_done_count(node)
+        done_count = _compute_done_count(node, done_keys)
 
         if done_count > 0:
-            timestamps = extract_timestamp(node)
+            timestamps = extract_timestamp(node, done_keys)
             for timestamp in timestamps:
                 global_timerange.update(timestamp)
 
@@ -447,7 +453,7 @@ def compute_global_timerange(nodes: list[orgparse.node.OrgNode]) -> TimeRange:
 
 
 def compute_frequencies(
-    nodes: list[orgparse.node.OrgNode], mapping: dict[str, str], category: str
+    nodes: list[orgparse.node.OrgNode], mapping: dict[str, str], category: str, done_keys: list[str]
 ) -> dict[str, Frequency]:
     """Compute frequency statistics for all nodes in a given category.
 
@@ -458,6 +464,7 @@ def compute_frequencies(
         nodes: List of org-mode nodes to analyze
         mapping: Dictionary mapping items to canonical forms
         category: Which datum to analyze - "tags", "heading", or "body"
+        done_keys: List of completion state keywords
 
     Returns:
         Dictionary mapping items to their Frequency objects
@@ -466,7 +473,7 @@ def compute_frequencies(
 
     for node in nodes:
         items = _extract_items(node, mapping, category)
-        count = _compute_done_count(node)
+        count = _compute_done_count(node, done_keys)
 
         if count == 0:
             continue
@@ -480,7 +487,7 @@ def compute_frequencies(
 
 
 def compute_relations(
-    nodes: list[orgparse.node.OrgNode], mapping: dict[str, str], category: str
+    nodes: list[orgparse.node.OrgNode], mapping: dict[str, str], category: str, done_keys: list[str]
 ) -> dict[str, Relations]:
     """Compute pair-wise relations for all nodes in a given category.
 
@@ -491,6 +498,7 @@ def compute_relations(
         nodes: List of org-mode nodes to analyze
         mapping: Dictionary mapping items to canonical forms
         category: Which datum to analyze - "tags", "heading", or "body"
+        done_keys: List of completion state keywords
 
     Returns:
         Dictionary mapping items to their Relations objects
@@ -499,7 +507,7 @@ def compute_relations(
 
     for node in nodes:
         items = _extract_items(node, mapping, category)
-        count = _compute_done_count(node)
+        count = _compute_done_count(node, done_keys)
 
         if count == 0:
             continue
@@ -525,11 +533,11 @@ def compute_relations(
     return relations_dict
 
 
-def extract_timestamp(node: orgparse.node.OrgNode) -> list[datetime]:
+def extract_timestamp(node: orgparse.node.OrgNode, done_keys: list[str]) -> list[datetime]:
     """Extract timestamps from a node following priority rules.
 
     Priority order:
-    1. Repeated tasks (all DONE tasks)
+    1. Repeated tasks (all completed tasks)
     2. Closed timestamp
     3. Scheduled timestamp
     4. Deadline timestamp
@@ -537,6 +545,7 @@ def extract_timestamp(node: orgparse.node.OrgNode) -> list[datetime]:
 
     Args:
         node: Org-mode node to extract timestamps from
+        done_keys: List of completion state keywords
 
     Returns:
         List of datetime objects (may be empty if no timestamps found)
@@ -544,7 +553,7 @@ def extract_timestamp(node: orgparse.node.OrgNode) -> list[datetime]:
     timestamps = []
 
     if node.repeated_tasks:
-        done_tasks = [rt for rt in node.repeated_tasks if rt.after == "DONE"]
+        done_tasks = [rt for rt in node.repeated_tasks if rt.after in done_keys]
         if done_tasks:
             timestamps.extend([rt.start for rt in done_tasks])
             return timestamps
@@ -571,17 +580,18 @@ def extract_timestamp(node: orgparse.node.OrgNode) -> list[datetime]:
 
 
 def compute_time_ranges(
-    nodes: list[orgparse.node.OrgNode], mapping: dict[str, str], category: str
+    nodes: list[orgparse.node.OrgNode], mapping: dict[str, str], category: str, done_keys: list[str]
 ) -> dict[str, TimeRange]:
-    """Compute time ranges for all nodes in a given category.
+    """Compute time ranges for completed tasks in a given category.
 
-    For each node, extracts items and timestamps, then builds TimeRange
+    For each completed node, extracts items and timestamps, then builds TimeRange
     objects tracking earliest/latest timestamps and timeline.
 
     Args:
         nodes: List of org-mode nodes to analyze
         mapping: Dictionary mapping items to canonical forms
         category: Which datum to analyze - "tags", "heading", or "body"
+        done_keys: List of completion state keywords
 
     Returns:
         Dictionary mapping items to their TimeRange objects
@@ -589,8 +599,13 @@ def compute_time_ranges(
     time_ranges: dict[str, TimeRange] = {}
 
     for node in nodes:
+        count = _compute_done_count(node, done_keys)
+
+        if count == 0:
+            continue
+
         items = _extract_items(node, mapping, category)
-        timestamps = extract_timestamp(node)
+        timestamps = extract_timestamp(node, done_keys)
 
         if not timestamps:
             continue
@@ -663,7 +678,11 @@ def compute_groups(relations: dict[str, Relations], max_relations: int) -> list[
 
 
 def analyze(
-    nodes: list[orgparse.node.OrgNode], mapping: dict[str, str], category: str, max_relations: int
+    nodes: list[orgparse.node.OrgNode],
+    mapping: dict[str, str],
+    category: str,
+    max_relations: int,
+    done_keys: list[str],
 ) -> AnalysisResult:
     """Analyze org-mode nodes and extract task statistics.
 
@@ -672,20 +691,21 @@ def analyze(
         mapping: Dictionary mapping tags to canonical forms
         category: Which datum to analyze - "tags", "heading", or "body"
         max_relations: Maximum number of relations to consider for grouping
+        done_keys: List of completion state keywords
 
     Returns:
         AnalysisResult containing task counts and frequency dictionaries for the selected category
     """
-    tag_frequencies = compute_frequencies(nodes, mapping, category)
-    tag_relations = compute_relations(nodes, mapping, category)
+    tag_frequencies = compute_frequencies(nodes, mapping, category, done_keys)
+    tag_relations = compute_relations(nodes, mapping, category, done_keys)
     tag_groups = compute_groups(tag_relations, max_relations)
-    tag_time_ranges = compute_time_ranges(nodes, mapping, category)
+    tag_time_ranges = compute_time_ranges(nodes, mapping, category, done_keys)
     task_states = compute_task_state_histogram(nodes)
-    task_days = compute_day_of_week_histogram(nodes)
-    global_timerange = compute_global_timerange(nodes)
-    total, max_repeat_count = compute_task_stats(nodes)
+    task_days = compute_day_of_week_histogram(nodes, done_keys)
+    global_timerange = compute_global_timerange(nodes, done_keys)
+    total, max_repeat_count = compute_task_stats(nodes, done_keys)
     max_single_day = compute_max_single_day(global_timerange)
-    done_count = task_states.values.get("DONE", 0)
+    done_count = sum(task_states.values.get(key, 0) for key in done_keys)
     avg_tasks_per_day = compute_avg_tasks_per_day(global_timerange, done_count)
 
     return AnalysisResult(

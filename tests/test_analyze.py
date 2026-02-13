@@ -9,7 +9,7 @@ from tests.conftest import node_from_org
 def test_analyze_empty_nodes() -> None:
     """Test analyze with empty nodes list."""
     nodes: list[orgparse.node.OrgNode] = []
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.total_tasks == 0
     assert result.task_states.values.get("DONE", 0) == 0
@@ -23,7 +23,7 @@ def test_analyze_single_done_task() -> None:
     """Test analyze with a single DONE task."""
     nodes = node_from_org("* DONE Write tests :Testing:\nUnit tests\n")
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.total_tasks == 1
     assert result.task_states.values["DONE"] == 1
@@ -36,7 +36,7 @@ def test_analyze_single_todo_task() -> None:
     """Test analyze with a single TODO task."""
     nodes = node_from_org("* TODO Implement feature :Feature:\n")
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.total_tasks == 1
     assert result.task_states.values["TODO"] == 1
@@ -51,7 +51,7 @@ def test_analyze_multiple_tasks() -> None:
 * TODO Task 3 :Tag3:
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.total_tasks == 3
     assert result.task_states.values["DONE"] == 2
@@ -66,7 +66,7 @@ def test_analyze_tag_frequencies() -> None:
 * DONE Task :Python:Testing:
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.tag_frequencies["python"] == 3
     assert result.tag_frequencies["testing"] == 1
@@ -80,7 +80,7 @@ def test_analyze_heading_word_frequencies() -> None:
 * DONE Write documentation
 """)
 
-    result = analyze(nodes, {}, category="heading", max_relations=3)
+    result = analyze(nodes, {}, category="heading", max_relations=3, done_keys=["DONE"])
 
     assert result.tag_frequencies["implement"] == 2
     assert result.tag_frequencies["feature"] == 1
@@ -98,7 +98,7 @@ Python code implementation
 Python tests
 """)
 
-    result = analyze(nodes, {}, category="body", max_relations=3)
+    result = analyze(nodes, {}, category="body", max_relations=3, done_keys=["DONE"])
 
     assert result.tag_frequencies["python"] == 2
     assert result.tag_frequencies["code"] == 1
@@ -117,7 +117,7 @@ def test_analyze_repeated_tasks() -> None:
 :END:
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     # result.total_tasks = max(1, len(repeated_tasks)) = max(1, 3) = 3
     assert result.total_tasks == 3
@@ -138,10 +138,10 @@ def test_analyze_repeated_tasks_count_in_tags() -> None:
 :END:
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
     assert result.tag_frequencies["daily"] == 2
 
-    result_heading = analyze(nodes, {}, category="heading", max_relations=3)
+    result_heading = analyze(nodes, {}, category="heading", max_relations=3, done_keys=["DONE"])
     assert result_heading.tag_frequencies["meeting"] == 2
 
 
@@ -149,7 +149,7 @@ def test_analyze_done_task_no_repeats() -> None:
     """Test DONE task with no repeated tasks."""
     nodes = node_from_org("* DONE Task :Simple:\n")
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.total_tasks == 1
     assert result.task_states.values["DONE"] == 1
@@ -162,7 +162,11 @@ def test_analyze_normalizes_tags() -> None:
     nodes = node_from_org("* DONE Task :Test:SysAdmin:\n")
 
     result = analyze(
-        nodes, {"test": "testing", "sysadmin": "devops"}, category="tags", max_relations=3
+        nodes,
+        {"test": "testing", "sysadmin": "devops"},
+        category="tags",
+        max_relations=3,
+        done_keys=["DONE"],
     )
 
     # "Test" -> "test" -> "testing" (mapped)
@@ -175,7 +179,7 @@ def test_analyze_multiple_tags_per_task() -> None:
     """Test task with multiple tags."""
     nodes = node_from_org("* DONE Task :Python:Testing:Debugging:\n")
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert len(result.tag_frequencies) == 3
     assert "python" in result.tag_frequencies
@@ -187,7 +191,7 @@ def test_analyze_empty_tags() -> None:
     """Test task with no tags."""
     nodes = node_from_org("* DONE No tags\n")
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.tag_frequencies == {}
 
@@ -196,7 +200,7 @@ def test_analyze_empty_heading() -> None:
     """Test task with empty heading."""
     nodes = node_from_org("* DONE\nContent\n")
 
-    result = analyze(nodes, {}, category="heading", max_relations=3)
+    result = analyze(nodes, {}, category="heading", max_relations=3, done_keys=["DONE"])
 
     assert result.tag_frequencies == {}
 
@@ -205,7 +209,7 @@ def test_analyze_empty_body() -> None:
     """Test task with empty body."""
     nodes = node_from_org("* DONE Title\n")
 
-    result = analyze(nodes, {}, category="body", max_relations=3)
+    result = analyze(nodes, {}, category="body", max_relations=3, done_keys=["DONE"])
 
     # Empty body split() returns [''], which becomes {''} in normalize
     # Frequency objects, so check if empty string exists
@@ -218,7 +222,7 @@ def test_analyze_returns_tuple() -> None:
     from orgstats.core import AnalysisResult
 
     nodes: list[orgparse.node.OrgNode] = []
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert isinstance(result, AnalysisResult)
     assert result.total_tasks == 0
@@ -238,15 +242,15 @@ implementation
 implementation
 """)
 
-    result_tags = analyze(nodes, {}, category="tags", max_relations=3)
+    result_tags = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
     assert result_tags.tag_frequencies["python"] == 2
 
-    result_heading = analyze(nodes, {}, category="heading", max_relations=3)
+    result_heading = analyze(nodes, {}, category="heading", max_relations=3, done_keys=["DONE"])
     assert result_heading.tag_frequencies["task"] == 2
     assert result_heading.tag_frequencies["one"] == 1
     assert result_heading.tag_frequencies["two"] == 1
 
-    result_body = analyze(nodes, {}, category="body", max_relations=3)
+    result_body = analyze(nodes, {}, category="body", max_relations=3, done_keys=["DONE"])
     assert result_body.tag_frequencies["implementation"] == 2
 
 
@@ -267,7 +271,7 @@ def test_analyze_max_count_logic() -> None:
 :END:
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     # Node1: count = max(1, 0) = 1
     # Node2: count = max(0, 2) = 2
@@ -280,7 +284,7 @@ def test_analyze_with_custom_mapping() -> None:
     custom_map = {"foo": "bar", "baz": "qux"}
     nodes = node_from_org("* DONE Task :foo:baz:unmapped:\n")
 
-    result = analyze(nodes, custom_map, category="tags", max_relations=3)
+    result = analyze(nodes, custom_map, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert "bar" in result.tag_frequencies
     assert "qux" in result.tag_frequencies
@@ -294,7 +298,7 @@ def test_analyze_with_empty_mapping() -> None:
     empty_map: dict[str, str] = {}
     nodes = node_from_org("* DONE Task :test:sysadmin:\n")
 
-    result = analyze(nodes, empty_map, category="tags", max_relations=3)
+    result = analyze(nodes, empty_map, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert "test" in result.tag_frequencies
     assert "sysadmin" in result.tag_frequencies
@@ -307,7 +311,11 @@ def test_analyze_default_mapping_parameter() -> None:
     nodes = node_from_org("* DONE Task :test:sysadmin:\n")
 
     result = analyze(
-        nodes, {"test": "testing", "sysadmin": "devops"}, category="tags", max_relations=3
+        nodes,
+        {"test": "testing", "sysadmin": "devops"},
+        category="tags",
+        max_relations=3,
+        done_keys=["DONE"],
     )
 
     assert "testing" in result.tag_frequencies
@@ -319,13 +327,15 @@ def test_analyze_mapping_affects_all_categories() -> None:
     custom_map = {"foo": "bar"}
     nodes = node_from_org("* DONE foo word :foo:\nfoo content\n")
 
-    result_tags = analyze(nodes, custom_map, category="tags", max_relations=3)
+    result_tags = analyze(nodes, custom_map, category="tags", max_relations=3, done_keys=["DONE"])
     assert "bar" in result_tags.tag_frequencies
 
-    result_heading = analyze(nodes, custom_map, category="heading", max_relations=3)
+    result_heading = analyze(
+        nodes, custom_map, category="heading", max_relations=3, done_keys=["DONE"]
+    )
     assert "bar" in result_heading.tag_frequencies
 
-    result_body = analyze(nodes, custom_map, category="body", max_relations=3)
+    result_body = analyze(nodes, custom_map, category="body", max_relations=3, done_keys=["DONE"])
     assert "bar" in result_body.tag_frequencies
 
 
@@ -340,7 +350,7 @@ def test_analyze_cancelled_task() -> None:
     ns = orgparse.loads(content)
     nodes = list(ns[1:]) if ns else []
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.total_tasks == 1
     assert result.task_states.values["CANCELLED"] == 1
@@ -359,7 +369,7 @@ def test_analyze_suspended_task() -> None:
     ns = orgparse.loads(content)
     nodes = list(ns[1:]) if ns else []
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.total_tasks == 1
     assert result.task_states.values["SUSPENDED"] == 1
@@ -378,7 +388,7 @@ def test_analyze_delegated_task() -> None:
     ns = orgparse.loads(content)
     nodes = list(ns[1:]) if ns else []
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.total_tasks == 1
     assert result.task_states.values["DELEGATED"] == 1
@@ -390,7 +400,7 @@ def test_analyze_node_without_state() -> None:
     """Test analyze with node that has no TODO state (maps to 'none')."""
     nodes = node_from_org("* Task without state :Feature:\n")
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.total_tasks == 1
     assert result.task_states.values["none"] == 1
@@ -413,7 +423,7 @@ def test_analyze_repeated_tasks_different_states() -> None:
     ns = orgparse.loads(content)
     nodes = list(ns[1:]) if ns else []
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.total_tasks == 2
     # Only repeated tasks are counted (main node TODO state is ignored)
@@ -438,7 +448,7 @@ def test_analyze_all_task_states_mixed() -> None:
     ns = orgparse.loads(content)
     nodes = list(ns[1:]) if ns else []
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert result.total_tasks == 6
     assert result.task_states.values["TODO"] == 1
@@ -461,7 +471,7 @@ def test_analyze_state_counts_match_total_tasks() -> None:
 :END:
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     # Sum all state counts
     total_state_counts = sum(result.task_states.values.values())
@@ -479,7 +489,7 @@ def test_analyze_state_counts_match_with_no_repeats() -> None:
 * Task 4 without state :D:
 """)
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     # Sum all state counts
     total_state_counts = sum(result.task_states.values.values())
@@ -509,7 +519,7 @@ def test_analyze_state_counts_match_with_all_repeats() -> None:
     ns = orgparse.loads(content)
     nodes = list(ns[1:]) if ns else []
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     # Sum all state counts
     total_state_counts = sum(result.task_states.values.values())
