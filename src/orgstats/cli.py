@@ -8,7 +8,15 @@ from collections.abc import Callable
 
 import orgparse
 
-from orgstats.core import Frequency, Relations, TimeRange, analyze, clean, gamify_exp
+from orgstats.core import (
+    AnalysisResult,
+    Frequency,
+    Relations,
+    TimeRange,
+    analyze,
+    clean,
+    gamify_exp,
+)
 
 
 MAP = {
@@ -171,6 +179,9 @@ DEFAULT_EXCLUDE = TAGS.union(HEADING).union(
         "",
     }
 )
+
+
+CATEGORY_NAMES = {"tags": "tags", "heading": "heading words", "body": "body words"}
 
 
 def load_exclude_list(filepath: str | None) -> set[str]:
@@ -462,56 +473,57 @@ def validate_and_parse_keys(keys_str: str, option_name: str) -> list[str]:
     return keys
 
 
-def main() -> None:  # noqa: PLR0912, PLR0915
-    """Main CLI entry point."""
-    args = parse_arguments()
+def load_org_files(
+    filenames: list[str], todo_keys: list[str], done_keys: list[str]
+) -> list[orgparse.node.OrgNode]:
+    """Load and parse org-mode files.
 
-    if args.max_relations < 1:
-        print("Error: --max-relations must be at least 1", file=sys.stderr)
-        sys.exit(1)
+    Args:
+        filenames: List of file paths to load
+        todo_keys: List of TODO state keywords
+        done_keys: List of DONE state keywords
 
-    if args.min_group_size < 0:
-        print("Error: --min-group-size must be non-negative", file=sys.stderr)
-        sys.exit(1)
+    Returns:
+        List of parsed org-mode nodes
 
-    todo_keys = validate_and_parse_keys(args.todo_keys, "--todo-keys")
-    done_keys = validate_and_parse_keys(args.done_keys, "--done-keys")
-
-    # Load mapping from file or use default
-    mapping = load_mapping(args.mapping) or MAP
-
-    # Load exclude list from file or use default
-    exclude_set = load_exclude_list(args.exclude) or DEFAULT_EXCLUDE
-
-    # Process org files
+    Raises:
+        SystemExit: If file cannot be read
+    """
     nodes: list[orgparse.node.OrgNode] = []
 
-    for name in args.files:
-        with open(name, encoding="utf-8") as f:
-            print("Processing " + name + "...")
+    for name in filenames:
+        try:
+            with open(name, encoding="utf-8") as f:
+                print(f"Processing {name}...")
 
-            # NOTE Making the file parseable.
-            contents = f.read().replace("24:00", "00:00")
+                contents = f.read().replace("24:00", "00:00")
 
-            # Prepend TODO configuration for orgparse
-            todo_config = f"#+TODO: {' '.join(todo_keys)} | {' '.join(done_keys)}\n\n"
-            contents = todo_config + contents
+                todo_config = f"#+TODO: {' '.join(todo_keys)} | {' '.join(done_keys)}\n\n"
+                contents = todo_config + contents
 
-            ns = orgparse.loads(contents)
-            if ns is not None:
-                nodes = nodes + list(ns[1:])
+                ns = orgparse.loads(contents)
+                if ns is not None:
+                    nodes = nodes + list(ns[1:])
+        except FileNotFoundError:
+            print(f"Error: File '{name}' not found", file=sys.stderr)
+            sys.exit(1)
+        except PermissionError:
+            print(f"Error: Permission denied for '{name}'", file=sys.stderr)
+            sys.exit(1)
 
-    # Filter nodes based on task type
-    filtered_nodes = filter_nodes(nodes, args.filter)
+    return nodes
 
-    # Analyze filtered nodes with custom mapping for the selected category
-    result = analyze(filtered_nodes, mapping, args.show, args.max_relations)
 
-    def order_by_total(item: tuple[str, Frequency]) -> int:
-        """Sort by total count (descending)."""
-        return -item[1].total
+def display_results(
+    result: AnalysisResult, args: argparse.Namespace, exclude_set: set[str]
+) -> None:
+    """Display analysis results in formatted output.
 
-    # Display results
+    Args:
+        result: Analysis results to display
+        args: Command-line arguments containing display configuration
+        exclude_set: Set of items to exclude from display
+    """
     total_tasks_str = f"\nTotal tasks: count={result.total_tasks}"
 
     if result.timerange.earliest and result.timerange.latest:
@@ -549,11 +561,12 @@ def main() -> None:  # noqa: PLR0912, PLR0915
     if unknown_count > 0:
         print(f"  unknown: {unknown_count}")
 
-    # Select appropriate category name
-    category_names = {"tags": "tags", "heading": "heading words", "body": "body words"}
-    category_name = category_names[args.show]
+    category_name = CATEGORY_NAMES[args.show]
 
-    # Display results (always use tag_* fields, which hold the selected category's data)
+    def order_by_total(item: tuple[str, Frequency]) -> int:
+        """Sort by total count (descending)."""
+        return -item[1].total
+
     display_category(
         category_name,
         (result.tag_frequencies, result.tag_time_ranges, exclude_set, result.tag_relations),
@@ -562,7 +575,6 @@ def main() -> None:  # noqa: PLR0912, PLR0915
         order_by_total,
     )
 
-    # Display tag groups
     if result.tag_groups:
         filtered_groups = []
         for group in result.tag_groups:
@@ -575,6 +587,31 @@ def main() -> None:  # noqa: PLR0912, PLR0915
             for group_tags in filtered_groups:
                 print(f"  {', '.join(group_tags)}")
                 print()
+
+
+def main() -> None:
+    """Main CLI entry point."""
+    args = parse_arguments()
+
+    if args.max_relations < 1:
+        print("Error: --max-relations must be at least 1", file=sys.stderr)
+        sys.exit(1)
+
+    if args.min_group_size < 0:
+        print("Error: --min-group-size must be non-negative", file=sys.stderr)
+        sys.exit(1)
+
+    todo_keys = validate_and_parse_keys(args.todo_keys, "--todo-keys")
+    done_keys = validate_and_parse_keys(args.done_keys, "--done-keys")
+
+    mapping = load_mapping(args.mapping) or MAP
+    exclude_set = load_exclude_list(args.exclude) or DEFAULT_EXCLUDE
+
+    nodes = load_org_files(args.files, todo_keys, done_keys)
+    filtered_nodes = filter_nodes(nodes, args.filter)
+    result = analyze(filtered_nodes, mapping, args.show, args.max_relations)
+
+    display_results(result, args, exclude_set)
 
 
 if __name__ == "__main__":

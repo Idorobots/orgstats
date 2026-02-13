@@ -423,7 +423,7 @@ Extend the CLI output to include the earliest & latest timestamps somewhere near
 
 **Comment:** The AI did well.
 
-## ✅ General stats - other
+## ✅*️ General stats - other
 I'd like to add a few more stats to the analysis results:
 
 - average tasks completed per day (computed as the total number of tasks completed divided by the number of days between the earliest and latest task occurances globally),
@@ -434,9 +434,9 @@ Some of these values can be derived from the global timeline, but for the highes
 
 Please display these values on the CLI output right after the `Top tasks` line.
 
-**Comment:** AI did alright. It did introduce some slop.
+**Comment:** AI did alright. It did introduce some slop by disabling linter rules for specific functions.
 
-## Linter annotations slop
+## ✅*️ Linter annotations slop
 I see you disabled some linter rules. Please don't do that.
 
 - `analyze()` `PLR0912` - please refactor the function to extract the histogram computations into a separate function. Remove the linter exclusion rule.
@@ -444,6 +444,13 @@ I see you disabled some linter rules. Please don't do that.
 - `main()` `PLR0915` - please extract the display handling into a separate function that accepts the analysis results & configuration flags.
 
 Update the AGENTS.md file to ensure that it explicitly prohibits disabling linter rules.
+
+**Comment:** AI did refactor the code fine, but introduced a lot of mutation, which needs to be addressed separately.
+
+## Mutation slop
+Refactor the functions in `core.py` module not to use mutation as much. The `compute_*` functions can use mutation internally to update a value that is defined there and later returned, but they shouldn't mutate any values passed into the function.
+Update the `analyze()` function not to define the intermediate results and instead call the `compute_*` functions to produce the values directly. It should only pass the relevant data to those functions.
+It is OK to iterate through the list of nodes multiple times - we might want to configure `analyze()` to compute partial results in the future.
 
 ## Another fix for task states
 

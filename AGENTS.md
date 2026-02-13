@@ -153,6 +153,15 @@ poetry add <package>
 - Target test coverage is 90% or above.
 - Backwards compatibility is not required, no need to ensure it.
 
+### Linting Policy
+- Under no circumstances should linter rules be disabled using `noqa` comments
+- If code triggers a linter error, refactor the code to fix the underlying issue instead
+- Common refactoring strategies:
+  - Extract functions to reduce complexity (PLR0912: too many branches, PLR0915: too many statements)
+  - Split long functions into smaller, focused functions (C901: too complex)
+  - Use guard clauses to reduce nesting (PLR1702: too many nested blocks)
+- The only acceptable exceptions are rules already ignored in `pyproject.toml` for specific scenarios
+
 ### Python Style
 
 **PEP 8 Compliance:**

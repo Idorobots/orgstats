@@ -396,6 +396,53 @@ def compute_time_ranges(
             time_ranges[item].update(timestamp)
 
 
+def compute_task_histograms(
+    node: orgparse.node.OrgNode,
+    task_states: Histogram,
+    task_days: Histogram,
+    global_timerange: TimeRange,
+) -> int:
+    """Compute task state and day histograms for a single node.
+
+    Mutates task_states, task_days, and global_timerange in place.
+
+    Args:
+        node: Org-mode node to analyze
+        task_states: Histogram to update with task states
+        task_days: Histogram to update with completion days
+        global_timerange: TimeRange to update with timestamps
+
+    Returns:
+        Maximum repeat count for this node
+    """
+    if node.repeated_tasks:
+        for repeated_task in node.repeated_tasks:
+            repeat_state = repeated_task.after if repeated_task.after else "none"
+            task_states.update(repeat_state, 1)
+    else:
+        node_state = node.todo if node.todo else "none"
+        task_states.update(node_state, 1)
+
+    final = (node.todo == "DONE" and 1) or 0
+    repeats = len([n for n in node.repeated_tasks if n.after == "DONE"])
+    count = max(final, repeats)
+
+    is_done_task = node.todo == "DONE"
+    done_repeats = [rt for rt in node.repeated_tasks if rt.after == "DONE"]
+
+    if is_done_task or done_repeats:
+        timestamps = extract_timestamp(node)
+        if timestamps:
+            for timestamp in timestamps:
+                global_timerange.update(timestamp)
+                day_name = weekday_to_string(timestamp.weekday())
+                task_days.update(day_name, 1)
+        else:
+            task_days.update("unknown", 1)
+
+    return count
+
+
 def compute_groups(relations: dict[str, Relations], max_relations: int) -> list[Group]:
     """Compute strongly connected components from tag relations using Tarjan's algorithm.
 
@@ -453,7 +500,7 @@ def compute_groups(relations: dict[str, Relations], max_relations: int) -> list[
     return [Group(tags=sorted(scc)) for scc in sccs]
 
 
-def analyze(  # noqa: PLR0912
+def analyze(
     nodes: list[orgparse.node.OrgNode], mapping: dict[str, str], category: str, max_relations: int
 ) -> AnalysisResult:
     """Analyze org-mode nodes and extract task statistics.
@@ -479,21 +526,8 @@ def analyze(  # noqa: PLR0912
     for node in nodes:
         total = total + max(1, len(node.repeated_tasks))
 
-        if node.repeated_tasks:
-            # If there are repeated tasks, only count them (main node state is redundant)
-            for repeated_task in node.repeated_tasks:
-                repeat_state = repeated_task.after if repeated_task.after else "none"
-                task_states.update(repeat_state, 1)
-        else:
-            # If no repeated tasks, count the main node state
-            node_state = node.todo if node.todo else "none"
-            task_states.update(node_state, 1)
-
-        final = (node.todo == "DONE" and 1) or 0
-        repeats = len([n for n in node.repeated_tasks if n.after == "DONE"])
-        count = max(final, repeats)
-
-        max_repeat_count = max(max_repeat_count, count)
+        node_max_repeat = compute_task_histograms(node, task_states, task_days, global_timerange)
+        max_repeat_count = max(max_repeat_count, node_max_repeat)
 
         if category == "tags":
             items = normalize(node.tags, mapping)
@@ -502,23 +536,15 @@ def analyze(  # noqa: PLR0912
         else:
             items = normalize(set(node.body.split()), mapping)
 
+        final = (node.todo == "DONE" and 1) or 0
+        repeats = len([n for n in node.repeated_tasks if n.after == "DONE"])
+        count = max(final, repeats)
+
         compute_frequencies(items, frequencies, count)
         compute_relations(items, relations, count)
 
         timestamps = extract_timestamp(node)
         compute_time_ranges(items, time_ranges, timestamps)
-
-        is_done_task = node.todo == "DONE"
-        done_repeats = [rt for rt in node.repeated_tasks if rt.after == "DONE"]
-
-        if is_done_task or done_repeats:
-            if timestamps:
-                for timestamp in timestamps:
-                    global_timerange.update(timestamp)
-                    day_name = weekday_to_string(timestamp.weekday())
-                    task_days.update(day_name, 1)
-            else:
-                task_days.update("unknown", 1)
 
     tag_groups = compute_groups(relations, max_relations)
 
