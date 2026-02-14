@@ -280,7 +280,7 @@ def test_integration_all_fixtures_parseable() -> None:
 
 def test_integration_filtered_repeats_in_analysis() -> None:
     """Test that filtered repeated tasks produce correct analysis results."""
-    from datetime import date
+    from datetime import datetime
 
     from orgstats.core import filter_date_from, filter_date_until
 
@@ -295,8 +295,8 @@ def test_integration_filtered_repeats_in_analysis() -> None:
 
     unfiltered_result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    filtered_nodes = filter_date_from(nodes, date(2025, 2, 1), ["DONE"])
-    filtered_nodes = filter_date_until(filtered_nodes, date(2025, 3, 1), ["DONE"])
+    filtered_nodes = filter_date_from(nodes, datetime(2025, 2, 1), ["DONE"])
+    filtered_nodes = filter_date_until(filtered_nodes, datetime(2025, 3, 1), ["DONE"])
     filtered_result = analyze(
         filtered_nodes, {}, category="tags", max_relations=3, done_keys=["DONE"]
     )

@@ -534,7 +534,7 @@ Make the `--filter-date-from` and `--filter-date-until` inclusive, makes more se
 
 **Comment:** This was simpler to do manually.
 
-## ✅*️ Filters applied consistently to repeats
+## ❌ Filters applied consistently to repeats
 Currently filters are applied to the org task list before analysis, but some of them (date, completed/not completed) let in all the repeats if any of them matches the filter, resulting in some data outside of the requested range making its way into the analysis.
 
 This can be addressed by stripping the non-matching repeats from the tasks, or by "hydrating" the tasks in advance not to have any repeats and instead duplicating the original node instance. I think the former is better, but I'd like your opinion on that.
@@ -546,7 +546,9 @@ If you deem filtering the repeats as viable, please extend the `filter_date_from
 
 Once done, you can remove the FIXME comments. Please make sure to test this thoroughly.
 
-**Comment:** It was implemented, but the date filters were pretty sloppy and needed manual intervention.
+**Comment:** It was implemented, but the date filters were pretty sloppy and needed manual intervention. Then I noticed that date handling in general needs work.
+
+## Accept dates with time component in ISO format (UTC-time)
 
 ## Improve cli.py test coverage
 The test coverage fell well under 90%, please improve that by introducing more tests for the @src/orgstats/cli.py file.

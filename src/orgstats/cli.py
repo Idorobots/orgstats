@@ -6,7 +6,7 @@ import json
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime
 
 import orgparse
 
@@ -596,7 +596,7 @@ def load_org_files(
     return nodes
 
 
-def parse_date_argument(date_str: str, arg_name: str) -> date:
+def parse_date_argument(date_str: str, arg_name: str) -> datetime:
     """Parse and validate date argument in YYYY-MM-DD format.
 
     Args:
@@ -610,7 +610,7 @@ def parse_date_argument(date_str: str, arg_name: str) -> date:
         SystemExit: If date format is invalid
     """
     try:
-        return datetime.strptime(date_str, "%Y-%m-%d").date()
+        return datetime.strptime(date_str, "%Y-%m-%d")
     except ValueError:
         print(
             f"Error: {arg_name} must be in YYYY-MM-DD format, got '{date_str}'",

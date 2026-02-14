@@ -41,7 +41,7 @@ SCHEDULED: <2023-10-23 pon>
 :END:
 :LOGBOOK:
 - State "DONE"       from "DONE"       [2023-10-23 pon 23:54]
-- State "DONE"       from "TODO"       [2023-10-23 pon 18:29]
+- State "DONE"       from "TODO"       [2023-10-22 pon 18:29]
 :END:
 
 * DONE Make a stocks table for tracking the stonks.                              :OrgMode:EmacsLisp:

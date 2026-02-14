@@ -1,6 +1,6 @@
 """Integration tests for filter chain and combinations."""
 
-from datetime import date
+from datetime import datetime
 
 from orgstats.core import (
     filter_completed,
@@ -104,7 +104,7 @@ def test_combining_exp_and_date_filters() -> None:
 
     result = nodes
     result = filter_gamify_exp_below(result, 10)
-    result = filter_date_from(result, date(2025, 1, 31), ["DONE"])
+    result = filter_date_from(result, datetime(2025, 1, 31), ["DONE"])
 
     assert len(result) == 1
     assert result[0] == nodes[2]
@@ -183,8 +183,8 @@ def test_date_range_filter() -> None:
     nodes = node_from_org(org_text_jan) + node_from_org(org_text_feb) + node_from_org(org_text_mar)
 
     result = nodes
-    result = filter_date_from(result, date(2025, 1, 31), ["DONE"])
-    result = filter_date_until(result, date(2025, 3, 1), ["DONE"])
+    result = filter_date_from(result, datetime(2025, 1, 31), ["DONE"])
+    result = filter_date_until(result, datetime(2025, 3, 1), ["DONE"])
 
     assert len(result) == 1
     assert result[0] == nodes[1]
@@ -273,8 +273,8 @@ CLOSED: [2025-01-15 Wed 10:00]
     result = filter_gamify_exp_above(result, 10)
     result = filter_gamify_exp_below(result, 20)
     result = filter_property(result, "custom_prop", "value1")
-    result = filter_date_from(result, date(2025, 1, 1), ["DONE"])
-    result = filter_date_until(result, date(2025, 2, 1), ["DONE"])
+    result = filter_date_from(result, datetime(2025, 1, 1), ["DONE"])
+    result = filter_date_until(result, datetime(2025, 2, 1), ["DONE"])
 
     assert len(result) == 1
     assert result[0] == nodes[0]
@@ -289,8 +289,8 @@ def test_all_filters_with_empty_input() -> None:
     assert filter_gamify_exp_above(empty_nodes, 10) == []
     assert filter_gamify_exp_below(empty_nodes, 10) == []
     assert filter_repeats_above(empty_nodes, 1) == []
-    assert filter_date_from(empty_nodes, date(2025, 1, 1), ["DONE"]) == []
-    assert filter_date_until(empty_nodes, date(2025, 12, 31), ["DONE"]) == []
+    assert filter_date_from(empty_nodes, datetime(2025, 1, 1), ["DONE"]) == []
+    assert filter_date_until(empty_nodes, datetime(2025, 12, 31), ["DONE"]) == []
     assert filter_property(empty_nodes, "prop", "value") == []
     assert filter_tag(empty_nodes, "tag") == []
     assert filter_completed(empty_nodes, ["DONE"]) == []

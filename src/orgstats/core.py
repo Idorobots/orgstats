@@ -534,6 +534,20 @@ def compute_relations(
     return relations_dict
 
 
+def normalize_timestamp(ts: datetime | date) -> datetime:
+    """Normalize all timestamps to use the datetime format
+
+    Args:
+        ts: datetime or date
+
+    Returns:
+        datetime
+    """
+    if not isinstance(ts, datetime):
+        return datetime.combine(ts, datetime.min.time())
+    return ts
+
+
 def extract_timestamp(node: orgparse.node.OrgNode, done_keys: list[str]) -> list[datetime]:
     """Extract timestamps from a node following priority rules.
 
@@ -553,31 +567,18 @@ def extract_timestamp(node: orgparse.node.OrgNode, done_keys: list[str]) -> list
     """
     timestamps = []
 
-    if node.repeated_tasks:
-        done_tasks = [rt for rt in node.repeated_tasks if rt.after in done_keys]
-        if done_tasks:
-            timestamps.extend([rt.start for rt in done_tasks])
-            return timestamps
-
-    if node.closed and node.closed.start:
+    if node.repeated_tasks and any(rt.after in done_keys for rt in node.repeated_tasks):
+        timestamps.extend([rt.start for rt in node.repeated_tasks if rt.after in done_keys])
+    elif node.closed and node.closed.start:
         timestamps.append(node.closed.start)
-        return timestamps
-
-    if node.scheduled and node.scheduled.start:
+    elif node.scheduled and node.scheduled.start:
         timestamps.append(node.scheduled.start)
-        return timestamps
-
-    if node.deadline and node.deadline.start:
+    elif node.deadline and node.deadline.start:
         timestamps.append(node.deadline.start)
-        return timestamps
+    elif node.datelist:
+        timestamps.extend([d.start for d in node.datelist if d.start])
 
-    if node.datelist:
-        datelist_timestamps = [d.start for d in node.datelist if d.start]
-        if datelist_timestamps:
-            timestamps.extend(datelist_timestamps)
-            return timestamps
-
-    return timestamps
+    return [normalize_timestamp(t) for t in timestamps]
 
 
 def compute_time_ranges(
@@ -851,7 +852,7 @@ def filter_repeats_below(
 
 
 def filter_date_from(
-    nodes: list[orgparse.node.OrgNode], date_threshold: date, done_keys: list[str]
+    nodes: list[orgparse.node.OrgNode], date_threshold: datetime, done_keys: list[str]
 ) -> list[orgparse.node.OrgNode]:
     """Filter nodes with any timestamp after date_threshold (inclusive).
 
@@ -876,24 +877,20 @@ def filter_date_from(
             done_repeats = [rt for rt in node.repeated_tasks if rt.after in done_keys]
             if done_repeats:
                 filtered_node = _filter_node_repeats(
-                    node, lambda rt: rt.start.date() >= date_threshold and rt.after in done_keys
+                    node, lambda rt: rt.start >= date_threshold and rt.after in done_keys
                 )
                 if filtered_node is not None:
                     result.append(filtered_node)
-            continue
-
-        timestamps = extract_timestamp(node, done_keys)
-        if timestamps and any(
-            (timestamp.date() if isinstance(timestamp, datetime) else timestamp) >= date_threshold
-            for timestamp in timestamps
-        ):
-            result.append(node)
+        else:
+            timestamps = extract_timestamp(node, done_keys)
+            if any(timestamp >= date_threshold for timestamp in timestamps):
+                result.append(node)
 
     return result
 
 
 def filter_date_until(
-    nodes: list[orgparse.node.OrgNode], date_threshold: date, done_keys: list[str]
+    nodes: list[orgparse.node.OrgNode], date_threshold: datetime, done_keys: list[str]
 ) -> list[orgparse.node.OrgNode]:
     """Filter nodes with any timestamp before date_threshold (inclusive).
 
@@ -918,18 +915,14 @@ def filter_date_until(
             done_repeats = [rt for rt in node.repeated_tasks if rt.after in done_keys]
             if done_repeats:
                 filtered_node = _filter_node_repeats(
-                    node, lambda rt: rt.start.date() <= date_threshold and rt.after in done_keys
+                    node, lambda rt: rt.start <= date_threshold and rt.after in done_keys
                 )
                 if filtered_node is not None:
                     result.append(filtered_node)
-            continue
-
-        timestamps = extract_timestamp(node, done_keys)
-        if timestamps and any(
-            (timestamp.date() if isinstance(timestamp, datetime) else timestamp) <= date_threshold
-            for timestamp in timestamps
-        ):
-            result.append(node)
+        else:
+            timestamps = extract_timestamp(node, done_keys)
+            if any(timestamp <= date_threshold for timestamp in timestamps):
+                result.append(node)
 
     return result
 
