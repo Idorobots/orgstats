@@ -796,7 +796,7 @@ def get_repeat_count(node: orgparse.node.OrgNode) -> int:
 
 
 def _filter_node_repeats(
-    node: orgparse.node.OrgNode, predicate: object
+    node: orgparse.node.OrgNode, predicate: Callable[[orgparse.date.OrgDateRepeatedTask], bool]
 ) -> orgparse.node.OrgNode | None:
     """Filter repeated tasks in a node based on a predicate function.
 
@@ -812,8 +812,7 @@ def _filter_node_repeats(
     if not node.repeated_tasks:
         return node
 
-    predicate_func = predicate if callable(predicate) else lambda _: False
-    matching_repeats = [rt for rt in node.repeated_tasks if predicate_func(rt)]
+    matching_repeats = [rt for rt in node.repeated_tasks if predicate(rt)]
 
     if len(matching_repeats) == len(node.repeated_tasks):
         return node
