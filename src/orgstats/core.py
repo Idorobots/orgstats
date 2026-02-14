@@ -1,10 +1,53 @@
 """Core logic for orgstats - Org-mode archive file analysis."""
 
-import copy
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
+from typing import Any
 
 import orgparse
+
+
+class _FilteredOrgNode(orgparse.node.OrgNode):
+    """Wrapper for OrgNode that overrides repeated_tasks without copying the entire node.
+
+    This class delegates all attribute access to the original node except for repeated_tasks,
+    which is replaced with a filtered list. This avoids the performance cost of deep copying.
+    """
+
+    def __init__(
+        self,
+        original_node: orgparse.node.OrgNode,
+        filtered_repeats: list[orgparse.date.OrgDateRepeatedTask],
+    ) -> None:
+        """Initialize with original node and filtered repeated tasks.
+
+        Args:
+            original_node: The original OrgNode to wrap
+            filtered_repeats: The filtered list of repeated tasks
+        """
+        self._original_node = original_node
+        self._filtered_repeats = filtered_repeats
+
+    @property
+    def repeated_tasks(self) -> list[orgparse.date.OrgDateRepeatedTask]:
+        """Return the filtered repeated tasks.
+
+        Returns:
+            Filtered list of repeated tasks
+        """
+        return self._filtered_repeats
+
+    def __getattr__(self, name: str) -> Any:
+        """Delegate attribute access to the original node.
+
+        Args:
+            name: Attribute name
+
+        Returns:
+            Attribute value from original node
+        """
+        return getattr(self._original_node, name)
 
 
 @dataclass
@@ -763,7 +806,7 @@ def _filter_node_repeats(
 
     Returns:
         - Original node if all repeats match (or no repeats)
-        - Deep copy with filtered repeated_tasks if some match
+        - FilteredOrgNode with filtered repeated_tasks if some match
         - None if no repeats match (and node doesn't have valid non-repeat data)
     """
     if not node.repeated_tasks:
@@ -778,9 +821,7 @@ def _filter_node_repeats(
     if len(matching_repeats) == 0:
         return None
 
-    node_copy = copy.deepcopy(node)
-    node_copy._repeated_tasks = matching_repeats
-    return node_copy
+    return _FilteredOrgNode(node, matching_repeats)
 
 
 def filter_gamify_exp_above(

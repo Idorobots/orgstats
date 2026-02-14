@@ -730,6 +730,19 @@ This should apply to both the global section plots and the per-tag plots, but it
 
 **Comment:** Implemented correctly, but it turns out that the earlier `deepcopy()` addition causes a significant performance degradation.
 
+## ✅ filter_node_repeats performance optimization
+The `deepcopy()` introduced to get repeated task filtering implemented indeed resulted in a significant performance degradation when using multiple date/completion filters. I'd like to explore some options to not mutate the Node list, but still filter out the repeated_tasks.
+
+Please create a simple class `FilteredOrgNode` that inherits the `class orgparse.node.OrgNode` class, takes the original node as one of the parameters and the filtered repeats as another, and delegates all method calls to the original node, except the `repeated_tasks` which it replaces with the passed in value.
+
+Update the `_filter_node_repeats()` function to return a `FilteredOrgNode` instance instead of performing a deep-copy.
+
+Please don't adjust any tests yet, let's first check if it helps with the performance.
+
+**Comment:** AI implemented the extra class and adjusted the code.
+
+## Perf optimiztion tests
+
 ## Histogram ASCII plots
 - pie-chart of the states
 - pie chart of the week days
