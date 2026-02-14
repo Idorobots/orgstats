@@ -529,8 +529,10 @@ The `filter_completed` and `filter_not_completed` should also be updated to take
 
 **Comment:** The AI made the changes, but introduced alternative slop in the process. Required a manual intervention.
 
-## Inclusive dates
+## ❌ Inclusive dates
 Make the `--filter-date-from` and `--filter-date-until` inclusive, makes more sense this way.
+
+**Comment:** This was simpler to do manually.
 
 ## Another fix for task states counts
 Now the counts for day of week histogram are higher than the total count of done tasks. Likely, now it's the done task count that's wrong.

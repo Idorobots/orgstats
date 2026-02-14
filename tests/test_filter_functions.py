@@ -203,13 +203,13 @@ def test_filter_date_from_basic() -> None:
 
 
 def test_filter_date_from_boundary() -> None:
-    """Test filter_date_from with boundary date (non-inclusive)."""
+    """Test filter_date_from with boundary date (inclusive)."""
     org_text = "* DONE Task\nCLOSED: [2025-01-15 Wed 10:00]\n"
     nodes = node_from_org(org_text)
 
     result = filter_date_from(nodes, date(2025, 1, 15), ["DONE"])
 
-    assert len(result) == 0
+    assert len(result) == 1
 
 
 def test_filter_date_from_no_timestamp() -> None:
@@ -250,13 +250,13 @@ def test_filter_date_until_basic() -> None:
 
 
 def test_filter_date_until_boundary() -> None:
-    """Test filter_date_until with boundary date (non-inclusive)."""
+    """Test filter_date_until with boundary date (inclusive)."""
     org_text = "* DONE Task\nCLOSED: [2025-01-15 Wed 10:00]\n"
     nodes = node_from_org(org_text)
 
     result = filter_date_until(nodes, date(2025, 1, 15), ["DONE"])
 
-    assert len(result) == 0
+    assert len(result) == 1
 
 
 def test_filter_date_until_no_timestamp() -> None:

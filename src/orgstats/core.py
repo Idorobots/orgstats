@@ -821,7 +821,7 @@ def filter_repeats_below(
 def filter_date_from(
     nodes: list[orgparse.node.OrgNode], date_threshold: date, done_keys: list[str]
 ) -> list[orgparse.node.OrgNode]:
-    """Filter nodes with any timestamp after date_threshold (non-inclusive).
+    """Filter nodes with any timestamp after date_threshold (inclusive).
 
     Uses extract_timestamp() logic. Nodes without timestamps are excluded.
 
@@ -842,7 +842,7 @@ def filter_date_from(
         for node in nodes
         if (timestamps := extract_timestamp(node, done_keys))
         and any(
-            (timestamp.date() if isinstance(timestamp, datetime) else timestamp) > date_threshold
+            (timestamp.date() if isinstance(timestamp, datetime) else timestamp) >= date_threshold
             for timestamp in timestamps
         )
     ]
@@ -851,7 +851,7 @@ def filter_date_from(
 def filter_date_until(
     nodes: list[orgparse.node.OrgNode], date_threshold: date, done_keys: list[str]
 ) -> list[orgparse.node.OrgNode]:
-    """Filter nodes with any timestamp before date_threshold (non-inclusive).
+    """Filter nodes with any timestamp before date_threshold (inclusive).
 
     Uses extract_timestamp() logic. Nodes without timestamps are excluded.
 
@@ -872,7 +872,7 @@ def filter_date_until(
         for node in nodes
         if (timestamps := extract_timestamp(node, done_keys))
         and any(
-            (timestamp.date() if isinstance(timestamp, datetime) else timestamp) < date_threshold
+            (timestamp.date() if isinstance(timestamp, datetime) else timestamp) <= date_threshold
             for timestamp in timestamps
         )
     ]
