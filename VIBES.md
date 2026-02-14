@@ -548,7 +548,20 @@ Once done, you can remove the FIXME comments. Please make sure to test this thor
 
 **Comment:** It was implemented, but the date filters were pretty sloppy and needed manual intervention. Then I noticed that date handling in general needs work.
 
-## Accept dates with time component in ISO format (UTC-time)
+## ✅ Accept dates with time component in ISO format (UTC-time)
+Currently, the CLI accepts timestamps in a simple `YYYY-MM-DD`. I'd like to extend that so that the CLI accepts dates in the following formats:
+
+```
+YYYY-MM-DD
+YYYY-MM-DDThh:mm
+YYYY-MM-DDThh:mm:ss
+YYYY-MM-DD hh:mm
+YYYY-MM-DD hh:mm:ss
+```
+
+The last two formats have a space in them, but assume the argument is passed by the shell in quotes, so that the app only has to worry about the format parsing. It might be useful to use Python's `dateutil.parse` function as it is OK to accept even more formats.
+
+**Comment:** This was done correctly.
 
 ## Improve cli.py test coverage
 The test coverage fell well under 90%, please improve that by introducing more tests for the @src/orgstats/cli.py file.

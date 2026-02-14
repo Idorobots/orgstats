@@ -487,15 +487,23 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--filter-date-from",
         type=str,
-        metavar="YYYY-MM-DD",
-        help="Filter tasks with timestamps after date (non-inclusive)",
+        metavar="TIMESTAMP",
+        help=(
+            "Filter tasks with timestamps after date (non-inclusive). "
+            "Formats: YYYY-MM-DD, YYYY-MM-DDThh:mm, YYYY-MM-DDThh:mm:ss, "
+            "YYYY-MM-DD hh:mm, YYYY-MM-DD hh:mm:ss"
+        ),
     )
 
     parser.add_argument(
         "--filter-date-until",
         type=str,
-        metavar="YYYY-MM-DD",
-        help="Filter tasks with timestamps before date (non-inclusive)",
+        metavar="TIMESTAMP",
+        help=(
+            "Filter tasks with timestamps before date (non-inclusive). "
+            "Formats: YYYY-MM-DD, YYYY-MM-DDThh:mm, YYYY-MM-DDThh:mm:ss, "
+            "YYYY-MM-DD hh:mm, YYYY-MM-DD hh:mm:ss"
+        ),
     )
 
     parser.add_argument(
@@ -597,26 +605,63 @@ def load_org_files(
 
 
 def parse_date_argument(date_str: str, arg_name: str) -> datetime:
-    """Parse and validate date argument in YYYY-MM-DD format.
+    """Parse and validate timestamp argument in multiple supported formats.
+
+    Supported formats:
+    - YYYY-MM-DD
+    - YYYY-MM-DDThh:mm
+    - YYYY-MM-DDThh:mm:ss
+    - YYYY-MM-DD hh:mm
+    - YYYY-MM-DD hh:mm:ss
 
     Args:
-        date_str: Date string to parse
+        date_str: Date/timestamp string to parse
         arg_name: Argument name for error messages
 
     Returns:
-        Parsed date object
+        Parsed datetime object
 
     Raises:
-        SystemExit: If date format is invalid
+        SystemExit: If format is invalid
     """
-    try:
-        return datetime.strptime(date_str, "%Y-%m-%d")
-    except ValueError:
+    if not date_str or not date_str.strip():
+        supported_formats = [
+            "YYYY-MM-DD",
+            "YYYY-MM-DDThh:mm",
+            "YYYY-MM-DDThh:mm:ss",
+            "YYYY-MM-DD hh:mm",
+            "YYYY-MM-DD hh:mm:ss",
+        ]
+        formats_str = ", ".join(supported_formats)
         print(
-            f"Error: {arg_name} must be in YYYY-MM-DD format, got '{date_str}'",
+            f"Error: {arg_name} must be in one of these formats: {formats_str}\nGot: '{date_str}'",
             file=sys.stderr,
         )
         sys.exit(1)
+
+    try:
+        return datetime.fromisoformat(date_str)
+    except ValueError:
+        pass
+
+    try:
+        return datetime.fromisoformat(date_str.replace(" ", "T"))
+    except ValueError:
+        pass
+
+    supported_formats = [
+        "YYYY-MM-DD",
+        "YYYY-MM-DDThh:mm",
+        "YYYY-MM-DDThh:mm:ss",
+        "YYYY-MM-DD hh:mm",
+        "YYYY-MM-DD hh:mm:ss",
+    ]
+    formats_str = ", ".join(supported_formats)
+    print(
+        f"Error: {arg_name} must be in one of these formats: {formats_str}\nGot: '{date_str}'",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 
 
 def parse_property_filter(property_str: str) -> tuple[str, str]:
@@ -742,12 +787,12 @@ def handle_date_filter(
     Returns:
         List of Filter objects (0 or 1 item)
     """
-    if arg_name == "--filter-date-from" and args.filter_date_from:
+    if arg_name == "--filter-date-from" and args.filter_date_from is not None:
         date_from = parse_date_argument(args.filter_date_from, "--filter-date-from")
         keys = done_keys
         return [Filter(lambda nodes: filter_date_from(nodes, date_from, keys))]
 
-    if arg_name == "--filter-date-until" and args.filter_date_until:
+    if arg_name == "--filter-date-until" and args.filter_date_until is not None:
         date_until = parse_date_argument(args.filter_date_until, "--filter-date-until")
         keys = done_keys
         return [Filter(lambda nodes: filter_date_until(nodes, date_until, keys))]

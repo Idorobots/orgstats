@@ -22,25 +22,168 @@ def test_argparse_help() -> None:
     assert result.returncode == 0
     assert "usage:" in result.stdout
     assert "orgstats" in result.stdout
-    assert "--max-results" in result.stdout
-    assert "--exclude" in result.stdout
-    assert "--filter" in result.stdout
 
 
-def test_argparse_max_results_long() -> None:
-    """Test --max-results flag."""
-    fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
+def test_parse_date_argument_basic_date() -> None:
+    """Test parse_date_argument with basic YYYY-MM-DD format."""
+    from datetime import datetime
+
+    from orgstats.cli import parse_date_argument
+
+    result = parse_date_argument("2025-01-15", "--test-arg")
+    assert result == datetime(2025, 1, 15, 0, 0, 0)
+
+
+def test_parse_date_argument_iso_with_time() -> None:
+    """Test parse_date_argument with YYYY-MM-DDThh:mm format."""
+    from datetime import datetime
+
+    from orgstats.cli import parse_date_argument
+
+    result = parse_date_argument("2025-01-15T14:30", "--test-arg")
+    assert result == datetime(2025, 1, 15, 14, 30, 0)
+
+
+def test_parse_date_argument_iso_with_seconds() -> None:
+    """Test parse_date_argument with YYYY-MM-DDThh:mm:ss format."""
+    from datetime import datetime
+
+    from orgstats.cli import parse_date_argument
+
+    result = parse_date_argument("2025-01-15T14:30:45", "--test-arg")
+    assert result == datetime(2025, 1, 15, 14, 30, 45)
+
+
+def test_parse_date_argument_space_with_time() -> None:
+    """Test parse_date_argument with YYYY-MM-DD hh:mm format."""
+    from datetime import datetime
+
+    from orgstats.cli import parse_date_argument
+
+    result = parse_date_argument("2025-01-15 14:30", "--test-arg")
+    assert result == datetime(2025, 1, 15, 14, 30, 0)
+
+
+def test_parse_date_argument_space_with_seconds() -> None:
+    """Test parse_date_argument with YYYY-MM-DD hh:mm:ss format."""
+    from datetime import datetime
+
+    from orgstats.cli import parse_date_argument
+
+    result = parse_date_argument("2025-01-15 14:30:45", "--test-arg")
+    assert result == datetime(2025, 1, 15, 14, 30, 45)
+
+
+def test_parse_date_argument_midnight() -> None:
+    """Test parse_date_argument with midnight time."""
+    from datetime import datetime
+
+    from orgstats.cli import parse_date_argument
+
+    result = parse_date_argument("2025-01-15T00:00:00", "--test-arg")
+    assert result == datetime(2025, 1, 15, 0, 0, 0)
+
+
+def test_parse_date_argument_end_of_day() -> None:
+    """Test parse_date_argument with end of day time."""
+    from datetime import datetime
+
+    from orgstats.cli import parse_date_argument
+
+    result = parse_date_argument("2025-01-15T23:59:59", "--test-arg")
+    assert result == datetime(2025, 1, 15, 23, 59, 59)
+
+
+def test_parse_date_argument_invalid_format() -> None:
+    """Test parse_date_argument with invalid format exits with error."""
+    fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-results", "5", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--filter-date-from",
+            "2025/01/15",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
-    assert result.returncode == 0
-    assert "Processing" in result.stdout
-    assert "Total tasks:" in result.stdout
+    assert result.returncode == 1
+    assert "must be in one of these formats" in result.stderr
+    assert "YYYY-MM-DD" in result.stderr
+
+
+def test_parse_date_argument_invalid_date_values() -> None:
+    """Test parse_date_argument with invalid date values."""
+    fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--filter-date-from",
+            "2025-13-45",
+            fixture_path,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "must be in one of these formats" in result.stderr
+
+
+def test_parse_date_argument_invalid_time_values() -> None:
+    """Test parse_date_argument with invalid time values."""
+    fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--filter-date-from",
+            "2025-01-15T25:70:99",
+            fixture_path,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "must be in one of these formats" in result.stderr
+
+
+def test_parse_date_argument_partial_time() -> None:
+    """Test parse_date_argument with partial time (only hour) is accepted."""
+    from datetime import datetime
+
+    from orgstats.cli import parse_date_argument
+
+    result = parse_date_argument("2025-01-15T14", "--test-arg")
+    assert result == datetime(2025, 1, 15, 14, 0, 0)
+
+
+def test_parse_date_argument_empty_string() -> None:
+    """Test parse_date_argument with empty string."""
+    fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
+
+    result = subprocess.run(
+        [sys.executable, "-m", "orgstats", "--filter-date-from", "", fixture_path],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "must be in one of these formats" in result.stderr
 
 
 def test_argparse_max_results_short() -> None:

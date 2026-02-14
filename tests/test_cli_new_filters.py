@@ -452,3 +452,242 @@ def test_cli_help_shows_new_options() -> None:
     assert "--filter-tag" in result.stdout
     assert "--filter-completed" in result.stdout
     assert "--filter-not-completed" in result.stdout
+
+
+def test_cli_filter_date_from_with_time() -> None:
+    """Test --filter-date-from with time component (YYYY-MM-DDThh:mm)."""
+    fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--filter-date-from",
+            "2025-01-01T12:00",
+            fixture_path,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "Processing" in result.stdout
+
+
+def test_cli_filter_date_from_with_seconds() -> None:
+    """Test --filter-date-from with seconds (YYYY-MM-DDThh:mm:ss)."""
+    fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--filter-date-from",
+            "2025-01-01T12:30:45",
+            fixture_path,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "Processing" in result.stdout
+
+
+def test_cli_filter_date_from_space_separator() -> None:
+    """Test --filter-date-from with space separator (YYYY-MM-DD hh:mm)."""
+    fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--filter-date-from",
+            "2025-01-01 12:00",
+            fixture_path,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "Processing" in result.stdout
+
+
+def test_cli_filter_date_from_space_with_seconds() -> None:
+    """Test --filter-date-from with space and seconds (YYYY-MM-DD hh:mm:ss)."""
+    fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--filter-date-from",
+            "2025-01-01 12:30:45",
+            fixture_path,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "Processing" in result.stdout
+
+
+def test_cli_filter_date_until_with_time() -> None:
+    """Test --filter-date-until with time component (YYYY-MM-DDThh:mm)."""
+    fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--filter-date-until",
+            "2025-12-31T23:59",
+            fixture_path,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "Processing" in result.stdout
+
+
+def test_cli_filter_date_until_with_seconds() -> None:
+    """Test --filter-date-until with seconds (YYYY-MM-DDThh:mm:ss)."""
+    fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--filter-date-until",
+            "2025-12-31T23:59:59",
+            fixture_path,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "Processing" in result.stdout
+
+
+def test_cli_filter_date_until_space_separator() -> None:
+    """Test --filter-date-until with space separator (YYYY-MM-DD hh:mm)."""
+    fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--filter-date-until",
+            "2025-12-31 23:59",
+            fixture_path,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "Processing" in result.stdout
+
+
+def test_cli_filter_date_range_mixed_formats() -> None:
+    """Test date range with different formats for from and until."""
+    fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--filter-date-from",
+            "2025-01-01T00:00:00",
+            "--filter-date-until",
+            "2025-03-01 12:30",
+            fixture_path,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "Processing" in result.stdout
+
+
+def test_cli_filter_date_from_midnight() -> None:
+    """Test --filter-date-from with midnight time."""
+    fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--filter-date-from",
+            "2025-01-01T00:00:00",
+            fixture_path,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "Processing" in result.stdout
+
+
+def test_cli_filter_date_invalid_format() -> None:
+    """Test --filter-date-from with invalid format shows helpful error."""
+    fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--filter-date-from",
+            "01/15/2025",
+            fixture_path,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "must be in one of these formats" in result.stderr
+    assert "YYYY-MM-DD" in result.stderr
+    assert "YYYY-MM-DDThh:mm" in result.stderr
+    assert "YYYY-MM-DD hh:mm" in result.stderr
+
+
+def test_cli_filter_date_help_shows_formats() -> None:
+    """Test that --help shows the new timestamp formats."""
+    result = subprocess.run(
+        [sys.executable, "-m", "orgstats", "--help"],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "YYYY-MM-DDThh:mm" in result.stdout
+    assert "YYYY-MM-DD hh:mm" in result.stdout
