@@ -1118,16 +1118,24 @@ def render_timeline_chart(
         num_buckets: Number of buckets (bars) in the chart
 
     Returns:
-        Tuple of (chart_line, start_date_str, end_date_str)
+        Tuple of (date_line, chart_line, underline)
     """
     expanded = expand_timeline(timeline, earliest, latest)
     buckets = bucket_timeline(expanded, num_buckets)
     max_value = max(buckets) if buckets else 0
 
     bars = "".join(_map_value_to_bar(value, max_value) for value in buckets)
-    chart_line = f"|{bars}| {max_value}"
 
     start_date_str = earliest.isoformat()
     end_date_str = latest.isoformat()
 
-    return (chart_line, start_date_str, end_date_str)
+    chart_width = len(bars) + 2
+    padding_spaces = chart_width - len(start_date_str) - len(end_date_str)
+    date_padding = " " * max(0, padding_spaces)
+    date_line = f"{start_date_str}{date_padding}{end_date_str}"
+
+    chart_line = f"┊{bars}┊ {max_value}"
+
+    underline = "‾" * chart_width
+
+    return (date_line, chart_line, underline)

@@ -652,16 +652,19 @@ Top tags:
 
 **Comment:** I fully expected this to not work great, but it did implement it alright. It skipped the requirement that if the timeline has fewer than `--buckets` elements it should be shortened, etc. Needs to be addressed separately.
 
-## Plot improvements - underline
+## ✅*️ Plot improvements - underline
 Looks like the plots will need an underline to make it apparent where they begin. Please update the plot display to look like this instead:
 
+
 ```
-2023-11-14                                2023-11-15
-|        ▁▂        ▅▃█  ▁           ▅▇   ▁▂▁       | 7
-̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅
+2023-11-14                                 2023-11-15
+┋         ▁▂        ▅▃█  ▁           ▅▇   ▁▂▁       ┋ 7
+‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 ```
 
-The dates should be moved above the chart and the underline should be composed from `̅` characters.
+The dates should be moved above the chart and the underline should be composed from `┋` and `‾` characters.
+
+**Comment:** AI decided to extend the underline under the number, which needed adjustment with another prompt.
 
 ## Plot improvements - per-tag sections
 

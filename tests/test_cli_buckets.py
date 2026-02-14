@@ -57,14 +57,14 @@ def test_cli_output_shows_global_chart() -> None:
     )
     assert result.returncode == 0
     assert "Activity:" in result.stdout
-    assert "|" in result.stdout
+    assert "┊" in result.stdout
     lines = result.stdout.split("\n")
     activity_found = False
     chart_found = False
     for line in lines:
         if "Activity:" in line:
             activity_found = True
-        if activity_found and line.startswith("|") and "|" in line[1:]:
+        if activity_found and line.startswith("┊") and "┊" in line[1:]:
             chart_found = True
             break
     assert chart_found
@@ -81,7 +81,7 @@ def test_cli_output_shows_per_tag_charts() -> None:
     lines = result.stdout.split("\n")
     chart_count = 0
     for line in lines:
-        if line.strip().startswith("|") and "|" in line[1:]:
+        if line.strip().startswith("┊") and "┊" in line[1:]:
             chart_count += 1
     assert chart_count > 1
 
@@ -96,9 +96,9 @@ def test_cli_chart_format_in_output() -> None:
     assert result.returncode == 0
     lines = result.stdout.split("\n")
     for line in lines:
-        if line.startswith("|") and "| " in line:
-            assert line.count("|") == 2
-            assert line.split("|")[-1].strip().isdigit()
+        if line.startswith("┊") and "┊ " in line:
+            assert line.count("┊") == 2
+            assert line.split("┊")[-1].strip().isdigit()
 
 
 def test_cli_buckets_different_values() -> None:

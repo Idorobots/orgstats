@@ -323,16 +323,16 @@ def display_category(
             latest_date = (
                 time_range.latest.date() if time_range.latest else time_range.earliest.date()
             )
-            chart_line, start_date, end_date = render_timeline_chart(
+            date_line, chart_line, underline = render_timeline_chart(
                 time_range.timeline,
                 time_range.earliest.date(),
                 latest_date,
                 num_buckets,
             )
             print()
+            print(f"    {date_line}")
             print(f"    {chart_line}")
-            padding = " " * (len(chart_line) - len(start_date) - len(end_date))
-            print(f"    {start_date}{padding}{end_date}")
+            print(f"    {underline}")
             print()
 
         if name in relations_dict and relations_dict[name].relations:
@@ -989,7 +989,7 @@ def display_results(
         print(f"  Max repeats of a single task: {result.max_repeat_count}")
 
         if result.timerange.timeline:
-            chart_line, start_date, end_date = render_timeline_chart(
+            date_line, chart_line, underline = render_timeline_chart(
                 result.timerange.timeline,
                 result.timerange.earliest.date(),
                 result.timerange.latest.date(),
@@ -997,9 +997,9 @@ def display_results(
             )
             print("\nActivity:")
             print()
+            print(date_line)
             print(chart_line)
-            padding = " " * (len(chart_line) - len(start_date) - len(end_date))
-            print(f"{start_date}{padding}{end_date}")
+            print(underline)
 
     print("\nTask states:")
     sorted_states = sorted(
