@@ -723,11 +723,12 @@ Top tags
 ```
 **Comment:** Also very easy.
 
-## Plot improvements - start/end dates
-When provided, all charts should fit the start/end time range. When not provided, each tags' chart should use the timelines start/end dates.
+## ✅*️ Plot improvements - start/end dates
+When `--filter-date-from` and/or `--filter-date-until` are provided explicitly, all the plot charts should span this whole timerange. Adjust the code that renders a plot to accept those optional values and use those instead of the timeline's own start/end dates. The intention is to display plots that start on `args.filter_date_from or timeline.earliest` and end on `args.filter_date_until or timeline.latest`.
 
-## Task "category" histogram
-- based on gamify_exp, eventually will evolve to classify each task by some criteria (fix/debug/test heading content, etc).
+This should apply to both the global section plots and the per-tag plots, but it should only affect the display of the data. It should not affect how the timelines are computed.
+
+**Comment:** Implemented correctly, but it turns out that the earlier `deepcopy()` addition causes a significant performance degradation.
 
 ## Histogram ASCII plots
 - pie-chart of the states

@@ -286,7 +286,7 @@ def get_top_day_info(time_range: TimeRange | None) -> tuple[str, int] | None:
 def display_category(
     category_name: str,
     data: tuple[dict[str, Frequency], dict[str, TimeRange], set[str], dict[str, Relations]],
-    config: tuple[int, int, int],
+    config: tuple[int, int, int, datetime | None, datetime | None],
     order_fn: Callable[[tuple[str, Frequency]], int],
 ) -> None:
     """Display formatted output for a single category.
@@ -294,10 +294,10 @@ def display_category(
     Args:
         category_name: Display name for the category (e.g., "tags", "heading words")
         data: Tuple of (frequencies, time_ranges, exclude_set, relations_dict)
-        config: Tuple of (max_results, max_relations, num_buckets)
+        config: Tuple of (max_results, max_relations, num_buckets, date_from, date_until)
         order_fn: Function to sort items by
     """
-    max_results, max_relations, num_buckets = config
+    max_results, max_relations, num_buckets, date_from, date_until = config
     frequencies, time_ranges, exclude_set, relations_dict = data
     cleaned = clean(exclude_set, frequencies)
     sorted_items = sorted(cleaned.items(), key=order_fn)[0:max_results]
@@ -310,12 +310,15 @@ def display_category(
         time_range = time_ranges.get(name)
 
         if time_range and time_range.earliest and time_range.timeline:
+            earliest_date = date_from.date() if date_from else time_range.earliest.date()
             latest_date = (
-                time_range.latest.date() if time_range.latest else time_range.earliest.date()
+                date_until.date()
+                if date_until
+                else (time_range.latest.date() if time_range.latest else time_range.earliest.date())
             )
             date_line, chart_line, underline = render_timeline_chart(
                 time_range.timeline,
-                time_range.earliest.date(),
+                earliest_date,
                 latest_date,
                 num_buckets,
             )
@@ -951,7 +954,11 @@ def build_filter_chain(
 
 
 def display_results(
-    result: AnalysisResult, args: argparse.Namespace, exclude_set: set[str]
+    result: AnalysisResult,
+    args: argparse.Namespace,
+    exclude_set: set[str],
+    date_from: datetime | None,
+    date_until: datetime | None,
 ) -> None:
     """Display analysis results in formatted output.
 
@@ -959,12 +966,16 @@ def display_results(
         result: Analysis results to display
         args: Command-line arguments containing display configuration
         exclude_set: Set of items to exclude from display
+        date_from: Optional start date for chart display range
+        date_until: Optional end date for chart display range
     """
     if result.timerange.earliest and result.timerange.latest and result.timerange.timeline:
+        earliest_date = date_from.date() if date_from else result.timerange.earliest.date()
+        latest_date = date_until.date() if date_until else result.timerange.latest.date()
         date_line, chart_line, underline = render_timeline_chart(
             result.timerange.timeline,
-            result.timerange.earliest.date(),
-            result.timerange.latest.date(),
+            earliest_date,
+            latest_date,
             args.buckets,
         )
         print()
@@ -1005,7 +1016,7 @@ def display_results(
     display_category(
         category_name,
         (result.tag_frequencies, result.tag_time_ranges, exclude_set, result.tag_relations),
-        (args.max_results, args.max_relations, args.buckets),
+        (args.max_results, args.max_relations, args.buckets, date_from, date_until),
         order_by_total,
     )
 
@@ -1059,7 +1070,14 @@ def main() -> None:
 
     result = analyze(filtered_nodes, mapping, args.show, args.max_relations, done_keys)
 
-    display_results(result, args, exclude_set)
+    date_from = None
+    date_until = None
+    if args.filter_date_from is not None:
+        date_from = parse_date_argument(args.filter_date_from, "--filter-date-from")
+    if args.filter_date_until is not None:
+        date_until = parse_date_argument(args.filter_date_until, "--filter-date-until")
+
+    display_results(result, args, exclude_set, date_from, date_until)
 
 
 if __name__ == "__main__":
