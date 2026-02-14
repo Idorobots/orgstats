@@ -461,9 +461,8 @@ def test_display_category() -> None:
         display_category(
             "test tags",
             (frequencies, time_ranges, exclude_set, relations_dict),
-            max_results=10,
-            max_relations=3,
-            order_fn=lambda item: -item[1].total,
+            (10, 3, 50),
+            lambda item: -item[1].total,
         )
 
         output = sys.stdout.getvalue()
@@ -501,9 +500,8 @@ def test_display_category_with_time_ranges() -> None:
         display_category(
             "test tags",
             (frequencies, time_ranges, exclude_set, relations_dict),
-            max_results=10,
-            max_relations=3,
-            order_fn=lambda item: -item[1].total,
+            (10, 3, 50),
+            lambda item: -item[1].total,
         )
 
         output = sys.stdout.getvalue()
@@ -532,9 +530,8 @@ def test_display_category_with_relations() -> None:
         display_category(
             "test tags",
             (frequencies, time_ranges, exclude_set, relations_dict),
-            max_results=10,
-            max_relations=3,
-            order_fn=lambda item: -item[1].total,
+            (10, 3, 50),
+            lambda item: -item[1].total,
         )
 
         output = sys.stdout.getvalue()
@@ -575,7 +572,9 @@ def test_display_results_with_tag_groups() -> None:
         tag_groups=tag_groups,
     )
 
-    args = argparse.Namespace(show="tags", max_results=10, max_relations=3, min_group_size=3)
+    args = argparse.Namespace(
+        show="tags", max_results=10, max_relations=3, min_group_size=3, buckets=50
+    )
 
     original_stdout = sys.stdout
     try:
@@ -624,7 +623,9 @@ def test_display_results_tag_groups_filtered_by_min_size() -> None:
         tag_groups=tag_groups,
     )
 
-    args = argparse.Namespace(show="tags", max_results=10, max_relations=3, min_group_size=3)
+    args = argparse.Namespace(
+        show="tags", max_results=10, max_relations=3, min_group_size=3, buckets=50
+    )
 
     original_stdout = sys.stdout
     try:
@@ -674,7 +675,9 @@ def test_display_results_tag_groups_with_excluded_tags() -> None:
         tag_groups=tag_groups,
     )
 
-    args = argparse.Namespace(show="tags", max_results=10, max_relations=3, min_group_size=2)
+    args = argparse.Namespace(
+        show="tags", max_results=10, max_relations=3, min_group_size=2, buckets=50
+    )
 
     original_stdout = sys.stdout
     try:
@@ -718,7 +721,9 @@ def test_display_results_no_tag_groups() -> None:
         tag_groups=[],
     )
 
-    args = argparse.Namespace(show="tags", max_results=10, max_relations=3, min_group_size=3)
+    args = argparse.Namespace(
+        show="tags", max_results=10, max_relations=3, min_group_size=3, buckets=50
+    )
 
     original_stdout = sys.stdout
     try:

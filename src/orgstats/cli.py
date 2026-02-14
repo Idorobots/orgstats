@@ -28,6 +28,7 @@ from orgstats.core import (
     filter_repeats_below,
     filter_tag,
     gamify_exp,
+    render_timeline_chart,
 )
 
 
@@ -285,8 +286,7 @@ def get_top_day_info(time_range: TimeRange | None) -> tuple[str, int] | None:
 def display_category(
     category_name: str,
     data: tuple[dict[str, Frequency], dict[str, TimeRange], set[str], dict[str, Relations]],
-    max_results: int,
-    max_relations: int,
+    config: tuple[int, int, int],
     order_fn: Callable[[tuple[str, Frequency]], int],
 ) -> None:
     """Display formatted output for a single category.
@@ -294,10 +294,10 @@ def display_category(
     Args:
         category_name: Display name for the category (e.g., "tags", "heading words")
         data: Tuple of (frequencies, time_ranges, exclude_set, relations_dict)
-        max_results: Maximum number of results to display
-        max_relations: Maximum number of relations to display per item
+        config: Tuple of (max_results, max_relations, num_buckets)
         order_fn: Function to sort items by
     """
+    max_results, max_relations, num_buckets = config
     frequencies, time_ranges, exclude_set, relations_dict = data
     cleaned = clean(exclude_set, frequencies)
     sorted_items = sorted(cleaned.items(), key=order_fn)[0:max_results]
@@ -318,6 +318,22 @@ def display_category(
                 parts.append(f"top_day={top_day_info[0]} ({top_day_info[1]})")
 
         print(f"  {name}: {', '.join(parts)}")
+
+        if time_range and time_range.earliest and time_range.timeline:
+            latest_date = (
+                time_range.latest.date() if time_range.latest else time_range.earliest.date()
+            )
+            chart_line, start_date, end_date = render_timeline_chart(
+                time_range.timeline,
+                time_range.earliest.date(),
+                latest_date,
+                num_buckets,
+            )
+            print()
+            print(f"    {chart_line}")
+            padding = " " * (len(chart_line) - len(start_date) - len(end_date))
+            print(f"    {start_date}{padding}{end_date}")
+            print()
 
         if name in relations_dict and relations_dict[name].relations:
             filtered_relations = {
@@ -532,6 +548,14 @@ def parse_arguments() -> argparse.Namespace:
         "--filter-not-completed",
         action="store_true",
         help="Filter tasks with todo state in todo keys",
+    )
+
+    parser.add_argument(
+        "--buckets",
+        type=int,
+        default=50,
+        metavar="N",
+        help="Number of time buckets for timeline charts (default: 50, minimum: 20)",
     )
 
     return parser.parse_args()
@@ -964,6 +988,19 @@ def display_results(
         print(f"  Max tasks completed on a single day: {result.max_single_day_count}")
         print(f"  Max repeats of a single task: {result.max_repeat_count}")
 
+        if result.timerange.timeline:
+            chart_line, start_date, end_date = render_timeline_chart(
+                result.timerange.timeline,
+                result.timerange.earliest.date(),
+                result.timerange.latest.date(),
+                args.buckets,
+            )
+            print("\nActivity:")
+            print()
+            print(chart_line)
+            padding = " " * (len(chart_line) - len(start_date) - len(end_date))
+            print(f"{start_date}{padding}{end_date}")
+
     print("\nTask states:")
     sorted_states = sorted(
         result.task_states.values.items(), key=lambda item: item[1], reverse=True
@@ -990,8 +1027,7 @@ def display_results(
     display_category(
         category_name,
         (result.tag_frequencies, result.tag_time_ranges, exclude_set, result.tag_relations),
-        args.max_results,
-        args.max_relations,
+        (args.max_results, args.max_relations, args.buckets),
         order_by_total,
     )
 
@@ -1019,6 +1055,10 @@ def main() -> None:
 
     if args.min_group_size < 0:
         print("Error: --min-group-size must be non-negative", file=sys.stderr)
+        sys.exit(1)
+
+    if args.buckets < 20:
+        print("Error: --buckets must be at least 20", file=sys.stderr)
         sys.exit(1)
 
     todo_keys = validate_and_parse_keys(args.todo_keys, "--todo-keys")

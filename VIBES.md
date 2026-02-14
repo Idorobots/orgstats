@@ -568,10 +568,106 @@ The test coverage fell well under 90%, please improve that by introducing more t
 
 **Comment:** This was done correctly, but inflated the test runtime significantly. There were some hickups with a subagent call (missing permissions in opencode.json likely).
 
-## ASCII plots
-Use an ascii plotting library to plot tag activity over time. Each plot should be a bar chart with at most 50 buckets. Each bucket will represent 1/50 of the total time range within which te tag was active. If the tag was active for more than 50 days, group the activity into buckets, sum the occurances and plot the sums. If the tag was active for fewer than 50 days, plot only as many buckets as makes sense. Make sure to take into account all days, even those with no tag activity on that day. These should have a value of 0. You can first expand the timeline with the missing days of no activity, then determine the buckets and compute sums of activity per bucket and then plot the results.
-There should be an indication of the start and end dates besides the plot.
+## ✅*️ Timeline ASCII plots
+I'd like to extend the CLI data display to include ASCII charts for time lines.
 
+The timeline display should show up as a barchart containing `N` bars representing date buckets. Each buckets height should depend on the sum of frequencties of tasks in that bucket. Each bucket will represent 1/N of the total time range:
+
+- If the timeline has more than N days, group the timeline activity into N buckets of equal sizes summing the occurances per bucket.
+- If the timeline has fewer than 50 days, plot only as many buckets as makes sense.
+
+Make sure to take into account all days, even those with no tag activity on that day. These should have a value of 0. You should first expand the timeline with the missing days of no activity, then group them into the N buckets and compute sums of activity per bucket. Plot the resulting sums within buckets.
+
+I'd like the number of buckets to be configurable, with a default of 50. You can add a new CLI parameter for that called `--buckets`.
+
+The plot will be an ASCII barchart where each bar is sized relative to the top value of the bucket - i.e. if there's a bucket with a value of 23, then that would be the 100% and all the other bar heights should be adjusted to be relative to that.
+
+You can use the following unicode characters in the output to represent the activity bars heights:
+- " " (space) - 0%
+- ▁ - under 25%
+- ▂ - under 37.5%
+- ▃ - under 50%
+- ▄ - under 62%
+- ▅ - under 75%
+- ▆ - under 87.5%
+- ▇ - under 100%
+- █ - 100%
+
+The plot itself should look something like this:
+```
+|        ▁▂        ▅▃█  ▁           ▅▇   ▁▂▁       | 0
+<start date>                              <end date>
+```
+
+Each bucket shows a bar sized according to the sum of activity in that bucket scaled in relation to the highest value in any bucket on the plot. Some of these buckets will be empty and others and that is OK. The plot is delineated with `|` on either side and to the right of the plot the value of the top bucket is shown. Under the chart there should be the start & end timestamps of the timeline, aligned to the either side of the plot.
+
+Here are some more examples:
+
+No activity during the timeline:
+```
+|                                                  | 0
+<start date>                              <end date>
+```
+
+All days equal in activity:
+```
+|██████████████████████████████████████████████████| 0
+<start date>                              <end date>
+```
+
+Please update the CLI output to add these plots for the global timeline and the per-tag timelines. The global plot should be place in the "Top tasks" section, which will now look like this:
+
+```
+Total tasks: 15
+Average tasks completed per day: 2.00
+Max tasks completed on a single day: 7
+Max repeats of a single task: 2
+
+Activity:
+
+|        ▁▂        ▅▃█  ▁           ▅▇   ▁▂▁       | 7
+2023-11-14                                2023-11-15
+```
+
+The per-tag section "Top tags" should look like this:
+
+```
+Top tags:
+  erlang (2)
+
+    |        ▁▂        ▅▃█  ▁           ▅▇   ▁▂▁       | 7
+    2023-11-14                                2023-11-15
+
+    redis (1)
+    debugging (1)
+
+  redis: (5)
+
+    |        ▁▂        ▅▃█  ▁           ▅▇   ▁▂▁       | 7
+    2023-11-14                                2023-11-15
+
+    erlang (1)
+    ...
+```
+
+**Comment:** I fully expected this to not work great, but it did implement it alright. It skipped the requirement that if the timeline has fewer than `--buckets` elements it should be shortened, etc. Needs to be addressed separately.
+
+## Plot improvements - underline
+Looks like the plots will need an underline to make it apparent where they begin. Please update the plot display to look like this instead:
+
+```
+2023-11-14                                2023-11-15
+|        ▁▂        ▅▃█  ▁           ▅▇   ▁▂▁       | 7
+̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅
+```
+
+The dates should be moved above the chart and the underline should be composed from `̅` characters.
+
+## Plot improvements - per-tag sections
+
+## Plot improvements - bucket widening
+
+## Histogram ASCII plots
 - pie-chart of the states
 - pie chart of the week days
 - Adjust the tag plots to also reflect the same "global"" time range.
