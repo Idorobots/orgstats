@@ -303,21 +303,11 @@ def display_category(
     sorted_items = sorted(cleaned.items(), key=order_fn)[0:max_results]
 
     print(f"\nTop {category_name}:")
-    for name, freq in sorted_items:
+    for idx, (name, freq) in enumerate(sorted_items):
+        if idx > 0:
+            print()
+
         time_range = time_ranges.get(name)
-
-        parts = [f"count={freq.total}"]
-
-        if time_range and time_range.earliest:
-            parts.append(f"earliest={time_range.earliest.date().isoformat()}")
-            if time_range.latest:
-                parts.append(f"latest={time_range.latest.date().isoformat()}")
-
-            top_day_info = get_top_day_info(time_range)
-            if top_day_info:
-                parts.append(f"top_day={top_day_info[0]} ({top_day_info[1]})")
-
-        print(f"  {name}: {', '.join(parts)}")
 
         if time_range and time_range.earliest and time_range.timeline:
             latest_date = (
@@ -329,11 +319,11 @@ def display_category(
                 latest_date,
                 num_buckets,
             )
-            print()
-            print(f"    {date_line}")
-            print(f"    {chart_line}")
-            print(f"    {underline}")
-            print()
+            print(f"  {date_line}")
+            print(f"  {chart_line}")
+            print(f"  {underline}")
+
+        print(f"  {name} ({freq.total})")
 
         if name in relations_dict and relations_dict[name].relations:
             filtered_relations = {
@@ -345,8 +335,10 @@ def display_category(
                 0:max_relations
             ]
 
-            for related_name, count in sorted_relations:
-                print(f"    {related_name} ({count})")
+            if sorted_relations:
+                print("    Top relations:")
+                for related_name, count in sorted_relations:
+                    print(f"      {related_name} ({count})")
 
 
 def filter_nodes(nodes: list[orgparse.node.OrgNode], task_type: str) -> list[orgparse.node.OrgNode]:

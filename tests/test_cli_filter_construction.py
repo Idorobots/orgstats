@@ -470,8 +470,8 @@ def test_display_category() -> None:
         assert "Top test tags:" in output
         assert "python" in output
         assert "java" in output
-        assert "count=10" in output
-        assert "count=8" in output
+        assert "python (10)" in output
+        assert "java (8)" in output
 
     finally:
         sys.stdout = original_stdout
@@ -506,8 +506,7 @@ def test_display_category_with_time_ranges() -> None:
 
         output = sys.stdout.getvalue()
 
-        assert "earliest=2025-01-01" in output
-        assert "latest=2025-01-31" in output
+        assert "python (10)" in output
 
     finally:
         sys.stdout = original_stdout

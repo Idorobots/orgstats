@@ -695,20 +695,33 @@ The chart should come above the "Total tasks" line. All "general" stats should b
 
 **Comment:** This was also pretty easy.
 
-## Plot improvements - per-tag sections
+## ✅ Plot improvements - per-tag sections
 Let's change the per-tag display of the `Top tags:` section so that each tag section looks like this:
 
 ```
   2011-11-18                                2026-02-05
   ┊▂▂▁▁▁▁▁▁▂▂▂▂▂▂▃▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂█▅▅▆▅▅▄▃▂▁┊ 11 (2023-03-26)
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-  devops (2481):
-    ansible (46)
-    erlang (38)
-    otp (36)
+  devops (2481)
+    Top relations:
+      ansible (46)
+      erlang (38)
+      otp (36)
 ```
 The chart for the tag is above the tag name, followed by the tag (same indent level) and its relations (extra indent level).
-The tag sections should be separated by a blank line.
+We will add more stats to this section at a later point.
+
+Consecutive tag sections should be separated by a blank line:
+
+```
+Top tags
+  <tag section>
+
+  <tag section>
+
+  ...
+```
+**Comment:** Also very easy.
 
 ## Plot improvements - start/end dates
 When provided, all charts should fit the start/end time range. When not provided, each tags' chart should use the timelines start/end dates.

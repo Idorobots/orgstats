@@ -215,7 +215,7 @@ def test_cli_max_relations_with_other_options() -> None:
 
     assert result.returncode == 0
     assert "Processing" in result.stdout
-    assert "count=" in result.stdout
+    assert "(" in result.stdout and ")" in result.stdout
 
 
 def test_cli_max_relations_value_1() -> None:

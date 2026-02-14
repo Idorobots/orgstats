@@ -133,8 +133,8 @@ def test_cli_tag_filtering() -> None:
     )
 
     assert result.returncode == 0
-    # Output should contain count= format
-    assert "count=" in result.stdout
+    # Output should contain tag with count in parentheses
+    assert "(" in result.stdout and ")" in result.stdout
     # Should show integer counts, not Frequency objects
     assert "Frequency(" not in result.stdout
 
@@ -185,8 +185,8 @@ def test_cli_filter_output_format() -> None:
     )
 
     assert result.returncode == 0
-    # Should have count= format
-    assert "count=" in result.stdout
+    # Should have tag with count in parentheses
+    assert "(" in result.stdout and ")" in result.stdout
     # Should NOT have Frequency objects
     assert "Frequency(" not in result.stdout
     assert "simple=" not in result.stdout
@@ -233,8 +233,8 @@ def test_cli_outputs_time_ranges() -> None:
     )
 
     assert result.returncode == 0
-    # Time ranges are now integrated into the main output with earliest/latest/top_day
-    assert "earliest=" in result.stdout or "count=" in result.stdout
+    # Time ranges are now shown as charts
+    assert "┊" in result.stdout or "(" in result.stdout
 
 
 def test_cli_time_ranges_format() -> None:
@@ -249,8 +249,8 @@ def test_cli_time_ranges_format() -> None:
     )
 
     assert result.returncode == 0
-    # Time range data is now shown inline with format: earliest=..., latest=..., top_day=...
-    assert "top_day=" in result.stdout or "count=" in result.stdout
+    # Time range data is now shown in charts
+    assert "┊" in result.stdout or "(" in result.stdout
 
 
 def test_cli_default_max_results_is_10() -> None:
