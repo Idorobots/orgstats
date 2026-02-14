@@ -1134,7 +1134,14 @@ def render_timeline_chart(
     date_padding = " " * max(0, padding_spaces)
     date_line = f"{start_date_str}{date_padding}{end_date_str}"
 
-    chart_line = f"┊{bars}┊ {max_value}"
+    if timeline:
+        max_count = max(timeline.values())
+        top_day = min(d for d, count in timeline.items() if count == max_count)
+        top_day_str = f"{max_count} ({top_day.isoformat()})"
+    else:
+        top_day_str = "0"
+
+    chart_line = f"┊{bars}┊ {top_day_str}"
 
     underline = "‾" * chart_width
 

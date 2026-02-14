@@ -98,7 +98,10 @@ def test_cli_chart_format_in_output() -> None:
     for line in lines:
         if line.startswith("┊") and "┊ " in line:
             assert line.count("┊") == 2
-            assert line.split("┊")[-1].strip().isdigit()
+            value_part = line.split("┊")[-1].strip()
+            assert "(" in value_part and ")" in value_part
+            count_str = value_part.split()[0]
+            assert count_str.isdigit()
 
 
 def test_cli_buckets_different_values() -> None:

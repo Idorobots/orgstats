@@ -658,22 +658,140 @@ Looks like the plots will need an underline to make it apparent where they begin
 
 ```
 2023-11-14                                 2023-11-15
-┋         ▁▂        ▅▃█  ▁           ▅▇   ▁▂▁       ┋ 7
+┊         ▁▂        ▅▃█  ▁           ▅▇   ▁▂▁       ┊ 7
 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 ```
 
-The dates should be moved above the chart and the underline should be composed from `┋` and `‾` characters.
+The dates should be moved above the chart and the underline should be composed from `┊` and `‾` characters.
 
-**Comment:** AI decided to extend the underline under the number, which needed adjustment with another prompt.
+**Comment:** AI decided to extend the underline under the number, which needed adjustment with another prompt. And then another, and then another.
+
+## ✅ Plot improvements - top day
+Replace the max bucket value on the plots with the top day from the timeline
+```
+2023-11-14                                 2024-11-15
+┊         ▁▂        ▅▃█  ▁           ▅▇   ▁▂▁       ┊ 11 (2023-03-26)
+‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+```
+
+The value should be taken from the timeline, the same way as the current display for `top_day` is generated. The date should come afterwards in parentheses.
+
+**Comment:** This was easy enough.
+
+## Plot improvements - Total tasks
+Let's change the total tasks section to look like this:
+
+```
+2011-11-18                                2026-02-05
+┊▂▂▁▁▁▁▁▁▂▂▂▂▂▂▃▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂█▅▅▆▅▅▄▃▂▁┊ 11 (2023-03-26)
+‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+Total tasks: 15
+Average tasks completed per day: 2.00
+Max tasks completed on a single day: 11
+Max repeats of a single task: 2
+```
+
+The chart should come above the "Total tasks" line. All "general" stats should be at the same indent level. The logic for these values should stay the same, only the update should be updated.
 
 ## Plot improvements - per-tag sections
+Let's change the per-tag display of the `Top tags:` section so that each tag section looks like this:
 
-## Plot improvements - bucket widening
+```
+  2011-11-18                                2026-02-05
+  ┊▂▂▁▁▁▁▁▁▂▂▂▂▂▂▃▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂█▅▅▆▅▅▄▃▂▁┊ 11 (2023-03-26)
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+  devops (2481):
+    ansible (46)
+    erlang (38)
+    otp (36)
+```
+The chart for the tag is above the tag name, followed by the tag (same indent level) and its relations (extra indent level).
+The tag sections should be separated by a blank line.
+
+## Plot improvements - start/end dates
+When provided, all charts should fit the start/end time range. When not provided, each tags' chart should use the timelines start/end dates.
+
+## Task "category" histogram
+- based on gamify_exp, eventually will evolve to classify each task by some criteria (fix/debug/test heading content, etc).
 
 ## Histogram ASCII plots
 - pie-chart of the states
 - pie chart of the week days
-- Adjust the tag plots to also reflect the same "global"" time range.
+
+## Per-tag stats
+- Total tasks
+- Average tasks completed per day
+- Max tasks completed on a sigle day + date
+- Max repeats of a single task + truncated heading
+- Top relations
+
+Not to be shown on analyze commands output?
+- State histogram
+- Day of week histogram
+- Category histogram
+
+## Even more filters
+- `--filter-heading term` - task must contain `term` in the filter,
+- `--filter-body term` - task must contain `term` in the body,
+
+## Per-file processing
+Process each file separately, combine results at the end before displaying stuff, preserving the file origin for each task
+
+## Another attempt at a fix for task states counts
+Now the counts for day of week histogram are higher than the total count of done tasks. Likely, now it's the done task count that's wrong.
+
+## Dedicated analysis command
+Wrap the current analysis logic into a dedicated `analyze` command. There will be more commands to come.
+
+The CLI arguments should be divided into global & per-command options. Global arguments should be:
+- `--mapping`,
+- `--exclude`,
+- `--max-results`,
+- `--help`,
+- `--filter-*`,
+- `FILE`
+
+The rest should be accepted by the `analyze` command.
+I want these global arguments to be usable after the command name, i.e. the accepted invocation should be:
+
+```bash
+orgstats analyze -n 5 examples/ARCHIVE_small
+```
+
+## Dedicated search command
+Add an extra `search` command that allows searching for specific tag occurances and shows statistics of tasks that are tagged with the specified tag.
+
+The invocation should look like this:
+
+```bash
+orgstats search tagname
+```
+
+The comand should search for the occurance of specified tag in either the tags, heading or the task body. Add a new CLI parameter called `--in` that takes one of the following values: `tags`, `heading`, `body`. The following logic should apply:
+- for `tags` the specified tag is search for in Org Node's tags, subject to the filter & mapping lists,
+- for `heading` the specified tag value, case-sensitive, is searched for in the Org Node's heading contents (string search),
+- for `body` the specified tag value, case-sensitive, is searched for in the Org Node's body contents (string search),
+The default value for this switch should be `tags`. This switch should be a command switch, not global.
+
+Once suitable tasks are found, the command should compute the analysis results much like `analyze` does.
+
+The command should respect any additional filters passed by the `--filter*` flags. In fact, the comands search logic can be implemented as a filter in itself.
+
+The command should display the following information:
+- A header stating that these are the results for a specific search term,
+- General statistics of the tasks containing the searched term,
+- State distribution,
+- Day distribution,
+- Time range of tasks with the specific tag present,
+- Top relations for this tag (respecting the `--max-relations` flag),
+- Top groups for this tag (respecting the `--min-group-size` flag),
+- A list of tasks with this tag ordered by their timestamp (most recent at the top, respecting the `--max-results` flag),
+
+The output will be fairly similar to the `analyze` output, with the caveat that the `Top tags` section would be replaced with search-term-specific relations & time range.
+
+I expect that groups won't be very useful, so don't bother testing the output of these just yet. We might remove them from the output.
+
+List the tasks headings and the files where these can be found.
 
 ## Better heading & body parsing
 
