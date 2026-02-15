@@ -145,7 +145,9 @@ Tag groups:
 - `--filter-date-from TIMESTAMP` - Filter tasks with timestamps after date (inclusive)
 - `--filter-date-until TIMESTAMP` - Filter tasks with timestamps before date (inclusive)
 - `--filter-property KEY=VALUE` - Filter tasks with exact property match (case-sensitive, can specify multiple)
-- `--filter-tag TAG` - Filter tasks with exact tag match (case-sensitive, can specify multiple)
+- `--filter-tag REGEX` - Filter tasks where any tag matches regex (case-sensitive, can specify multiple)
+- `--filter-heading REGEX` - Filter tasks where heading matches regex (case-sensitive, can specify multiple)
+- `--filter-body REGEX` - Filter tasks where body matches regex (case-sensitive, multiline, can specify multiple)
 - `--filter-completed` - Filter tasks with todo state in done keys
 - `--filter-not-completed` - Filter tasks with todo state in todo keys
 
