@@ -19,8 +19,8 @@ def test_compute_frequencies_single_tag() -> None:
 
     frequencies = compute_frequencies(nodes, {}, "tags", ["DONE"])
 
-    assert "python" in frequencies
-    assert frequencies["python"].total == 1
+    assert "Python" in frequencies
+    assert frequencies["Python"].total == 1
 
 
 def test_compute_frequencies_multiple_tags() -> None:
@@ -30,12 +30,12 @@ def test_compute_frequencies_multiple_tags() -> None:
     frequencies = compute_frequencies(nodes, {}, "tags", ["DONE"])
 
     assert len(frequencies) == 3
-    assert "python" in frequencies
-    assert "testing" in frequencies
-    assert "debugging" in frequencies
-    assert frequencies["python"].total == 1
-    assert frequencies["testing"].total == 1
-    assert frequencies["debugging"].total == 1
+    assert "Python" in frequencies
+    assert "Testing" in frequencies
+    assert "Debugging" in frequencies
+    assert frequencies["Python"].total == 1
+    assert frequencies["Testing"].total == 1
+    assert frequencies["Debugging"].total == 1
 
 
 def test_compute_frequencies_todo_task() -> None:
@@ -60,7 +60,7 @@ def test_compute_frequencies_repeated_tasks() -> None:
 
     frequencies = compute_frequencies(nodes, {}, "tags", ["DONE"])
 
-    assert frequencies["python"].total == 3
+    assert frequencies["Python"].total == 3
 
 
 def test_compute_frequencies_accumulates() -> None:
@@ -72,8 +72,8 @@ def test_compute_frequencies_accumulates() -> None:
 
     frequencies = compute_frequencies(nodes, {}, "tags", ["DONE"])
 
-    assert frequencies["python"].total == 2
-    assert frequencies["testing"].total == 1
+    assert frequencies["Python"].total == 2
+    assert frequencies["Testing"].total == 1
 
 
 def test_compute_frequencies_with_mapping() -> None:
@@ -81,11 +81,11 @@ def test_compute_frequencies_with_mapping() -> None:
     nodes = node_from_org("* DONE Task :Test:SysAdmin:\n")
 
     frequencies = compute_frequencies(
-        nodes, {"test": "testing", "sysadmin": "devops"}, "tags", ["DONE"]
+        nodes, {"Test": "Testing", "SysAdmin": "DevOps"}, "tags", ["DONE"]
     )
 
-    assert "testing" in frequencies
-    assert "devops" in frequencies
+    assert "Testing" in frequencies
+    assert "DevOps" in frequencies
     assert "test" not in frequencies
     assert "sysadmin" not in frequencies
 

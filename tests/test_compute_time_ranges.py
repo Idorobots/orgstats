@@ -33,10 +33,10 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     time_ranges = compute_time_ranges(nodes, {}, "tags", ["DONE"])
 
-    assert "python" in time_ranges
+    assert "Python" in time_ranges
     dt = datetime(2023, 10, 20, 14, 43)
-    assert time_ranges["python"].earliest == dt
-    assert time_ranges["python"].latest == dt
+    assert time_ranges["Python"].earliest == dt
+    assert time_ranges["Python"].latest == dt
 
 
 def test_compute_time_ranges_single_tag_multiple_timestamps() -> None:
@@ -52,11 +52,11 @@ def test_compute_time_ranges_single_tag_multiple_timestamps() -> None:
 
     time_ranges = compute_time_ranges(nodes, {}, "tags", ["DONE"])
 
-    assert "python" in time_ranges
+    assert "Python" in time_ranges
     dt1 = datetime(2023, 10, 18, 9, 15)
     dt3 = datetime(2023, 10, 20, 14, 43)
-    assert time_ranges["python"].earliest == dt1
-    assert time_ranges["python"].latest == dt3
+    assert time_ranges["Python"].earliest == dt1
+    assert time_ranges["Python"].latest == dt3
 
 
 def test_compute_time_ranges_multiple_tags() -> None:
@@ -70,12 +70,12 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     assert len(time_ranges) == 3
     dt = datetime(2023, 10, 20, 14, 43)
-    assert time_ranges["python"].earliest == dt
-    assert time_ranges["python"].latest == dt
-    assert time_ranges["testing"].earliest == dt
-    assert time_ranges["testing"].latest == dt
-    assert time_ranges["debugging"].earliest == dt
-    assert time_ranges["debugging"].latest == dt
+    assert time_ranges["Python"].earliest == dt
+    assert time_ranges["Python"].latest == dt
+    assert time_ranges["Testing"].earliest == dt
+    assert time_ranges["Testing"].latest == dt
+    assert time_ranges["Debugging"].earliest == dt
+    assert time_ranges["Debugging"].latest == dt
 
 
 def test_compute_time_ranges_accumulates() -> None:
@@ -92,10 +92,10 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     dt1 = datetime(2023, 10, 18, 9, 15)
     dt2 = datetime(2023, 10, 20, 14, 43)
-    assert time_ranges["python"].earliest == dt1
-    assert time_ranges["python"].latest == dt2
-    assert time_ranges["testing"].earliest == dt2
-    assert time_ranges["testing"].latest == dt2
+    assert time_ranges["Python"].earliest == dt1
+    assert time_ranges["Python"].latest == dt2
+    assert time_ranges["Testing"].earliest == dt2
+    assert time_ranges["Testing"].latest == dt2
 
 
 def test_compute_time_ranges_with_mapping() -> None:
@@ -106,11 +106,11 @@ CLOSED: [2023-10-20 Fri 14:43]
 """)
 
     time_ranges = compute_time_ranges(
-        nodes, {"test": "testing", "sysadmin": "devops"}, "tags", ["DONE"]
+        nodes, {"Test": "Testing", "SysAdmin": "DevOps"}, "tags", ["DONE"]
     )
 
-    assert "testing" in time_ranges
-    assert "devops" in time_ranges
+    assert "Testing" in time_ranges
+    assert "DevOps" in time_ranges
     assert "test" not in time_ranges
     assert "sysadmin" not in time_ranges
 
@@ -124,7 +124,7 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     time_ranges = compute_time_ranges(nodes, {}, "tags", ["DONE"])
 
-    timeline = time_ranges["python"].timeline
+    timeline = time_ranges["Python"].timeline
     assert len(timeline) == 1
     assert timeline[date(2023, 10, 20)] == 1
 
@@ -142,7 +142,7 @@ def test_compute_time_ranges_timeline_multiple_timestamps() -> None:
 
     time_ranges = compute_time_ranges(nodes, {}, "tags", ["DONE"])
 
-    timeline = time_ranges["python"].timeline
+    timeline = time_ranges["Python"].timeline
     assert len(timeline) == 3
     assert timeline[date(2023, 10, 18)] == 1
     assert timeline[date(2023, 10, 19)] == 1
@@ -161,7 +161,7 @@ def test_compute_time_ranges_timeline_same_day_timestamps() -> None:
 
     time_ranges = compute_time_ranges(nodes, {}, "tags", ["DONE"])
 
-    timeline = time_ranges["python"].timeline
+    timeline = time_ranges["Python"].timeline
     assert len(timeline) == 1
     assert timeline[date(2023, 10, 20)] == 2
 
@@ -181,7 +181,7 @@ CLOSED: [2023-10-19 Thu 10:00]
 
     time_ranges = compute_time_ranges(nodes, {}, "tags", ["DONE"])
 
-    timeline = time_ranges["python"].timeline
+    timeline = time_ranges["Python"].timeline
     assert len(timeline) == 2
     assert timeline[date(2023, 10, 18)] == 2
     assert timeline[date(2023, 10, 19)] == 1
@@ -199,8 +199,8 @@ def test_compute_time_ranges_timeline_multiple_tags() -> None:
 
     time_ranges = compute_time_ranges(nodes, {}, "tags", ["DONE"])
 
-    python_timeline = time_ranges["python"].timeline
-    testing_timeline = time_ranges["testing"].timeline
+    python_timeline = time_ranges["Python"].timeline
+    testing_timeline = time_ranges["Testing"].timeline
 
     assert len(python_timeline) == 2
     assert python_timeline[date(2023, 10, 18)] == 1

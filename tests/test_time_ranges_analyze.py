@@ -25,8 +25,8 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    assert "python" in result.tag_time_ranges
-    tr = result.tag_time_ranges["python"]
+    assert "Python" in result.tag_time_ranges
+    tr = result.tag_time_ranges["Python"]
     assert tr.earliest is not None
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 20
     assert tr.earliest is not None
@@ -46,7 +46,7 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    tr = result.tag_time_ranges["python"]
+    tr = result.tag_time_ranges["Python"]
     assert tr.earliest is not None
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 18
     assert tr.latest is not None
@@ -65,7 +65,7 @@ def test_analyze_time_range_with_repeated_tasks() -> None:
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    tr = result.tag_time_ranges["daily"]
+    tr = result.tag_time_ranges["Daily"]
     assert tr.earliest is not None
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 18
     assert tr.latest is not None
@@ -81,7 +81,7 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    tr = result.tag_time_ranges["python"]
+    tr = result.tag_time_ranges["Python"]
     assert tr.earliest is not None
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 20
     assert tr.latest is not None
@@ -97,7 +97,7 @@ SCHEDULED: <2023-10-20 Fri>
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    tr = result.tag_time_ranges["python"]
+    tr = result.tag_time_ranges["Python"]
     assert tr.earliest is not None
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 20
     assert tr.latest is not None
@@ -113,7 +113,7 @@ DEADLINE: <2023-10-25 Wed>
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    tr = result.tag_time_ranges["python"]
+    tr = result.tag_time_ranges["Python"]
     assert tr.earliest is not None
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 25
     assert tr.latest is not None
@@ -138,14 +138,14 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     result = analyze(
         nodes,
-        {"test": "testing", "sysadmin": "devops"},
+        {"Test": "Testing", "SysAdmin": "DevOps"},
         category="tags",
         max_relations=3,
         done_keys=["DONE"],
     )
 
-    assert "testing" in result.tag_time_ranges
-    assert "devops" in result.tag_time_ranges
+    assert "Testing" in result.tag_time_ranges
+    assert "DevOps" in result.tag_time_ranges
 
 
 def test_analyze_time_range_heading_separate() -> None:
@@ -188,7 +188,7 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    tr = result.tag_time_ranges["python"]
+    tr = result.tag_time_ranges["Python"]
     assert tr.earliest is not None
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 18
     assert tr.latest is not None
@@ -206,7 +206,7 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    tr = result.tag_time_ranges["python"]
+    tr = result.tag_time_ranges["Python"]
     assert tr.earliest is not None
     assert tr.earliest.year == 2023 and tr.earliest.month == 10 and tr.earliest.day == 20
     assert tr.latest is not None
@@ -233,10 +233,10 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    python_tr = result.tag_time_ranges["python"]
+    python_tr = result.tag_time_ranges["Python"]
     assert python_tr.earliest is not None
     assert python_tr.earliest.day == 20
-    testing_tr = result.tag_time_ranges["testing"]
+    testing_tr = result.tag_time_ranges["Testing"]
     assert testing_tr.earliest is not None
     assert testing_tr.earliest.day == 20
 
@@ -254,7 +254,7 @@ def test_analyze_time_range_repeated_all_done() -> None:
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    tr = result.tag_time_ranges["daily"]
+    tr = result.tag_time_ranges["Daily"]
     assert tr.earliest is not None
     assert tr.earliest.day == 18
     assert tr.latest is not None
@@ -270,8 +270,8 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    assert "python" in result.tag_time_ranges
-    timeline = result.tag_time_ranges["python"].timeline
+    assert "Python" in result.tag_time_ranges
+    timeline = result.tag_time_ranges["Python"].timeline
     assert len(timeline) == 1
     assert timeline[date(2023, 10, 20)] == 1
 
@@ -289,7 +289,7 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    timeline = result.tag_time_ranges["python"].timeline
+    timeline = result.tag_time_ranges["Python"].timeline
     assert len(timeline) == 3
     assert timeline[date(2023, 10, 18)] == 1
     assert timeline[date(2023, 10, 19)] == 1
@@ -307,7 +307,7 @@ CLOSED: [2023-10-20 Fri 14:43]
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    timeline = result.tag_time_ranges["python"].timeline
+    timeline = result.tag_time_ranges["Python"].timeline
     assert len(timeline) == 1
     assert timeline[date(2023, 10, 20)] == 2
 
@@ -325,7 +325,7 @@ def test_analyze_timeline_repeated_tasks() -> None:
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    timeline = result.tag_time_ranges["daily"].timeline
+    timeline = result.tag_time_ranges["Daily"].timeline
     assert len(timeline) == 3
     assert timeline[date(2023, 10, 18)] == 1
     assert timeline[date(2023, 10, 19)] == 1
@@ -345,7 +345,7 @@ def test_analyze_timeline_repeated_tasks_same_day() -> None:
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    timeline = result.tag_time_ranges["daily"].timeline
+    timeline = result.tag_time_ranges["Daily"].timeline
     assert len(timeline) == 1
     assert timeline[date(2023, 10, 20)] == 3
 
@@ -364,7 +364,7 @@ CLOSED: [2023-10-19 Thu 15:00]
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    timeline = result.tag_time_ranges["python"].timeline
+    timeline = result.tag_time_ranges["Python"].timeline
     assert len(timeline) == 2
     assert timeline[date(2023, 10, 18)] == 1
     assert timeline[date(2023, 10, 19)] == 2

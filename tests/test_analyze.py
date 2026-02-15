@@ -28,8 +28,8 @@ def test_analyze_single_done_task() -> None:
     assert result.total_tasks == 1
     assert result.task_states.values["DONE"] == 1
     assert result.task_states.values.get("TODO", 0) == 0
-    assert "testing" in result.tag_frequencies
-    assert result.tag_frequencies["testing"] == 1
+    assert "Testing" in result.tag_frequencies
+    assert result.tag_frequencies["Testing"] == 1
 
 
 def test_analyze_single_todo_task() -> None:
@@ -68,8 +68,8 @@ def test_analyze_tag_frequencies() -> None:
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    assert result.tag_frequencies["python"] == 3
-    assert result.tag_frequencies["testing"] == 1
+    assert result.tag_frequencies["Python"] == 3
+    assert result.tag_frequencies["Testing"] == 1
 
 
 def test_analyze_heading_word_frequencies() -> None:
@@ -125,7 +125,7 @@ def test_analyze_repeated_tasks() -> None:
     assert result.task_states.values["TODO"] == 1
     assert result.task_states.values["DONE"] == 2
     # Tags should be counted with count=2
-    assert result.tag_frequencies["recurring"] == 2
+    assert result.tag_frequencies["Recurring"] == 2
 
 
 def test_analyze_repeated_tasks_count_in_tags() -> None:
@@ -139,7 +139,7 @@ def test_analyze_repeated_tasks_count_in_tags() -> None:
 """)
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
-    assert result.tag_frequencies["daily"] == 2
+    assert result.tag_frequencies["Daily"] == 2
 
     result_heading = analyze(nodes, {}, category="heading", max_relations=3, done_keys=["DONE"])
     assert result_heading.tag_frequencies["meeting"] == 2
@@ -154,25 +154,25 @@ def test_analyze_done_task_no_repeats() -> None:
     assert result.total_tasks == 1
     assert result.task_states.values["DONE"] == 1
     assert result.task_states.values.get("TODO", 0) == 0
-    assert result.tag_frequencies["simple"] == 1
+    assert result.tag_frequencies["Simple"] == 1
 
 
 def test_analyze_normalizes_tags() -> None:
-    """Test that analyze normalizes tags (via normalize function)."""
+    """Test that analyze applies mapping to tags without normalization."""
     nodes = node_from_org("* DONE Task :Test:SysAdmin:\n")
 
     result = analyze(
         nodes,
-        {"test": "testing", "sysadmin": "devops"},
+        {"Test": "Testing", "SysAdmin": "DevOps"},
         category="tags",
         max_relations=3,
         done_keys=["DONE"],
     )
 
-    # "Test" -> "test" -> "testing" (mapped)
-    # "SysAdmin" -> "sysadmin" -> "devops" (mapped)
-    assert "testing" in result.tag_frequencies
-    assert "devops" in result.tag_frequencies
+    # "Test" -> "Testing" (mapped, no normalization)
+    # "SysAdmin" -> "DevOps" (mapped, no normalization)
+    assert "Testing" in result.tag_frequencies
+    assert "DevOps" in result.tag_frequencies
 
 
 def test_analyze_multiple_tags_per_task() -> None:
@@ -182,9 +182,9 @@ def test_analyze_multiple_tags_per_task() -> None:
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     assert len(result.tag_frequencies) == 3
-    assert "python" in result.tag_frequencies
-    assert "testing" in result.tag_frequencies
-    assert "debugging" in result.tag_frequencies
+    assert "Python" in result.tag_frequencies
+    assert "Testing" in result.tag_frequencies
+    assert "Debugging" in result.tag_frequencies
 
 
 def test_analyze_empty_tags() -> None:
@@ -243,7 +243,7 @@ implementation
 """)
 
     result_tags = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
-    assert result_tags.tag_frequencies["python"] == 2
+    assert result_tags.tag_frequencies["Python"] == 2
 
     result_heading = analyze(nodes, {}, category="heading", max_relations=3, done_keys=["DONE"])
     assert result_heading.tag_frequencies["task"] == 2
@@ -275,60 +275,60 @@ def test_analyze_max_count_logic() -> None:
 
     # Node1: count = max(1, 0) = 1
     # Node2: count = max(0, 2) = 2
-    assert result.tag_frequencies["a"] == 1
-    assert result.tag_frequencies["b"] == 2
+    assert result.tag_frequencies["A"] == 1
+    assert result.tag_frequencies["B"] == 2
 
 
 def test_analyze_with_custom_mapping() -> None:
     """Test analyze with custom mapping parameter."""
-    custom_map = {"foo": "bar", "baz": "qux"}
-    nodes = node_from_org("* DONE Task :foo:baz:unmapped:\n")
+    custom_map = {"Foo": "Bar", "Baz": "Qux"}
+    nodes = node_from_org("* DONE Task :Foo:Baz:Unmapped:\n")
 
     result = analyze(nodes, custom_map, category="tags", max_relations=3, done_keys=["DONE"])
 
-    assert "bar" in result.tag_frequencies
-    assert "qux" in result.tag_frequencies
-    assert "unmapped" in result.tag_frequencies
-    assert "foo" not in result.tag_frequencies
-    assert "baz" not in result.tag_frequencies
+    assert "Bar" in result.tag_frequencies
+    assert "Qux" in result.tag_frequencies
+    assert "Unmapped" in result.tag_frequencies
+    assert "Foo" not in result.tag_frequencies
+    assert "Baz" not in result.tag_frequencies
 
 
 def test_analyze_with_empty_mapping() -> None:
     """Test analyze with empty mapping (no transformations)."""
     empty_map: dict[str, str] = {}
-    nodes = node_from_org("* DONE Task :test:sysadmin:\n")
+    nodes = node_from_org("* DONE Task :Test:SysAdmin:\n")
 
     result = analyze(nodes, empty_map, category="tags", max_relations=3, done_keys=["DONE"])
 
-    assert "test" in result.tag_frequencies
-    assert "sysadmin" in result.tag_frequencies
-    assert "testing" not in result.tag_frequencies
-    assert "devops" not in result.tag_frequencies
+    assert "Test" in result.tag_frequencies
+    assert "SysAdmin" in result.tag_frequencies
+    assert "Testing" not in result.tag_frequencies
+    assert "DevOps" not in result.tag_frequencies
 
 
 def test_analyze_default_mapping_parameter() -> None:
     """Test that default mapping parameter uses MAP."""
-    nodes = node_from_org("* DONE Task :test:sysadmin:\n")
+    nodes = node_from_org("* DONE Task :Test:SysAdmin:\n")
 
     result = analyze(
         nodes,
-        {"test": "testing", "sysadmin": "devops"},
+        {"Test": "Testing", "SysAdmin": "DevOps"},
         category="tags",
         max_relations=3,
         done_keys=["DONE"],
     )
 
-    assert "testing" in result.tag_frequencies
-    assert "devops" in result.tag_frequencies
+    assert "Testing" in result.tag_frequencies
+    assert "DevOps" in result.tag_frequencies
 
 
 def test_analyze_mapping_affects_all_categories() -> None:
     """Test that custom mapping affects tags, heading, and body."""
-    custom_map = {"foo": "bar"}
-    nodes = node_from_org("* DONE foo word :foo:\nfoo content\n")
+    custom_map = {"Foo": "Bar", "foo": "bar"}
+    nodes = node_from_org("* DONE foo word :Foo:\nfoo content\n")
 
     result_tags = analyze(nodes, custom_map, category="tags", max_relations=3, done_keys=["DONE"])
-    assert "bar" in result_tags.tag_frequencies
+    assert "Bar" in result_tags.tag_frequencies
 
     result_heading = analyze(
         nodes, custom_map, category="heading", max_relations=3, done_keys=["DONE"]

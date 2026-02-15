@@ -152,7 +152,7 @@ def test_cli_filter_simple_sorting() -> None:
 
     assert result.returncode == 0
     # simpletag has 2 simple tasks, should appear near top
-    assert "simpletag" in result.stdout
+    assert "SimpleTag" in result.stdout
     # Output should be integer tuples
     assert "Frequency(" not in result.stdout
 
@@ -170,7 +170,7 @@ def test_cli_filter_hard_sorting() -> None:
 
     assert result.returncode == 0
     # hardtag has 3 hard tasks, should appear near top
-    assert "hardtag" in result.stdout
+    assert "HardTag" in result.stdout
 
 
 def test_cli_filter_output_format() -> None:

@@ -1,4 +1,7 @@
 {
+  "Foo": "Bar",
+  "Testing": "Test",
+  "Python": "Py",
   "foo": "bar",
   "testing": "test",
   "python": "py"

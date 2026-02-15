@@ -29,11 +29,11 @@ def test_analyze_two_tags_bidirectional_relation() -> None:
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    assert "python" in result.tag_relations
-    assert "testing" in result.tag_relations
+    assert "Python" in result.tag_relations
+    assert "Testing" in result.tag_relations
 
-    assert result.tag_relations["python"].relations["testing"] == 1
-    assert result.tag_relations["testing"].relations["python"] == 1
+    assert result.tag_relations["Python"].relations["Testing"] == 1
+    assert result.tag_relations["Testing"].relations["Python"] == 1
 
 
 def test_analyze_three_tags_all_relations() -> None:
@@ -42,20 +42,20 @@ def test_analyze_three_tags_all_relations() -> None:
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    assert "taga" in result.tag_relations
-    assert "tagb" in result.tag_relations
-    assert "tagc" in result.tag_relations
+    assert "TagA" in result.tag_relations
+    assert "TagB" in result.tag_relations
+    assert "TagC" in result.tag_relations
 
-    assert result.tag_relations["taga"].relations["tagb"] == 1
-    assert result.tag_relations["tagb"].relations["taga"] == 1
-    assert result.tag_relations["taga"].relations["tagc"] == 1
-    assert result.tag_relations["tagc"].relations["taga"] == 1
-    assert result.tag_relations["tagb"].relations["tagc"] == 1
-    assert result.tag_relations["tagc"].relations["tagb"] == 1
+    assert result.tag_relations["TagA"].relations["TagB"] == 1
+    assert result.tag_relations["TagB"].relations["TagA"] == 1
+    assert result.tag_relations["TagA"].relations["TagC"] == 1
+    assert result.tag_relations["TagC"].relations["TagA"] == 1
+    assert result.tag_relations["TagB"].relations["TagC"] == 1
+    assert result.tag_relations["TagC"].relations["TagB"] == 1
 
-    assert len(result.tag_relations["taga"].relations) == 2
-    assert len(result.tag_relations["tagb"].relations) == 2
-    assert len(result.tag_relations["tagc"].relations) == 2
+    assert len(result.tag_relations["TagA"].relations) == 2
+    assert len(result.tag_relations["TagB"].relations) == 2
+    assert len(result.tag_relations["TagC"].relations) == 2
 
 
 def test_analyze_no_self_relations() -> None:
@@ -64,28 +64,28 @@ def test_analyze_no_self_relations() -> None:
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    assert "python" not in result.tag_relations["python"].relations
-    assert "testing" not in result.tag_relations["testing"].relations
+    assert "Python" not in result.tag_relations["Python"].relations
+    assert "Testing" not in result.tag_relations["Testing"].relations
 
 
 def test_analyze_relations_normalized() -> None:
-    """Test that tag normalization applies to relations."""
+    """Test that tag mapping applies to relations without normalization."""
     nodes = node_from_org("* DONE Task :Test:SysAdmin:\n")
 
     result = analyze(
         nodes,
-        {"test": "testing", "sysadmin": "devops"},
+        {"Test": "Testing", "SysAdmin": "DevOps"},
         category="tags",
         max_relations=3,
         done_keys=["DONE"],
     )
 
-    # "Test" -> "test" -> "testing" (mapped)
-    # "SysAdmin" -> "sysadmin" -> "devops" (mapped)
-    assert "testing" in result.tag_relations
-    assert "devops" in result.tag_relations
-    assert result.tag_relations["testing"].relations["devops"] == 1
-    assert result.tag_relations["devops"].relations["testing"] == 1
+    # "Test" -> "Testing" (mapped, no normalization)
+    # "SysAdmin" -> "DevOps" (mapped, no normalization)
+    assert "Testing" in result.tag_relations
+    assert "DevOps" in result.tag_relations
+    assert result.tag_relations["Testing"].relations["DevOps"] == 1
+    assert result.tag_relations["DevOps"].relations["Testing"] == 1
 
 
 def test_analyze_relations_accumulate() -> None:
@@ -97,8 +97,8 @@ def test_analyze_relations_accumulate() -> None:
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    assert result.tag_relations["python"].relations["testing"] == 2
-    assert result.tag_relations["testing"].relations["python"] == 2
+    assert result.tag_relations["Python"].relations["Testing"] == 2
+    assert result.tag_relations["Testing"].relations["Python"] == 2
 
 
 def test_analyze_relations_with_repeated_tasks() -> None:
@@ -114,8 +114,8 @@ def test_analyze_relations_with_repeated_tasks() -> None:
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     # count = max(0, 2) = 2
-    assert result.tag_relations["daily"].relations["meeting"] == 2
-    assert result.tag_relations["meeting"].relations["daily"] == 2
+    assert result.tag_relations["Daily"].relations["Meeting"] == 2
+    assert result.tag_relations["Meeting"].relations["Daily"] == 2
 
 
 def test_analyze_heading_relations() -> None:
@@ -154,17 +154,17 @@ def test_analyze_relations_independent() -> None:
 
     result_tags = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
     # Tag relations: Python-Testing
-    assert result_tags.tag_relations["python"].relations.get("testing") == 1
-    assert "tests" not in result_tags.tag_relations["python"].relations
+    assert result_tags.tag_relations["Python"].relations.get("Testing") == 1
+    assert "tests" not in result_tags.tag_relations["Python"].relations
 
     result_heading = analyze(nodes, {}, category="heading", max_relations=3, done_keys=["DONE"])
-    # Heading relations: Python-tests
+    # Heading relations: python-tests (lowercase, normalized)
     assert result_heading.tag_relations["python"].relations.get("tests") == 1
     assert "python" in result_heading.tag_relations
-    assert "testing" not in result_heading.tag_relations["python"].relations
+    assert "Testing" not in result_heading.tag_relations["python"].relations
 
     result_body = analyze(nodes, {}, category="body", max_relations=3, done_keys=["DONE"])
-    # Body relations: Python-code
+    # Body relations: python-code (lowercase, normalized)
     assert result_body.tag_relations["python"].relations.get("code") == 1
 
 
@@ -189,8 +189,8 @@ def test_analyze_relations_with_different_counts() -> None:
     # First node: count = max(1, 1) = 1
     # Second node: count = max(0, 3) = 3
     # Total: 1 + 3 = 4
-    assert result.tag_relations["taga"].relations["tagb"] == 4
-    assert result.tag_relations["tagb"].relations["taga"] == 4
+    assert result.tag_relations["TagA"].relations["TagB"] == 4
+    assert result.tag_relations["TagB"].relations["TagA"] == 4
 
 
 def test_analyze_relations_mixed_tags() -> None:
@@ -204,16 +204,16 @@ def test_analyze_relations_mixed_tags() -> None:
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
     # Python appears with Testing (1x) and Debugging (1x)
-    assert result.tag_relations["python"].relations["testing"] == 1
-    assert result.tag_relations["python"].relations["debugging"] == 1
+    assert result.tag_relations["Python"].relations["Testing"] == 1
+    assert result.tag_relations["Python"].relations["Debugging"] == 1
 
     # Testing appears with Python (1x) and Debugging (1x)
-    assert result.tag_relations["testing"].relations["python"] == 1
-    assert result.tag_relations["testing"].relations["debugging"] == 1
+    assert result.tag_relations["Testing"].relations["Python"] == 1
+    assert result.tag_relations["Testing"].relations["Debugging"] == 1
 
     # Debugging appears with Python (1x) and Testing (1x)
-    assert result.tag_relations["debugging"].relations["python"] == 1
-    assert result.tag_relations["debugging"].relations["testing"] == 1
+    assert result.tag_relations["Debugging"].relations["Python"] == 1
+    assert result.tag_relations["Debugging"].relations["Testing"] == 1
 
 
 def test_analyze_relations_empty_tags() -> None:
@@ -234,17 +234,17 @@ def test_analyze_four_tags_six_relations() -> None:
     # With 4 tags, we should have C(4,2) = 6 unique pairs
     # A-B, A-C, A-D, B-C, B-D, C-D
 
-    assert len(result.tag_relations["a"].relations) == 3  # B, C, D
-    assert len(result.tag_relations["b"].relations) == 3  # A, C, D
-    assert len(result.tag_relations["c"].relations) == 3  # A, B, D
-    assert len(result.tag_relations["d"].relations) == 3  # A, B, C
+    assert len(result.tag_relations["A"].relations) == 3  # B, C, D
+    assert len(result.tag_relations["B"].relations) == 3  # A, C, D
+    assert len(result.tag_relations["C"].relations) == 3  # A, B, D
+    assert len(result.tag_relations["D"].relations) == 3  # A, B, C
 
-    assert result.tag_relations["a"].relations["b"] == 1
-    assert result.tag_relations["a"].relations["c"] == 1
-    assert result.tag_relations["a"].relations["d"] == 1
-    assert result.tag_relations["b"].relations["c"] == 1
-    assert result.tag_relations["b"].relations["d"] == 1
-    assert result.tag_relations["c"].relations["d"] == 1
+    assert result.tag_relations["A"].relations["B"] == 1
+    assert result.tag_relations["A"].relations["C"] == 1
+    assert result.tag_relations["A"].relations["D"] == 1
+    assert result.tag_relations["B"].relations["C"] == 1
+    assert result.tag_relations["B"].relations["D"] == 1
+    assert result.tag_relations["C"].relations["D"] == 1
 
 
 def test_analyze_relations_result_structure() -> None:
@@ -255,7 +255,7 @@ def test_analyze_relations_result_structure() -> None:
 
     result = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
 
-    assert isinstance(result.tag_relations["python"], Relations)
-    assert result.tag_relations["python"].name == "python"
-    assert isinstance(result.tag_relations["python"].relations, dict)
-    assert isinstance(result.tag_relations["python"].relations["testing"], int)
+    assert isinstance(result.tag_relations["Python"], Relations)
+    assert result.tag_relations["Python"].name == "Python"
+    assert isinstance(result.tag_relations["Python"].relations, dict)
+    assert isinstance(result.tag_relations["Python"].relations["Testing"], int)

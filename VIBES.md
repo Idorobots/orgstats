@@ -789,7 +789,15 @@ The date filters `--filter-date*` should not check for completion state, instead
 
 **Comment:** Quota run out, but it carried on after it reset. Worked fine.
 
-## Remove normalization from the tags, just normalize words in the heading & body
+## ✅*️ Remove normalization from the tags, just normalize words in the heading & body
+Please remove normalization from the tags, only the words in the heading & the body should be normalized. The tags should still be subject to the mapping. You can accomplish that by modifying the `_extract_items()` logic when the `category` is `tags`.
+No need to modify the default exclude lists. The default `MAP` value might require some changes. The tags are usually in `CamelCase` but the normalization converts that to `lowercase`, so you might need to update the `MAP` entries to `CamelCase`. Tags usually do not have any special characters, but if there are any it is OK to leave them in.
+
+Please update the tests to make sure that `CamelCase` tags are mapped and otherwise left undisturbed.
+
+**Comment:** The AI cut corners again - left the old mapping values in so that fewer tests would break. Required some manual changes & extra proomptin'.
+
+## Default lists update
 
 ## Code reorg
 Move the filters to filters.py

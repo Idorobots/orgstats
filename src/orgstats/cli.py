@@ -34,6 +34,21 @@ from orgstats.core import (
 
 
 MAP = {
+    "Test": "Testing",
+    "SysAdmin": "DevOps",
+    "PLDesign": "Compilers",
+    "WebDev": "Frontend",
+    "Unix": "Linux",
+    "GTD": "Agile",
+    "Foof": "Spartan",
+    "Typing": "Documenting",
+    "NotesTaking": "Documenting",
+    "ComputerNetworks": "Networking",
+    "Maintenance": "Refactoring",
+    "SoftwareEngineering": "SoftwareArchitecture",
+    "SOA": "SoftwareArchitecture",
+    "UML": "SoftwareArchitecture",
+    "Dia": "SoftwareArchitecture",
     "test": "testing",
     "sysadmin": "devops",
     "pldesign": "compilers",

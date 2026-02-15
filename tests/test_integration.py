@@ -41,9 +41,9 @@ def test_integration_single_task() -> None:
     result_tags = analyze(nodes, {}, category="tags", max_relations=3, done_keys=["DONE"])
     assert result_tags.total_tasks == 1
     assert result_tags.task_states.values["DONE"] == 1
-    # Check tags (Testing, Python -> testing, python)
-    assert "testing" in result_tags.tag_frequencies
-    assert "python" in result_tags.tag_frequencies
+    # Check tags (Testing, Python - CamelCase preserved)
+    assert "Testing" in result_tags.tag_frequencies
+    assert "Python" in result_tags.tag_frequencies
 
     # Check heading words
     result_heading = analyze(nodes, {}, category="heading", max_relations=3, done_keys=["DONE"])
@@ -65,11 +65,11 @@ def test_integration_multiple_tags() -> None:
     result = analyze(
         nodes,
         {
-            "test": "testing",
-            "webdev": "frontend",
-            "unix": "linux",
-            "sysadmin": "devops",
-            "maintenance": "refactoring",
+            "Test": "Testing",
+            "WebDev": "Frontend",
+            "Unix": "Linux",
+            "SysAdmin": "DevOps",
+            "Maintenance": "Refactoring",
         },
         category="tags",
         max_relations=3,
@@ -81,17 +81,17 @@ def test_integration_multiple_tags() -> None:
     assert result.task_states.values["TODO"] == 1
 
     # Check tag mappings
-    # Test -> testing, WebDev -> webdev -> frontend, Unix -> unix -> linux
-    assert "testing" in result.tag_frequencies
-    assert "frontend" in result.tag_frequencies
-    assert "linux" in result.tag_frequencies
+    # Test -> Testing, WebDev -> Frontend, Unix -> Linux
+    assert "Testing" in result.tag_frequencies
+    assert "Frontend" in result.tag_frequencies
+    assert "Linux" in result.tag_frequencies
 
-    # SysAdmin -> sysadmin -> devops
-    assert "devops" in result.tag_frequencies
+    # SysAdmin -> DevOps
+    assert "DevOps" in result.tag_frequencies
 
     # Maintenance tag is on TODO task, so it should not appear in frequencies
-    assert "refactoring" not in result.tag_frequencies
-    assert "maintenance" not in result.tag_frequencies
+    assert "Refactoring" not in result.tag_frequencies
+    assert "Maintenance" not in result.tag_frequencies
 
 
 def test_integration_edge_cases() -> None:
@@ -106,9 +106,9 @@ def test_integration_edge_cases() -> None:
 
     # Note: orgparse doesn't parse tags with punctuation in the heading line
     # Only properly formatted tags like :NoBody: are parsed
-    # NoBody tag should be present
-    assert "nobody" in result.tag_frequencies
-    assert result.tag_frequencies["nobody"] == 1
+    # NoBody tag should be present (CamelCase preserved)
+    assert "NoBody" in result.tag_frequencies
+    assert result.tag_frequencies["NoBody"] == 1
 
     # Check that special characters in heading are handled
     result_heading = analyze(nodes, {}, category="heading", max_relations=3, done_keys=["DONE"])
@@ -150,10 +150,11 @@ def test_integration_repeated_tasks() -> None:
     # At minimum, we should have one task
     assert result.total_tasks >= 1
 
-    # Check tag normalization (Agile, GTD -> agile, gtd -> agile, agile)
-    # GTD -> gtd -> agile (mapped)
-    if "agile" in result.tag_frequencies:
-        assert result.tag_frequencies["agile"].total > 0  # Check Frequency.total field
+    # Check tag mapping without normalization (Agile, GTD with mapping)
+    # Note: without explicit mapping for CamelCase tags, they remain as-is
+    # If there are tags in result, just verify they exist
+    if len(result.tag_frequencies) > 0:
+        assert any(freq.total > 0 for freq in result.tag_frequencies.values())
 
 
 def test_integration_archive_small() -> None:

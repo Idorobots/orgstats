@@ -330,10 +330,11 @@ def _extract_items(node: orgparse.node.OrgNode, mapping: dict[str, str], categor
         category: Which datum to extract - "tags", "heading", or "body"
 
     Returns:
-        Set of normalized and mapped items
+        Set of normalized and mapped items (tags are not normalized, only mapped)
     """
     if category == "tags":
-        return normalize(node.tags, mapping)
+        stripped_tags = {t.strip() for t in node.tags}
+        return {mapped(mapping, t) for t in stripped_tags}
     if category == "heading":
         return normalize(set(node.heading.split()), mapping)
     return normalize(set(node.body.split()), mapping)
@@ -804,13 +805,14 @@ def clean(disallowed: set[str], tags: dict[str, Frequency]) -> dict[str, Frequen
     """Remove tags from the disallowed set (stop words).
 
     Args:
-        disallowed: Set of tags to filter out (stop words)
+        disallowed: Set of tags to filter out (stop words, lowercase)
         tags: Dictionary of tag frequencies
 
     Returns:
-        Dictionary with disallowed tags removed
+        Dictionary with disallowed tags removed (case-insensitive comparison)
     """
-    return {t: tags[t] for t in tags if t not in disallowed}
+    disallowed_lower = {d.lower() for d in disallowed}
+    return {t: tags[t] for t in tags if t.lower() not in disallowed_lower}
 
 
 def get_repeat_count(node: orgparse.node.OrgNode) -> int:

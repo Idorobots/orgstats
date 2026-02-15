@@ -28,10 +28,10 @@ def test_compute_relations_two_tags() -> None:
 
     relations = compute_relations(nodes, {}, "tags", ["DONE"])
 
-    assert "python" in relations
-    assert "testing" in relations
-    assert relations["python"].relations["testing"] == 1
-    assert relations["testing"].relations["python"] == 1
+    assert "Python" in relations
+    assert "Testing" in relations
+    assert relations["Python"].relations["Testing"] == 1
+    assert relations["Testing"].relations["Python"] == 1
 
 
 def test_compute_relations_three_tags() -> None:
@@ -41,12 +41,12 @@ def test_compute_relations_three_tags() -> None:
     relations = compute_relations(nodes, {}, "tags", ["DONE"])
 
     assert len(relations) == 3
-    assert relations["a"].relations["b"] == 1
-    assert relations["a"].relations["c"] == 1
-    assert relations["b"].relations["a"] == 1
-    assert relations["b"].relations["c"] == 1
-    assert relations["c"].relations["a"] == 1
-    assert relations["c"].relations["b"] == 1
+    assert relations["A"].relations["B"] == 1
+    assert relations["A"].relations["C"] == 1
+    assert relations["B"].relations["A"] == 1
+    assert relations["B"].relations["C"] == 1
+    assert relations["C"].relations["A"] == 1
+    assert relations["C"].relations["B"] == 1
 
 
 def test_compute_relations_accumulates() -> None:
@@ -58,8 +58,8 @@ def test_compute_relations_accumulates() -> None:
 
     relations = compute_relations(nodes, {}, "tags", ["DONE"])
 
-    assert relations["python"].relations["testing"] == 2
-    assert relations["testing"].relations["python"] == 2
+    assert relations["Python"].relations["Testing"] == 2
+    assert relations["Testing"].relations["Python"] == 2
 
 
 def test_compute_relations_repeated_tasks() -> None:
@@ -74,8 +74,8 @@ def test_compute_relations_repeated_tasks() -> None:
 
     relations = compute_relations(nodes, {}, "tags", ["DONE"])
 
-    assert relations["python"].relations["testing"] == 2
-    assert relations["testing"].relations["python"] == 2
+    assert relations["Python"].relations["Testing"] == 2
+    assert relations["Testing"].relations["Python"] == 2
 
 
 def test_compute_relations_with_mapping() -> None:
@@ -83,13 +83,13 @@ def test_compute_relations_with_mapping() -> None:
     nodes = node_from_org("* DONE Task :Test:SysAdmin:\n")
 
     relations = compute_relations(
-        nodes, {"test": "testing", "sysadmin": "devops"}, "tags", ["DONE"]
+        nodes, {"Test": "Testing", "SysAdmin": "DevOps"}, "tags", ["DONE"]
     )
 
-    assert "testing" in relations
-    assert "devops" in relations
-    assert relations["testing"].relations["devops"] == 1
-    assert relations["devops"].relations["testing"] == 1
+    assert "Testing" in relations
+    assert "DevOps" in relations
+    assert relations["Testing"].relations["DevOps"] == 1
+    assert relations["DevOps"].relations["Testing"] == 1
 
 
 def test_compute_relations_heading_category() -> None:
@@ -125,8 +125,8 @@ def test_compute_relations_no_self_relations() -> None:
 
     relations = compute_relations(nodes, {}, "tags", ["DONE"])
 
-    assert "python" not in relations["python"].relations
-    assert "testing" not in relations["testing"].relations
+    assert "Python" not in relations["Python"].relations
+    assert "Testing" not in relations["Testing"].relations
 
 
 def test_compute_relations_todo_task() -> None:
@@ -148,9 +148,9 @@ def test_compute_relations_mixed_nodes() -> None:
 
     relations = compute_relations(nodes, {}, "tags", ["DONE"])
 
-    assert relations["python"].relations["testing"] == 1
-    assert relations["python"].relations["debugging"] == 1
-    assert relations["testing"].relations["python"] == 1
-    assert relations["testing"].relations["debugging"] == 1
-    assert relations["debugging"].relations["python"] == 1
-    assert relations["debugging"].relations["testing"] == 1
+    assert relations["Python"].relations["Testing"] == 1
+    assert relations["Python"].relations["Debugging"] == 1
+    assert relations["Testing"].relations["Python"] == 1
+    assert relations["Testing"].relations["Debugging"] == 1
+    assert relations["Debugging"].relations["Python"] == 1
+    assert relations["Debugging"].relations["Testing"] == 1

@@ -99,10 +99,12 @@ def test_clean_zero_frequency() -> None:
 
 
 def test_clean_case_sensitive() -> None:
-    """Test that clean is case-sensitive."""
+    """Test that clean is case-insensitive."""
     disallowed = {"stop"}
     tags = freq_dict_from_ints({"stop": 1, "Stop": 2, "STOP": 3})
     result = clean(disallowed, tags)
-    # Only lowercase "stop" should be filtered
+    # All variants of "stop" should be filtered (case-insensitive)
     assert "stop" not in result
-    assert freq_dict_to_ints(result) == {"Stop": 2, "STOP": 3}
+    assert "Stop" not in result
+    assert "STOP" not in result
+    assert freq_dict_to_ints(result) == {}
