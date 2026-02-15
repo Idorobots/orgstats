@@ -196,7 +196,7 @@ def test_filter_date_from_basic() -> None:
 
     nodes = node_from_org(org_text_jan) + node_from_org(org_text_feb)
 
-    result = filter_date_from(nodes, datetime(2025, 1, 31), ["DONE"])
+    result = filter_date_from(nodes, datetime(2025, 1, 31))
 
     assert len(result) == 1
     assert result[0] == nodes[1]
@@ -207,7 +207,7 @@ def test_filter_date_from_boundary() -> None:
     org_text = "* DONE Task\nCLOSED: [2025-01-15 Wed 10:00]\n"
     nodes = node_from_org(org_text)
 
-    result = filter_date_from(nodes, datetime(2025, 1, 15), ["DONE"])
+    result = filter_date_from(nodes, datetime(2025, 1, 15))
 
     assert len(result) == 1
 
@@ -216,7 +216,7 @@ def test_filter_date_from_no_timestamp() -> None:
     """Test filter_date_from excludes nodes without timestamps."""
     nodes = node_from_org("* DONE Task\n")
 
-    result = filter_date_from(nodes, datetime(2025, 1, 1), ["DONE"])
+    result = filter_date_from(nodes, datetime(2025, 1, 1))
 
     assert len(result) == 0
 
@@ -231,7 +231,7 @@ def test_filter_date_from_multiple_timestamps() -> None:
 """
     nodes = node_from_org(org_text)
 
-    result = filter_date_from(nodes, datetime(2025, 2, 1), ["DONE"])
+    result = filter_date_from(nodes, datetime(2025, 2, 1))
 
     assert len(result) == 1
 
@@ -243,7 +243,7 @@ def test_filter_date_until_basic() -> None:
 
     nodes = node_from_org(org_text_jan) + node_from_org(org_text_feb)
 
-    result = filter_date_until(nodes, datetime(2025, 2, 1), ["DONE"])
+    result = filter_date_until(nodes, datetime(2025, 2, 1))
 
     assert len(result) == 1
     assert result[0] == nodes[0]
@@ -254,7 +254,7 @@ def test_filter_date_until_boundary() -> None:
     org_text = "* DONE Task\nCLOSED: [2025-01-15 Wed 10:00]\n"
     nodes = node_from_org(org_text)
 
-    result = filter_date_until(nodes, datetime(2025, 1, 15, 10, 00), ["DONE"])
+    result = filter_date_until(nodes, datetime(2025, 1, 15, 10, 00))
 
     assert len(result) == 1
 
@@ -263,9 +263,63 @@ def test_filter_date_until_no_timestamp() -> None:
     """Test filter_date_until excludes nodes without timestamps."""
     nodes = node_from_org("* DONE Task\n")
 
-    result = filter_date_until(nodes, datetime(2025, 12, 31), ["DONE"])
+    result = filter_date_until(nodes, datetime(2025, 12, 31))
 
     assert len(result) == 0
+
+
+def test_filter_date_from_todo_task() -> None:
+    """Test filter_date_from includes TODO tasks with timestamps."""
+    org_text = "* TODO Task\nSCHEDULED: <2025-01-20 Mon>\n"
+    nodes = node_from_org(org_text)
+
+    result = filter_date_from(nodes, datetime(2025, 1, 15))
+
+    assert len(result) == 1
+
+
+def test_filter_date_until_todo_task() -> None:
+    """Test filter_date_until includes TODO tasks with timestamps."""
+    org_text = "* TODO Task\nSCHEDULED: <2025-01-10 Fri>\n"
+    nodes = node_from_org(org_text)
+
+    result = filter_date_until(nodes, datetime(2025, 1, 15))
+
+    assert len(result) == 1
+
+
+def test_filter_date_from_mixed_completion_states() -> None:
+    """Test filter_date_from includes tasks regardless of completion state."""
+    org_text_done = "* DONE Task\nCLOSED: [2025-02-15 Sat 10:00]\n"
+    org_text_todo = "* TODO Task\nSCHEDULED: <2025-02-20 Thu>\n"
+    org_text_cancelled = "* CANCELLED Task\nCLOSED: [2025-02-25 Tue 14:00]\n"
+
+    nodes = (
+        node_from_org(org_text_done)
+        + node_from_org(org_text_todo)
+        + node_from_org(org_text_cancelled)
+    )
+
+    result = filter_date_from(nodes, datetime(2025, 2, 1))
+
+    assert len(result) == 3
+
+
+def test_filter_date_from_repeated_tasks_all_states() -> None:
+    """Test filter_date_from includes all repeated tasks regardless of state."""
+    org_text = """* DONE Task
+:LOGBOOK:
+- State "DONE" from "TODO" [2025-01-10 Fri 09:00]
+- State "TODO" from "DONE" [2025-01-15 Wed 11:00]
+- State "DONE" from "TODO" [2025-02-15 Sat 11:00]
+:END:
+"""
+    nodes = node_from_org(org_text)
+
+    result = filter_date_from(nodes, datetime(2025, 2, 1))
+
+    assert len(result) == 1
+    assert len(result[0].repeated_tasks) == 1
 
 
 def test_filter_property_basic() -> None:
@@ -467,7 +521,7 @@ def test_filter_date_from_repeats_all_match() -> None:
 """
     nodes = node_from_org(org_text)
 
-    result = filter_date_from(nodes, datetime(2025, 2, 1), ["DONE"])
+    result = filter_date_from(nodes, datetime(2025, 2, 1))
 
     assert len(result) == 1
     assert len(result[0].repeated_tasks) == 2
@@ -483,7 +537,7 @@ def test_filter_date_from_repeats_some_match() -> None:
 """
     nodes = node_from_org(org_text)
 
-    result = filter_date_from(nodes, datetime(2025, 2, 1), ["DONE"])
+    result = filter_date_from(nodes, datetime(2025, 2, 1))
 
     assert len(result) == 1
     assert len(result[0].repeated_tasks) == 1
@@ -500,7 +554,7 @@ def test_filter_date_from_repeats_none_match() -> None:
 """
     nodes = node_from_org(org_text)
 
-    result = filter_date_from(nodes, datetime(2025, 2, 1), ["DONE"])
+    result = filter_date_from(nodes, datetime(2025, 2, 1))
 
     assert len(result) == 0
 
@@ -515,7 +569,7 @@ def test_filter_date_from_repeats_boundary() -> None:
 """
     nodes = node_from_org(org_text)
 
-    result = filter_date_from(nodes, datetime(2025, 2, 1), ["DONE"])
+    result = filter_date_from(nodes, datetime(2025, 2, 1))
 
     assert len(result) == 1
     assert len(result[0].repeated_tasks) == 1
@@ -523,7 +577,7 @@ def test_filter_date_from_repeats_boundary() -> None:
 
 
 def test_filter_date_from_repeats_mixed_states() -> None:
-    """Test filter_date_from filters only DONE repeats by date."""
+    """Test filter_date_from includes all repeats by date regardless of state."""
     org_text = """* TODO Task
 :LOGBOOK:
 - State "DONE" from "TODO" [2025-02-10 Mon 09:00]
@@ -532,11 +586,10 @@ def test_filter_date_from_repeats_mixed_states() -> None:
 """
     nodes = node_from_org(org_text, todo_keys=["TODO"], done_keys=["DONE"])
 
-    result = filter_date_from(nodes, datetime(2025, 2, 1), ["DONE"])
+    result = filter_date_from(nodes, datetime(2025, 2, 1))
 
     assert len(result) == 1
-    assert len(result[0].repeated_tasks) == 1
-    assert result[0].repeated_tasks[0].after == "DONE"
+    assert len(result[0].repeated_tasks) == 2
 
 
 def test_filter_date_until_repeats_all_match() -> None:
@@ -549,7 +602,7 @@ def test_filter_date_until_repeats_all_match() -> None:
 """
     nodes = node_from_org(org_text)
 
-    result = filter_date_until(nodes, datetime(2025, 2, 1), ["DONE"])
+    result = filter_date_until(nodes, datetime(2025, 2, 1))
 
     assert len(result) == 1
     assert len(result[0].repeated_tasks) == 2
@@ -565,7 +618,7 @@ def test_filter_date_until_repeats_some_match() -> None:
 """
     nodes = node_from_org(org_text)
 
-    result = filter_date_until(nodes, datetime(2025, 2, 1), ["DONE"])
+    result = filter_date_until(nodes, datetime(2025, 2, 1))
 
     assert len(result) == 1
     assert len(result[0].repeated_tasks) == 1
@@ -582,7 +635,7 @@ def test_filter_date_until_repeats_none_match() -> None:
 """
     nodes = node_from_org(org_text)
 
-    result = filter_date_until(nodes, datetime(2025, 2, 1), ["DONE"])
+    result = filter_date_until(nodes, datetime(2025, 2, 1))
 
     assert len(result) == 0
 
@@ -597,7 +650,7 @@ def test_filter_date_until_repeats_boundary() -> None:
 """
     nodes = node_from_org(org_text)
 
-    result = filter_date_until(nodes, datetime(2025, 2, 1, 9, 0), ["DONE"])
+    result = filter_date_until(nodes, datetime(2025, 2, 1, 9, 0))
 
     assert len(result) == 1
     assert len(result[0].repeated_tasks) == 1
@@ -749,8 +802,8 @@ def test_filter_date_range_repeats_combined() -> None:
 """
     nodes = node_from_org(org_text)
 
-    result = filter_date_from(nodes, datetime(2025, 2, 1), ["DONE"])
-    result = filter_date_until(result, datetime(2025, 3, 1), ["DONE"])
+    result = filter_date_from(nodes, datetime(2025, 2, 1))
+    result = filter_date_until(result, datetime(2025, 3, 1))
 
     assert len(result) == 1
     assert len(result[0].repeated_tasks) == 1
@@ -768,7 +821,7 @@ def test_filters_do_not_mutate_original_nodes() -> None:
     nodes = node_from_org(org_text)
     original_repeat_count = len(nodes[0].repeated_tasks)
 
-    result = filter_date_from(nodes, datetime(2025, 2, 1), ["DONE"])
+    result = filter_date_from(nodes, datetime(2025, 2, 1))
 
     assert len(nodes[0].repeated_tasks) == original_repeat_count
     assert len(result[0].repeated_tasks) == 1

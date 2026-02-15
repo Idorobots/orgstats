@@ -143,7 +143,7 @@ def test_handle_date_filter_from() -> None:
 
     args = argparse.Namespace(filter_date_from="2025-01-01", filter_date_until=None)
 
-    filters = handle_date_filter("--filter-date-from", args, ["DONE"])
+    filters = handle_date_filter("--filter-date-from", args)
 
     assert len(filters) == 1
     assert filters[0].filter is not None
@@ -155,7 +155,7 @@ def test_handle_date_filter_until() -> None:
 
     args = argparse.Namespace(filter_date_from=None, filter_date_until="2025-12-31")
 
-    filters = handle_date_filter("--filter-date-until", args, ["DONE"])
+    filters = handle_date_filter("--filter-date-until", args)
 
     assert len(filters) == 1
     assert filters[0].filter is not None
@@ -167,7 +167,7 @@ def test_handle_date_filter_no_match() -> None:
 
     args = argparse.Namespace(filter_date_from=None, filter_date_until=None)
 
-    filters = handle_date_filter("--filter-date-from", args, ["DONE"])
+    filters = handle_date_filter("--filter-date-from", args)
 
     assert len(filters) == 0
 

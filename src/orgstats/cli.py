@@ -794,28 +794,23 @@ def handle_simple_filter(arg_name: str, args: argparse.Namespace) -> list[Filter
     return []
 
 
-def handle_date_filter(
-    arg_name: str, args: argparse.Namespace, done_keys: list[str]
-) -> list[Filter]:
+def handle_date_filter(arg_name: str, args: argparse.Namespace) -> list[Filter]:
     """Handle date filter arguments.
 
     Args:
         arg_name: Argument name
         args: Parsed arguments
-        done_keys: List of completion state keywords
 
     Returns:
         List of Filter objects (0 or 1 item)
     """
     if arg_name == "--filter-date-from" and args.filter_date_from is not None:
         date_from = parse_date_argument(args.filter_date_from, "--filter-date-from")
-        keys = done_keys
-        return [Filter(lambda nodes: filter_date_from(nodes, date_from, keys))]
+        return [Filter(lambda nodes: filter_date_from(nodes, date_from))]
 
     if arg_name == "--filter-date-until" and args.filter_date_until is not None:
         date_until = parse_date_argument(args.filter_date_until, "--filter-date-until")
-        keys = done_keys
-        return [Filter(lambda nodes: filter_date_until(nodes, date_until, keys))]
+        return [Filter(lambda nodes: filter_date_until(nodes, date_until))]
 
     return []
 
@@ -907,7 +902,7 @@ def create_filter_specs_from_args(
             filter_specs.extend(handle_simple_filter(arg_name, args))
 
         elif arg_name in ("--filter-date-from", "--filter-date-until"):
-            filter_specs.extend(handle_date_filter(arg_name, args, done_keys))
+            filter_specs.extend(handle_date_filter(arg_name, args))
 
         elif arg_name == "--filter-property":
             if args.filter_properties and property_index < len(args.filter_properties):

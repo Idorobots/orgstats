@@ -13,7 +13,7 @@ The Quota on the Pro plan was quick to run out due to a myriad of individual too
 Here's what the emojis mean:
 - ✅ - AI implemented the feature without a hickup,
 - ✅*️ - the feature was implemented, but there were caveats, requiring minor manual changes,
-- ❌ - AI failed, the quota (or my patience) ran out and I made manual a lot of changes.
+- ❌ - AI failed, the quota (or my patience) ran out and I made a lot of manual changes.
 
 See the **Comment:** for, well, comments.
 
@@ -783,6 +783,13 @@ All values equal:
 Please update the CLI output to show the task-state and day-of-week histograms as described above.
 
 **Comment:** The AI asked for clarification on the ordering of items on the histogram, but then promptly ignored it and did its own thing.
+
+## ✅ Date filters
+The date filters `--filter-date*` should not check for completion state, instead the user will combine that with `--filter-completed` and `--done-keys`. Please adjust the implementation and tests so that both `--filter-date-after` and `--filter-date-until` are only checking for dates, not completion state.
+
+**Comment:** Quota run out, but it carried on after it reset. Worked fine.
+
+## Remove normalization from the tags, just normalize words in the heading & body
 
 ## Code reorg
 Move the filters to filters.py

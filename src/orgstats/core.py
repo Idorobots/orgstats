@@ -624,6 +624,38 @@ def extract_timestamp(node: orgparse.node.OrgNode, done_keys: list[str]) -> list
     return [normalize_timestamp(t) for t in timestamps]
 
 
+def extract_timestamp_any(node: orgparse.node.OrgNode) -> list[datetime]:
+    """Extract timestamps from a node without filtering by completion state.
+
+    Priority order:
+    1. Repeated tasks (all repeated tasks regardless of state)
+    2. Closed timestamp
+    3. Scheduled timestamp
+    4. Deadline timestamp
+    5. Datelist (timestamps in body)
+
+    Args:
+        node: Org-mode node to extract timestamps from
+
+    Returns:
+        List of datetime objects (may be empty if no timestamps found)
+    """
+    timestamps = []
+
+    if node.repeated_tasks:
+        timestamps.extend([rt.start for rt in node.repeated_tasks])
+    elif node.closed and node.closed.start:
+        timestamps.append(node.closed.start)
+    elif node.scheduled and node.scheduled.start:
+        timestamps.append(node.scheduled.start)
+    elif node.deadline and node.deadline.start:
+        timestamps.append(node.deadline.start)
+    elif node.datelist:
+        timestamps.extend([d.start for d in node.datelist if d.start])
+
+    return [normalize_timestamp(t) for t in timestamps]
+
+
 def compute_time_ranges(
     nodes: list[orgparse.node.OrgNode], mapping: dict[str, str], category: str, done_keys: list[str]
 ) -> dict[str, TimeRange]:
@@ -893,7 +925,7 @@ def filter_repeats_below(
 
 
 def filter_date_from(
-    nodes: list[orgparse.node.OrgNode], date_threshold: datetime, done_keys: list[str]
+    nodes: list[orgparse.node.OrgNode], date_threshold: datetime
 ) -> list[orgparse.node.OrgNode]:
     """Filter nodes with any timestamp after date_threshold (inclusive).
 
@@ -901,12 +933,11 @@ def filter_date_from(
     tasks with timestamps >= date_threshold. For nodes without repeated tasks,
     checks the node's timestamp.
 
-    Uses extract_timestamp() logic. Nodes without timestamps are excluded.
+    Uses extract_timestamp_any() logic. Nodes without timestamps are excluded.
 
     Args:
         nodes: List of org-mode nodes to filter
         date_threshold: Date threshold (inclusive)
-        done_keys: List of completion state keywords
 
     Returns:
         Filtered list of nodes (some may be deep copies with filtered repeated_tasks)
@@ -915,15 +946,11 @@ def filter_date_from(
 
     for node in nodes:
         if node.repeated_tasks:
-            done_repeats = [rt for rt in node.repeated_tasks if rt.after in done_keys]
-            if done_repeats:
-                filtered_node = _filter_node_repeats(
-                    node, lambda rt: rt.start >= date_threshold and rt.after in done_keys
-                )
-                if filtered_node is not None:
-                    result.append(filtered_node)
+            filtered_node = _filter_node_repeats(node, lambda rt: rt.start >= date_threshold)
+            if filtered_node is not None:
+                result.append(filtered_node)
         else:
-            timestamps = extract_timestamp(node, done_keys)
+            timestamps = extract_timestamp_any(node)
             if any(timestamp >= date_threshold for timestamp in timestamps):
                 result.append(node)
 
@@ -931,7 +958,7 @@ def filter_date_from(
 
 
 def filter_date_until(
-    nodes: list[orgparse.node.OrgNode], date_threshold: datetime, done_keys: list[str]
+    nodes: list[orgparse.node.OrgNode], date_threshold: datetime
 ) -> list[orgparse.node.OrgNode]:
     """Filter nodes with any timestamp before date_threshold (inclusive).
 
@@ -939,12 +966,11 @@ def filter_date_until(
     tasks with timestamps <= date_threshold. For nodes without repeated tasks,
     checks the node's timestamp.
 
-    Uses extract_timestamp() logic. Nodes without timestamps are excluded.
+    Uses extract_timestamp_any() logic. Nodes without timestamps are excluded.
 
     Args:
         nodes: List of org-mode nodes to filter
         date_threshold: Date threshold (inclusive)
-        done_keys: List of completion state keywords
 
     Returns:
         Filtered list of nodes (some may be deep copies with filtered repeated_tasks)
@@ -953,15 +979,11 @@ def filter_date_until(
 
     for node in nodes:
         if node.repeated_tasks:
-            done_repeats = [rt for rt in node.repeated_tasks if rt.after in done_keys]
-            if done_repeats:
-                filtered_node = _filter_node_repeats(
-                    node, lambda rt: rt.start <= date_threshold and rt.after in done_keys
-                )
-                if filtered_node is not None:
-                    result.append(filtered_node)
+            filtered_node = _filter_node_repeats(node, lambda rt: rt.start <= date_threshold)
+            if filtered_node is not None:
+                result.append(filtered_node)
         else:
-            timestamps = extract_timestamp(node, done_keys)
+            timestamps = extract_timestamp_any(node)
             if any(timestamp <= date_threshold for timestamp in timestamps):
                 result.append(node)
 
