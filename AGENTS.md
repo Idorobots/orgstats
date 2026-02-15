@@ -56,8 +56,27 @@ poetry run orgstats -n 50 examples/ARCHIVE_small
 poetry run orgstats --filter hard examples/ARCHIVE_small
 poetry run orgstats --filter simple -n 20 examples/ARCHIVE_small
 
+# Show different data categories
+poetry run orgstats --show tags examples/ARCHIVE_small       # Analyze tags (default)
+poetry run orgstats --show heading examples/ARCHIVE_small    # Analyze headline words
+poetry run orgstats --show body examples/ARCHIVE_small       # Analyze body words
+
 # Use custom stopword file (one word per line)
 poetry run orgstats --exclude my_words.txt examples/ARCHIVE_small
+
+# Use custom tag mappings
+poetry run orgstats --mapping tag_mappings.json examples/ARCHIVE_small
+
+# Filter by date range
+poetry run orgstats --filter-date-from 2023-10-01 --filter-date-until 2023-10-31 examples/ARCHIVE_small
+
+# Filter by completion status
+poetry run orgstats --filter-completed examples/ARCHIVE_small
+poetry run orgstats --filter-not-completed examples/ARCHIVE_small
+
+# Filter by specific tags or properties
+poetry run orgstats --filter-tag debugging examples/ARCHIVE_small
+poetry run orgstats --filter-property priority=A examples/ARCHIVE_small
 
 # Combine multiple options
 poetry run orgstats -n 25 --filter regular --exclude words.txt examples/ARCHIVE_small
@@ -68,14 +87,33 @@ poetry run orgstats file1.org file2.org file3.org
 
 **CLI Arguments:**
 - `files` - Org-mode archive files to analyze (positional arguments)
-- `--max-results N` / `-n N` - Maximum number of results to display (default: 100)
+- `--max-results N` / `-n N` - Maximum number of results to display (default: 10)
+- `--max-relations N` - Maximum number of relations to display per item (default: 3, must be >= 1)
+- `--min-group-size N` - Minimum group size to display (default: 3)
+- `--buckets N` - Number of time buckets for timeline charts (default: 50, minimum: 20)
 - `--filter TYPE` / `-f TYPE` - Filter tasks by difficulty: simple, regular, hard, or all (default: all)
   - `simple` - Tasks with gamify_exp < 10
   - `regular` - Tasks with 10 ≤ gamify_exp < 20
   - `hard` - Tasks with gamify_exp ≥ 20
   - `all` - All tasks combined (default)
+- `--show CATEGORY` - Category to display: tags, heading, or body (default: tags)
 - `--exclude FILE` - File with words to exclude (one per line, replaces default exclusion list)
+- `--mapping FILE` - JSON file containing tag mappings (dict[str, str])
+- `--todo-keys KEYS` - Comma-separated list of incomplete task states (default: TODO)
+- `--done-keys KEYS` - Comma-separated list of completed task states (default: DONE)
+- `--filter-gamify-exp-above N` - Filter tasks where gamify_exp > N (non-inclusive, missing defaults to 10)
+- `--filter-gamify-exp-below N` - Filter tasks where gamify_exp < N (non-inclusive, missing defaults to 10)
+- `--filter-repeats-above N` - Filter tasks where repeat count > N (non-inclusive)
+- `--filter-repeats-below N` - Filter tasks where repeat count < N (non-inclusive)
+- `--filter-date-from TIMESTAMP` - Filter tasks with timestamps after date (inclusive)
+- `--filter-date-until TIMESTAMP` - Filter tasks with timestamps before date (inclusive)
+- `--filter-property KEY=VALUE` - Filter tasks with exact property match (case-sensitive, can specify multiple)
+- `--filter-tag TAG` - Filter tasks with exact tag match (case-sensitive, can specify multiple)
+- `--filter-completed` - Filter tasks with todo state in done keys
+- `--filter-not-completed` - Filter tasks with todo state in todo keys
 - `--help` / `-h` - Show help message
+
+Date formats: `YYYY-MM-DD`, `YYYY-MM-DDThh:mm`, `YYYY-MM-DDThh:mm:ss`, `YYYY-MM-DD hh:mm`, `YYYY-MM-DD hh:mm:ss`
 
 ## Build/Lint/Test Commands
 - All checks should be run with a single command:

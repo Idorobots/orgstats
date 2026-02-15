@@ -861,14 +861,17 @@ Please add a GitHub actions workflow file that will run the check command on eac
 
 **Comment:** No comments here.
 
+## Update AGENTS.md and README.md
+Please update the AGENTS.md with the current usage instructions and README.md with the current usage instructions and a sample output.
+
+**Comment:** It did alright, except with the example output which was too verbose.
+
 ## Code reorg
 Move the filters to filters.py
 Move the analysis to analyze.py
 Move the plot display generation to plot.py
 Move the histogram display generation to histogram.py
 Remove the main.py module
-
-## Update AGENTS.md and README.md
 
 ## Output colors
 
@@ -885,11 +888,14 @@ Not to be shown on analyze commands output?
 - Category histogram
 
 ## Even more filters
-- `--filter-heading term` - task must contain `term` in the filter,
-- `--filter-body term` - task must contain `term` in the body,
+- `--filter-heading regex` - task heading matches the `regex`,
+- `--filter-body regex` - task body matches the `regex`.
 
 ## Per-file processing
 Process each file separately, combine results at the end before displaying stuff, preserving the file origin for each task
+
+## Task "category" histogram
+- based on gamify_exp, eventually will evolve to classify each task by some criteria (fix/debug/test heading content, etc).
 
 ## Another attempt at a fix for task states counts
 Now the counts for day of week histogram are higher than the total count of done tasks. Likely, now it's the done task count that's wrong.
