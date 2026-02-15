@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import re
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -20,11 +21,13 @@ from orgstats.analyze import (
     clean,
 )
 from orgstats.filters import (
+    filter_body,
     filter_completed,
     filter_date_from,
     filter_date_until,
     filter_gamify_exp_above,
     filter_gamify_exp_below,
+    filter_heading,
     filter_not_completed,
     filter_property,
     filter_repeats_above,
@@ -508,8 +511,24 @@ def parse_arguments() -> argparse.Namespace:
         "--filter-tag",
         action="append",
         dest="filter_tags",
-        metavar="TAG",
-        help="Filter tasks with exact tag match (case-sensitive, can specify multiple)",
+        metavar="REGEX",
+        help="Filter tasks where any tag matches regex (case-sensitive, can specify multiple)",
+    )
+
+    parser.add_argument(
+        "--filter-heading",
+        action="append",
+        dest="filter_headings",
+        metavar="REGEX",
+        help="Filter tasks where heading matches regex (case-sensitive, can specify multiple)",
+    )
+
+    parser.add_argument(
+        "--filter-body",
+        action="append",
+        dest="filter_bodies",
+        metavar="REGEX",
+        help="Filter tasks where body matches regex (case-sensitive, multiline, can specify multiple)",
     )
 
     parser.add_argument(
@@ -715,6 +734,8 @@ def parse_filter_order_from_argv(argv: list[str]) -> list[str]:
         "--filter-date-until",
         "--filter-property",
         "--filter-tag",
+        "--filter-heading",
+        "--filter-body",
         "--filter-completed",
         "--filter-not-completed",
     ]
@@ -834,16 +855,123 @@ def handle_property_filter(name: str, value: str) -> list[Filter]:
     return [Filter(lambda nodes: filter_property(nodes, name, value))]
 
 
-def handle_tag_filter(tag: str) -> list[Filter]:
+def handle_tag_filter(pattern: str) -> list[Filter]:
     """Handle tag filter arguments.
 
     Args:
-        tag: Tag name
+        pattern: Regex pattern to match tags
 
     Returns:
         List of Filter objects (1 item)
+
+    Raises:
+        SystemExit: If pattern is not a valid regex
     """
-    return [Filter(lambda nodes: filter_tag(nodes, tag))]
+    try:
+        re.compile(pattern)
+    except re.error as e:
+        print(f"Error: Invalid regex pattern for --filter-tag: '{pattern}'\n{e}", file=sys.stderr)
+        sys.exit(1)
+    return [Filter(lambda nodes: filter_tag(nodes, pattern))]
+
+
+def handle_heading_filter(pattern: str) -> list[Filter]:
+    """Handle heading filter arguments.
+
+    Args:
+        pattern: Regex pattern to match headings
+
+    Returns:
+        List of Filter objects (1 item)
+
+    Raises:
+        SystemExit: If pattern is not a valid regex
+    """
+    try:
+        re.compile(pattern)
+    except re.error as e:
+        print(
+            f"Error: Invalid regex pattern for --filter-heading: '{pattern}'\n{e}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return [Filter(lambda nodes: filter_heading(nodes, pattern))]
+
+
+def handle_body_filter(pattern: str) -> list[Filter]:
+    """Handle body filter arguments.
+
+    Args:
+        pattern: Regex pattern to match body text
+
+    Returns:
+        List of Filter objects (1 item)
+
+    Raises:
+        SystemExit: If pattern is not a valid regex
+    """
+    try:
+        re.compile(pattern, re.MULTILINE)
+    except re.error as e:
+        print(f"Error: Invalid regex pattern for --filter-body: '{pattern}'\n{e}", file=sys.stderr)
+        sys.exit(1)
+    return [Filter(lambda nodes: filter_body(nodes, pattern))]
+
+
+def handle_indexed_filter(
+    arg_name: str,
+    args: argparse.Namespace,
+    index_trackers: dict[str, int],
+) -> list[Filter]:
+    """Handle indexed filter arguments (property, tag, heading, body).
+
+    Args:
+        arg_name: Filter argument name
+        args: Parsed arguments
+        index_trackers: Dictionary tracking current index for each filter type
+
+    Returns:
+        List of Filter objects (0 or 1 item)
+    """
+    if (
+        arg_name == "--filter-property"
+        and args.filter_properties
+        and index_trackers["property"] < len(args.filter_properties)
+    ):
+        prop_name, prop_value = parse_property_filter(
+            args.filter_properties[index_trackers["property"]]
+        )
+        index_trackers["property"] += 1
+        return handle_property_filter(prop_name, prop_value)
+
+    if (
+        arg_name == "--filter-tag"
+        and args.filter_tags
+        and index_trackers["tag"] < len(args.filter_tags)
+    ):
+        tag_pattern = args.filter_tags[index_trackers["tag"]]
+        index_trackers["tag"] += 1
+        return handle_tag_filter(tag_pattern)
+
+    if (
+        arg_name == "--filter-heading"
+        and args.filter_headings
+        and index_trackers["heading"] < len(args.filter_headings)
+    ):
+        heading_pattern = args.filter_headings[index_trackers["heading"]]
+        index_trackers["heading"] += 1
+        return handle_heading_filter(heading_pattern)
+
+    if (
+        arg_name == "--filter-body"
+        and args.filter_bodies
+        and index_trackers["body"] < len(args.filter_bodies)
+    ):
+        body_pattern = args.filter_bodies[index_trackers["body"]]
+        index_trackers["body"] += 1
+        return handle_body_filter(body_pattern)
+
+    return []
 
 
 def create_filter_specs_from_args(
@@ -864,13 +992,11 @@ def create_filter_specs_from_args(
         List of Filter objects in command-line order
     """
     filter_specs: list[Filter] = []
-    property_index = 0
-    tag_index = 0
+    index_trackers = {"property": 0, "tag": 0, "heading": 0, "body": 0}
 
     for arg_name in filter_order:
         if arg_name == "--filter":
             filter_specs.extend(handle_preset_filter(args.filter))
-
         elif arg_name in (
             "--filter-gamify-exp-above",
             "--filter-gamify-exp-below",
@@ -878,28 +1004,10 @@ def create_filter_specs_from_args(
             "--filter-repeats-below",
         ):
             filter_specs.extend(handle_simple_filter(arg_name, args))
-
         elif arg_name in ("--filter-date-from", "--filter-date-until"):
             filter_specs.extend(handle_date_filter(arg_name, args))
-
-        elif arg_name == "--filter-property":
-            if args.filter_properties and property_index < len(args.filter_properties):
-                prop_name, prop_value = parse_property_filter(
-                    args.filter_properties[property_index]
-                )
-
-                filter_specs.extend(handle_property_filter(prop_name, prop_value))
-
-                property_index += 1
-
-        elif arg_name == "--filter-tag":
-            if args.filter_tags and tag_index < len(args.filter_tags):
-                tag_name = args.filter_tags[tag_index]
-
-                filter_specs.extend(handle_tag_filter(tag_name))
-
-                tag_index += 1
-
+        elif arg_name in ("--filter-property", "--filter-tag", "--filter-heading", "--filter-body"):
+            filter_specs.extend(handle_indexed_filter(arg_name, args, index_trackers))
         elif arg_name in ("--filter-completed", "--filter-not-completed"):
             filter_specs.extend(handle_completion_filter(arg_name, args, done_keys, todo_keys))
 
@@ -1023,9 +1131,9 @@ def main() -> None:
     mapping = load_mapping(args.mapping) or MAP
     exclude_set = load_exclude_list(args.exclude) or DEFAULT_EXCLUDE
 
-    nodes = load_org_files(args.files, todo_keys, done_keys)
-
     filters = build_filter_chain(args, sys.argv, done_keys, todo_keys)
+
+    nodes = load_org_files(args.files, todo_keys, done_keys)
 
     filtered_nodes = nodes
     for f in filters:

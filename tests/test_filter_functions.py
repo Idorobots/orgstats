@@ -5,11 +5,13 @@ from datetime import date, datetime
 import orgparse
 
 from orgstats.filters import (
+    filter_body,
     filter_completed,
     filter_date_from,
     filter_date_until,
     filter_gamify_exp_above,
     filter_gamify_exp_below,
+    filter_heading,
     filter_not_completed,
     filter_property,
     filter_repeats_above,
@@ -846,3 +848,311 @@ def test_filter_completed_multiple_done_keys_with_repeats() -> None:
     assert len(result[0].repeated_tasks) == 2
     assert result[0].repeated_tasks[0].after in ["DONE", "DELEGATED"]
     assert result[0].repeated_tasks[1].after in ["DONE", "DELEGATED"]
+
+
+def test_filter_tag_regex_basic() -> None:
+    """Test filter_tag with basic regex patterns."""
+    nodes = (
+        node_from_org("* DONE Task :testing:\n")
+        + node_from_org("* DONE Task :debugging:\n")
+        + node_from_org("* DONE Task :coding:\n")
+    )
+
+    result = filter_tag(nodes, ".*ing")
+
+    assert len(result) == 3
+
+
+def test_filter_tag_regex_exact_match() -> None:
+    """Test filter_tag with exact match using anchors."""
+    nodes = (
+        node_from_org("* DONE Task :test:\n")
+        + node_from_org("* DONE Task :testing:\n")
+        + node_from_org("* DONE Task :test123:\n")
+    )
+
+    result = filter_tag(nodes, "^test$")
+
+    assert len(result) == 1
+    assert result[0] == nodes[0]
+
+
+def test_filter_tag_regex_case_sensitive() -> None:
+    """Test filter_tag is case-sensitive."""
+    nodes = node_from_org("* DONE Task :Testing:\n") + node_from_org("* DONE Task :testing:\n")
+
+    result_lower = filter_tag(nodes, "^testing$")
+    result_upper = filter_tag(nodes, "^Testing$")
+
+    assert len(result_lower) == 1
+    assert result_lower[0] == nodes[1]
+    assert len(result_upper) == 1
+    assert result_upper[0] == nodes[0]
+
+
+def test_filter_tag_regex_multiple_tags() -> None:
+    """Test filter_tag matches any tag in list."""
+    nodes = node_from_org("* DONE Task :foo:bar:baz:\n")
+
+    result = filter_tag(nodes, "^bar$")
+
+    assert len(result) == 1
+
+
+def test_filter_tag_regex_no_match() -> None:
+    """Test filter_tag with no matching tags."""
+    nodes = node_from_org("* DONE Task :foo:bar:\n")
+
+    result = filter_tag(nodes, "^baz$")
+
+    assert len(result) == 0
+
+
+def test_filter_tag_regex_partial_match() -> None:
+    """Test filter_tag with partial match."""
+    nodes = (
+        node_from_org("* DONE Task :foobar:\n")
+        + node_from_org("* DONE Task :foo:\n")
+        + node_from_org("* DONE Task :barfoo:\n")
+    )
+
+    result = filter_tag(nodes, "foo")
+
+    assert len(result) == 3
+
+
+def test_filter_tag_regex_start_anchor() -> None:
+    """Test filter_tag with start anchor."""
+    nodes = (
+        node_from_org("* DONE Task :testing:\n")
+        + node_from_org("* DONE Task :mytesting:\n")
+        + node_from_org("* DONE Task :test:\n")
+    )
+
+    result = filter_tag(nodes, "^test")
+
+    assert len(result) == 2
+    assert result[0] == nodes[0]
+    assert result[1] == nodes[2]
+
+
+def test_filter_tag_regex_end_anchor() -> None:
+    """Test filter_tag with end anchor."""
+    nodes = (
+        node_from_org("* DONE Task :testing:\n")
+        + node_from_org("* DONE Task :testingmore:\n")
+        + node_from_org("* DONE Task :debugging:\n")
+    )
+
+    result = filter_tag(nodes, "ing$")
+
+    assert len(result) == 2
+    assert result[0] == nodes[0]
+    assert result[1] == nodes[2]
+
+
+def test_filter_tag_regex_character_class() -> None:
+    """Test filter_tag with character classes."""
+    nodes = (
+        node_from_org("* DONE Task :test1:\n")
+        + node_from_org("* DONE Task :test2:\n")
+        + node_from_org("* DONE Task :testa:\n")
+    )
+
+    result = filter_tag(nodes, "test[0-9]")
+
+    assert len(result) == 2
+    assert result[0] == nodes[0]
+    assert result[1] == nodes[1]
+
+
+def test_filter_tag_regex_alternation() -> None:
+    """Test filter_tag with alternation (OR)."""
+    nodes = (
+        node_from_org("* DONE Task :bug:\n")
+        + node_from_org("* DONE Task :fix:\n")
+        + node_from_org("* DONE Task :feature:\n")
+    )
+
+    result = filter_tag(nodes, "bug|fix")
+
+    assert len(result) == 2
+    assert result[0] == nodes[0]
+    assert result[1] == nodes[1]
+
+
+def test_filter_heading_basic() -> None:
+    """Test filter_heading with basic regex patterns."""
+    nodes = (
+        node_from_org("* DONE Fix bug in parser\n")
+        + node_from_org("* DONE Add new feature\n")
+        + node_from_org("* DONE Fix typo\n")
+    )
+
+    result = filter_heading(nodes, "Fix")
+
+    assert len(result) == 2
+    assert result[0] == nodes[0]
+    assert result[1] == nodes[2]
+
+
+def test_filter_heading_case_sensitive() -> None:
+    """Test filter_heading is case-sensitive."""
+    nodes = node_from_org("* DONE Fix Bug\n") + node_from_org("* DONE fix bug\n")
+
+    result_lower = filter_heading(nodes, "fix")
+    result_upper = filter_heading(nodes, "Fix")
+
+    assert len(result_lower) == 1
+    assert result_lower[0] == nodes[1]
+    assert len(result_upper) == 1
+    assert result_upper[0] == nodes[0]
+
+
+def test_filter_heading_word_boundary() -> None:
+    """Test filter_heading with word boundaries."""
+    nodes = (
+        node_from_org("* DONE test the feature\n")
+        + node_from_org("* DONE testing feature\n")
+        + node_from_org("* DONE test\n")
+    )
+
+    result = filter_heading(nodes, r"\btest\b")
+
+    assert len(result) == 2
+    assert result[0] == nodes[0]
+    assert result[1] == nodes[2]
+
+
+def test_filter_heading_alternation() -> None:
+    """Test filter_heading with alternation."""
+    nodes = (
+        node_from_org("* DONE Fix bug\n")
+        + node_from_org("* DONE Resolve issue\n")
+        + node_from_org("* DONE Add feature\n")
+    )
+
+    result = filter_heading(nodes, "bug|issue")
+
+    assert len(result) == 2
+    assert result[0] == nodes[0]
+    assert result[1] == nodes[1]
+
+
+def test_filter_heading_no_match() -> None:
+    """Test filter_heading with no matching headings."""
+    nodes = node_from_org("* DONE Task\n")
+
+    result = filter_heading(nodes, "nonexistent")
+
+    assert len(result) == 0
+
+
+def test_filter_body_basic() -> None:
+    """Test filter_body with basic regex patterns."""
+    nodes = (
+        node_from_org("* DONE Task\nThis is a test body\n")
+        + node_from_org("* DONE Task\nAnother body here\n")
+        + node_from_org("* DONE Task\nTest content\n")
+    )
+
+    result = filter_body(nodes, "test")
+
+    assert len(result) == 1
+    assert result[0] == nodes[0]
+
+
+def test_filter_body_case_sensitive() -> None:
+    """Test filter_body is case-sensitive."""
+    nodes = node_from_org("* DONE Task\nTest Body\n") + node_from_org("* DONE Task\ntest body\n")
+
+    result_lower = filter_body(nodes, "test")
+    result_upper = filter_body(nodes, "Test")
+
+    assert len(result_lower) == 1
+    assert result_lower[0] == nodes[1]
+    assert len(result_upper) == 1
+    assert result_upper[0] == nodes[0]
+
+
+def test_filter_body_multiline() -> None:
+    """Test filter_body with multiline content."""
+    org_text = """* DONE Task
+First line
+Second line
+Third line
+"""
+    nodes = node_from_org(org_text)
+
+    result = filter_body(nodes, "^Second")
+
+    assert len(result) == 1
+
+
+def test_filter_body_multiline_anchor_end() -> None:
+    """Test filter_body with end-of-line anchor."""
+    org_text = """* DONE Task
+Line one
+Line two
+Line three
+"""
+    nodes = node_from_org(org_text)
+
+    result = filter_body(nodes, "two$")
+
+    assert len(result) == 1
+
+
+def test_filter_body_dot_matches_not_newline() -> None:
+    """Test filter_body where dot doesn't match newline."""
+    org_text = """* DONE Task
+First line
+Second line
+"""
+    nodes = node_from_org(org_text)
+
+    result = filter_body(nodes, "First.*Second")
+
+    assert len(result) == 0
+
+
+def test_filter_body_alternation() -> None:
+    """Test filter_body with alternation."""
+    nodes = (
+        node_from_org("* DONE Task\nContains TODO\n")
+        + node_from_org("* DONE Task\nContains FIXME\n")
+        + node_from_org("* DONE Task\nContains nothing\n")
+    )
+
+    result = filter_body(nodes, "TODO|FIXME")
+
+    assert len(result) == 2
+    assert result[0] == nodes[0]
+    assert result[1] == nodes[1]
+
+
+def test_filter_body_no_match() -> None:
+    """Test filter_body with no matching bodies."""
+    nodes = node_from_org("* DONE Task\nBody content\n")
+
+    result = filter_body(nodes, "nonexistent")
+
+    assert len(result) == 0
+
+
+def test_filter_heading_empty_heading() -> None:
+    """Test filter_heading handles nodes with empty heading."""
+    nodes = node_from_org("* DONE\n")
+
+    result = filter_heading(nodes, "test")
+
+    assert len(result) == 0
+
+
+def test_filter_body_empty_body() -> None:
+    """Test filter_body handles nodes with no body."""
+    nodes = node_from_org("* DONE Task\n")
+
+    result = filter_body(nodes, "test")
+
+    assert len(result) == 0

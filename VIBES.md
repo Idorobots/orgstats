@@ -889,6 +889,16 @@ Let me use a different approach to remove the file:
    completed   execute  find /workspaces/orgstats/src/orgstats/core.py.bak -type f -delete
 ```
 
+## Even more filters
+Please add additional filters to the CLI:
+
+- `--filter-heading regex` - task heading must match the `regex`,
+- `--filter-body regex` - task body must match the `regex`.
+
+The idea is to be able to look for specific words or phrases within the body/heading. Additionally, please change the semantics of the `--filter-tag tag` switch to also accept a regex that must match either of the tags in a task.
+
+**Comment:** Accidentally ran this on an older branch creating merge conflicts, so just reattepmted on the proper branch. Was about as fast as merging the changes manually. The second time around the AI found an issue with the implementation when doing a smoke test and managed to fix it pretty well.
+
 ## Output colors
 
 ## Per-tag stats
@@ -902,10 +912,6 @@ Not to be shown on analyze commands output?
 - State histogram
 - Day of week histogram
 - Category histogram
-
-## Even more filters
-- `--filter-heading regex` - task heading matches the `regex`,
-- `--filter-body regex` - task body matches the `regex`.
 
 ## Per-file processing
 Process each file separately, combine results at the end before displaying stuff, preserving the file origin for each task
