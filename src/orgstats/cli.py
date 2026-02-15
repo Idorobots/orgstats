@@ -580,6 +580,27 @@ def validate_and_parse_keys(keys_str: str, option_name: str) -> list[str]:
     return keys
 
 
+def validate_pattern(pattern: str, option_name: str, use_multiline: bool = False) -> None:
+    """Validate that a string is a valid regex pattern.
+
+    Args:
+        pattern: Regex pattern string to validate
+        option_name: Name of the option for error messages
+        use_multiline: Whether to validate with re.MULTILINE flag
+
+    Raises:
+        SystemExit: If pattern is not a valid regex
+    """
+    try:
+        if use_multiline:
+            re.compile(pattern, re.MULTILINE)
+        else:
+            re.compile(pattern)
+    except re.error as e:
+        print(f"Error: Invalid regex pattern for {option_name}: '{pattern}'\n{e}", file=sys.stderr)
+        sys.exit(1)
+
+
 def load_org_files(
     filenames: list[str], todo_keys: list[str], done_keys: list[str]
 ) -> list[orgparse.node.OrgNode]:
@@ -863,15 +884,7 @@ def handle_tag_filter(pattern: str) -> list[Filter]:
 
     Returns:
         List of Filter objects (1 item)
-
-    Raises:
-        SystemExit: If pattern is not a valid regex
     """
-    try:
-        re.compile(pattern)
-    except re.error as e:
-        print(f"Error: Invalid regex pattern for --filter-tag: '{pattern}'\n{e}", file=sys.stderr)
-        sys.exit(1)
     return [Filter(lambda nodes: filter_tag(nodes, pattern))]
 
 
@@ -883,18 +896,7 @@ def handle_heading_filter(pattern: str) -> list[Filter]:
 
     Returns:
         List of Filter objects (1 item)
-
-    Raises:
-        SystemExit: If pattern is not a valid regex
     """
-    try:
-        re.compile(pattern)
-    except re.error as e:
-        print(
-            f"Error: Invalid regex pattern for --filter-heading: '{pattern}'\n{e}",
-            file=sys.stderr,
-        )
-        sys.exit(1)
     return [Filter(lambda nodes: filter_heading(nodes, pattern))]
 
 
@@ -906,15 +908,7 @@ def handle_body_filter(pattern: str) -> list[Filter]:
 
     Returns:
         List of Filter objects (1 item)
-
-    Raises:
-        SystemExit: If pattern is not a valid regex
     """
-    try:
-        re.compile(pattern, re.MULTILINE)
-    except re.error as e:
-        print(f"Error: Invalid regex pattern for --filter-body: '{pattern}'\n{e}", file=sys.stderr)
-        sys.exit(1)
     return [Filter(lambda nodes: filter_body(nodes, pattern))]
 
 
@@ -1109,10 +1103,18 @@ def display_results(
     )
 
 
-def main() -> None:
-    """Main CLI entry point."""
-    args = parse_arguments()
+def validate_arguments(args: argparse.Namespace) -> tuple[list[str], list[str]]:
+    """Validate command-line arguments.
 
+    Args:
+        args: Parsed command-line arguments
+
+    Returns:
+        Tuple of (todo_keys, done_keys)
+
+    Raises:
+        SystemExit: If validation fails
+    """
     if args.max_relations < 1:
         print("Error: --max-relations must be at least 1", file=sys.stderr)
         sys.exit(1)
@@ -1127,6 +1129,27 @@ def main() -> None:
 
     todo_keys = validate_and_parse_keys(args.todo_keys, "--todo-keys")
     done_keys = validate_and_parse_keys(args.done_keys, "--done-keys")
+
+    if args.filter_tags:
+        for pattern in args.filter_tags:
+            validate_pattern(pattern, "--filter-tag")
+
+    if args.filter_headings:
+        for pattern in args.filter_headings:
+            validate_pattern(pattern, "--filter-heading")
+
+    if args.filter_bodies:
+        for pattern in args.filter_bodies:
+            validate_pattern(pattern, "--filter-body", use_multiline=True)
+
+    return (todo_keys, done_keys)
+
+
+def main() -> None:
+    """Main CLI entry point."""
+    args = parse_arguments()
+
+    todo_keys, done_keys = validate_arguments(args)
 
     mapping = load_mapping(args.mapping) or MAP
     exclude_set = load_exclude_list(args.exclude) or DEFAULT_EXCLUDE

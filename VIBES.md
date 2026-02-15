@@ -889,7 +889,7 @@ Let me use a different approach to remove the file:
    completed   execute  find /workspaces/orgstats/src/orgstats/core.py.bak -type f -delete
 ```
 
-## Even more filters
+## ✅*️ Even more filters
 Please add additional filters to the CLI:
 
 - `--filter-heading regex` - task heading must match the `regex`,
@@ -897,7 +897,12 @@ Please add additional filters to the CLI:
 
 The idea is to be able to look for specific words or phrases within the body/heading. Additionally, please change the semantics of the `--filter-tag tag` switch to also accept a regex that must match either of the tags in a task.
 
-**Comment:** Accidentally ran this on an older branch creating merge conflicts, so just reattepmted on the proper branch. Was about as fast as merging the changes manually. The second time around the AI found an issue with the implementation when doing a smoke test and managed to fix it pretty well.
+**Comment:** Accidentally ran this on an older branch creating merge conflicts, so just reattempted on the proper branch. Was about as fast as merging the changes manually. The second time around the AI found an issue with the implementation when doing a smoke test and managed to "fix it", but introduced slop in the process.
+
+## ✅*️ Even more filters regex validation slop fix
+I see you introduced a check that the regex parses correctly. Would you mind extracting that into a `validate_pattern()` function that is ran before the filters are build? Much like is don for `todo_keys` etc. It is OK, that the validation is purely validating the value, no need to pass the validated value to the filter (although it would be better style).
+
+**Comment:** AI thought it was a good idea, and then ran out of quota.
 
 ## Output colors
 
