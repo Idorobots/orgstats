@@ -7,7 +7,7 @@
 	"*": "allow",
 	"bash": {
 	    "*": "allow",
-	    "rm *": "deny"
+	    "rm *": "ask"
 	},
 	"webfetch": "ask",
 	"websearch": "ask",
