@@ -1,5 +1,6 @@
 """Node filtering functions."""
 
+import re
 import typing
 from collections.abc import Callable
 from datetime import datetime
@@ -302,20 +303,24 @@ def filter_property(
     ]
 
 
-def filter_tag(nodes: list[orgparse.node.OrgNode], tag_name: str) -> list[orgparse.node.OrgNode]:
-    """Filter nodes with exact tag match (case-sensitive).
+def filter_tag(nodes: list[orgparse.node.OrgNode], tag_pattern: str) -> list[orgparse.node.OrgNode]:
+    """Filter nodes where any tag matches the regex pattern (case-sensitive).
 
-    Matches against individual tags in node.tags list.
-    Nodes without the tag are excluded.
+    Matches against individual tags in node.tags list using regex.
+    Nodes without any matching tag are excluded.
 
     Args:
         nodes: List of org-mode nodes to filter
-        tag_name: Tag name to match
+        tag_pattern: Regex pattern to match against tags
 
     Returns:
         Filtered list of nodes
+
+    Raises:
+        re.error: If tag_pattern is not a valid regex
     """
-    return [node for node in nodes if tag_name in node.tags]
+    pattern = re.compile(tag_pattern)
+    return [node for node in nodes if any(pattern.search(tag) for tag in node.tags)]
 
 
 def filter_completed(
@@ -374,3 +379,43 @@ def filter_not_completed(
             result.append(node)
 
     return result
+
+
+def filter_heading(
+    nodes: list[orgparse.node.OrgNode], heading_pattern: str
+) -> list[orgparse.node.OrgNode]:
+    """Filter nodes where heading matches the regex pattern (case-sensitive).
+
+    Args:
+        nodes: List of org-mode nodes to filter
+        heading_pattern: Regex pattern to match against heading
+
+    Returns:
+        Filtered list of nodes
+
+    Raises:
+        re.error: If heading_pattern is not a valid regex
+    """
+    pattern = re.compile(heading_pattern)
+    return [node for node in nodes if node.heading and pattern.search(node.heading)]
+
+
+def filter_body(
+    nodes: list[orgparse.node.OrgNode], body_pattern: str
+) -> list[orgparse.node.OrgNode]:
+    """Filter nodes where body text matches the regex pattern (case-sensitive, multiline).
+
+    Uses re.MULTILINE flag for pattern matching.
+
+    Args:
+        nodes: List of org-mode nodes to filter
+        body_pattern: Regex pattern to match against body text
+
+    Returns:
+        Filtered list of nodes
+
+    Raises:
+        re.error: If body_pattern is not a valid regex
+    """
+    pattern = re.compile(body_pattern, re.MULTILINE)
+    return [node for node in nodes if node.body and pattern.search(node.body)]

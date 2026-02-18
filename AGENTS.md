@@ -78,6 +78,11 @@ poetry run orgstats --filter-not-completed examples/ARCHIVE_small
 poetry run orgstats --filter-tag debugging examples/ARCHIVE_small
 poetry run orgstats --filter-property priority=A examples/ARCHIVE_small
 
+# Filter by regex patterns
+poetry run orgstats --filter-tag "^test" examples/ARCHIVE_small         # Tags starting with "test"
+poetry run orgstats --filter-heading "bug|fix" examples/ARCHIVE_small   # Headings containing "bug" or "fix"
+poetry run orgstats --filter-body "TODO:" examples/ARCHIVE_small        # Body containing "TODO:"
+
 # Combine multiple options
 poetry run orgstats -n 25 --filter regular --exclude words.txt examples/ARCHIVE_small
 
@@ -108,7 +113,9 @@ poetry run orgstats file1.org file2.org file3.org
 - `--filter-date-from TIMESTAMP` - Filter tasks with timestamps after date (inclusive)
 - `--filter-date-until TIMESTAMP` - Filter tasks with timestamps before date (inclusive)
 - `--filter-property KEY=VALUE` - Filter tasks with exact property match (case-sensitive, can specify multiple)
-- `--filter-tag TAG` - Filter tasks with exact tag match (case-sensitive, can specify multiple)
+- `--filter-tag REGEX` - Filter tasks where any tag matches regex (case-sensitive, can specify multiple)
+- `--filter-heading REGEX` - Filter tasks where heading matches regex (case-sensitive, can specify multiple)
+- `--filter-body REGEX` - Filter tasks where body matches regex (case-sensitive, multiline, can specify multiple)
 - `--filter-completed` - Filter tasks with todo state in done keys
 - `--filter-not-completed` - Filter tasks with todo state in todo keys
 - `--help` / `-h` - Show help message
