@@ -1080,12 +1080,16 @@ It is also necessary to refactor the ~handle_completion_filter()~, ~create_filte
 The result of loading nodes should be a filtered list of ~orgparse.node.OrgNode~ and the updated sets of todo & done keys.
 The remaining analysis and display should remain as-is.
 
-** TODO Top relevant tasks display                                                             :CLI:
+** REWORKED Top relevant tasks display                                                         :CLI:
+:LOGBOOK:
+- State "REWORKED"   from "TODO"       [2026-02-19 Thu 22:48] \\
+  AI got fixated at refactoring the display functions, it also convinced itself it should disable the linter, but then scolded itself that it even thought that filthy thought. I approve. It reinstituted some slop that I had to fix manually, minor though.
+:END:
 Extend the CLI display to show ~--max-results~ of related tasks (filtered ~OrgNode~'s used for the computation of the analysis).
 
 The results should be oredered by their most recent repeat timestamp (for tasks that are repeated) or the other timestamps if not completed yet. Most recent tasks should come first. The results should be truncated to at most ~--max-results~ entries. It is OK if there are fewer than ~--max-results~.
 
-To display the results add an additional section called `Top tasks:` to the CLI output that will list each task's state and heading along with its originating file. You can obtain the file from the nodes env property: ~OrgNode.env.filename~. The section should follow the histograms and preceed the `Top tags:` section.
+To display the results add an additional section called ~Top tasks:~ to the CLI output that will list each task's state and heading along with its originating file. You can obtain the file from the nodes env property: ~OrgNode.env.filename~. The section should follow the histograms and preceed the ~Top tags:~ section.
 
 Here's an example of what it should look like:
 

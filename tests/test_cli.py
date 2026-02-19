@@ -264,3 +264,23 @@ def test_cli_default_max_results_is_10() -> None:
 
     assert result.returncode == 0
     assert "default: 10" in result.stdout
+
+
+def test_cli_displays_top_tasks() -> None:
+    """Test that CLI displays Top tasks section."""
+    fixture_path = os.path.join(FIXTURES_DIR, "repeated_tasks.org")
+
+    result = subprocess.run(
+        [sys.executable, "-m", "orgstats", fixture_path, "-n", "3"],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "Top tasks:" in result.stdout
+    assert "Top tags:" in result.stdout
+    # Top tasks should appear before Top tags
+    top_tasks_pos = result.stdout.index("Top tasks:")
+    top_tags_pos = result.stdout.index("Top tags:")
+    assert top_tasks_pos < top_tags_pos

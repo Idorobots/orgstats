@@ -37,6 +37,7 @@ from orgstats.filters import (
 )
 from orgstats.histogram import render_histogram
 from orgstats.plot import render_timeline_chart
+from orgstats.timestamp import extract_timestamp_any
 
 
 MAP: dict[str, str] = {}
@@ -331,6 +332,62 @@ def display_groups(
                 print(f"  {underline}")
 
             print(f"  {', '.join(group_tags)}")
+
+
+def get_most_recent_timestamp(node: orgparse.node.OrgNode) -> datetime | None:
+    """Get the most recent timestamp from a node.
+
+    Args:
+        node: Org-mode node
+
+    Returns:
+        Most recent datetime or None if no timestamps found
+    """
+    timestamps = extract_timestamp_any(node)
+    return max(timestamps) if timestamps else None
+
+
+def get_top_tasks(
+    nodes: list[orgparse.node.OrgNode], max_results: int
+) -> list[orgparse.node.OrgNode]:
+    """Get top N nodes sorted by most recent timestamp.
+
+    Args:
+        nodes: List of org-mode nodes
+        max_results: Maximum number of results to return
+
+    Returns:
+        List of nodes sorted by most recent timestamp (descending)
+    """
+    nodes_with_timestamps: list[tuple[orgparse.node.OrgNode, datetime]] = []
+    for node in nodes:
+        timestamp = get_most_recent_timestamp(node)
+        if timestamp:
+            nodes_with_timestamps.append((node, timestamp))
+
+    sorted_nodes = sorted(nodes_with_timestamps, key=lambda x: x[1], reverse=True)
+
+    return [node for node, _ in sorted_nodes[:max_results]]
+
+
+def display_top_tasks(nodes: list[orgparse.node.OrgNode], max_results: int) -> None:
+    """Display top tasks sorted by most recent timestamp.
+
+    Args:
+        nodes: List of org-mode nodes
+        max_results: Maximum number of results to display
+    """
+    top_tasks = get_top_tasks(nodes, max_results)
+
+    if not top_tasks:
+        return
+
+    print("\nTop tasks:")
+    for node in top_tasks:
+        filename = node.env.filename if hasattr(node, "env") and node.env.filename else "unknown"
+        todo_state = node.todo if node.todo else ""
+        heading = node.heading if node.heading else ""
+        print(f"  {filename}: {todo_state} {heading}".strip())
 
 
 def filter_nodes(nodes: list[orgparse.node.OrgNode], task_type: str) -> list[orgparse.node.OrgNode]:
@@ -1026,22 +1083,19 @@ def build_filter_chain(args: argparse.Namespace, argv: list[str]) -> list[Filter
 
 def display_results(
     result: AnalysisResult,
+    nodes: list[orgparse.node.OrgNode],
     args: argparse.Namespace,
-    exclude_set: set[str],
-    date_range: tuple[datetime | None, datetime | None],
-    task_keys: tuple[list[str], list[str]],
+    display_config: tuple[set[str], datetime | None, datetime | None, list[str], list[str]],
 ) -> None:
     """Display analysis results in formatted output.
 
     Args:
         result: Analysis results to display
+        nodes: Filtered org-mode nodes used for analysis
         args: Command-line arguments containing display configuration
-        exclude_set: Set of items to exclude from display
-        date_range: Tuple of (date_from, date_until) for chart display range
-        task_keys: Tuple of (done_keys, todo_keys) state keywords
+        display_config: Tuple of (exclude_set, date_from, date_until, done_keys, todo_keys)
     """
-    date_from, date_until = date_range
-    done_keys, todo_keys = task_keys
+    exclude_set, date_from, date_until, done_keys, todo_keys = display_config
     if result.timerange.earliest and result.timerange.latest and result.timerange.timeline:
         earliest_date = date_from.date() if date_from else result.timerange.earliest.date()
         latest_date = date_until.date() if date_until else result.timerange.latest.date()
@@ -1077,6 +1131,8 @@ def display_results(
     histogram_lines = render_histogram(result.task_days, args.buckets, day_order)
     for line in histogram_lines:
         print(f"  {line}")
+
+    display_top_tasks(nodes, args.max_results)
 
     category_name = CATEGORY_NAMES[args.show]
 
@@ -1166,7 +1222,7 @@ def main() -> None:
     if args.filter_date_until is not None:
         date_until = parse_date_argument(args.filter_date_until, "--filter-date-until")
 
-    display_results(result, args, exclude_set, (date_from, date_until), (done_keys, todo_keys))
+    display_results(result, nodes, args, (exclude_set, date_from, date_until, done_keys, todo_keys))
 
 
 if __name__ == "__main__":
