@@ -631,7 +631,7 @@ def load_org_files(
                 todo_config = f"#+TODO: {' '.join(todo_keys)} | {' '.join(done_keys)}\n\n"
                 contents = todo_config + contents
 
-                ns = orgparse.loads(contents)
+                ns = orgparse.loads(contents, filename=name)
                 if ns is not None:
                     all_todo_keys = all_todo_keys.union(set(ns.env.todo_keys))
                     all_done_keys = all_done_keys.union(set(ns.env.done_keys))
