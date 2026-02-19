@@ -224,6 +224,7 @@ def display_category(
     data: tuple[dict[str, Frequency], dict[str, TimeRange], set[str], dict[str, Relations]],
     config: tuple[int, int, int, datetime | None, datetime | None],
     order_fn: Callable[[tuple[str, Frequency]], int],
+    max_items: int,
 ) -> None:
     """Display formatted output for a single category.
 
@@ -232,11 +233,15 @@ def display_category(
         data: Tuple of (frequencies, time_ranges, exclude_set, relations_dict)
         config: Tuple of (max_results, max_relations, num_buckets, date_from, date_until)
         order_fn: Function to sort items by
+        max_items: Maximum number of items to display (0 to omit section entirely)
     """
-    max_results, max_relations, num_buckets, date_from, date_until = config
+    if max_items == 0:
+        return
+
+    _max_results, max_relations, num_buckets, date_from, date_until = config
     frequencies, time_ranges, exclude_set, relations_dict = data
     cleaned = clean(exclude_set, frequencies)
-    sorted_items = sorted(cleaned.items(), key=order_fn)[0:max_results]
+    sorted_items = sorted(cleaned.items(), key=order_fn)[0:max_items]
 
     print(f"\nTop {category_name}:")
     for idx, (name, freq) in enumerate(sorted_items):
@@ -446,6 +451,14 @@ def parse_arguments() -> argparse.Namespace:
         default=10,
         metavar="N",
         help="Maximum number of results to display (default: 10)",
+    )
+
+    parser.add_argument(
+        "--max-tags",
+        type=int,
+        default=5,
+        metavar="N",
+        help="Maximum number of tags to display in Top tags section (default: 5, use 0 to omit section)",
     )
 
     parser.add_argument(
@@ -1145,6 +1158,7 @@ def display_results(
         (result.tag_frequencies, result.tag_time_ranges, exclude_set, result.tag_relations),
         (args.max_results, args.max_relations, args.buckets, date_from, date_until),
         order_by_total,
+        args.max_tags,
     )
 
     display_groups(
@@ -1168,6 +1182,10 @@ def validate_arguments(args: argparse.Namespace) -> tuple[list[str], list[str]]:
     """
     if args.max_relations < 1:
         print("Error: --max-relations must be at least 1", file=sys.stderr)
+        sys.exit(1)
+
+    if args.max_tags < 0:
+        print("Error: --max-tags must be non-negative", file=sys.stderr)
         sys.exit(1)
 
     if args.min_group_size < 0:

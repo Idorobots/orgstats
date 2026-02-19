@@ -1102,7 +1102,11 @@ Top tasks:
 ** TODO Separate limit switches for tags, groups & tasks                                    :CLI:UX:
 Add additional switches that limit the number of results in various sections of the CLI output.
 
-*** TODO Top tags limit
+*** DONE Top tags limit
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2026-02-19 Thu 23:09] \\
+  Worked well, but the AI wasted a bunch of quota running smoke tests.
+:END:
 Add a new CLI switch called ~--max-tags~ that defaults to 5. This switch will control how many tags in the `Top tags` section should be shown. The value should be >= 0, and if it's equal to 0, the section should be omitted.
 
 It is completely OK if there are fewer results than the limit. Do show the section title and "No results" in such a case (unless the user requested 0 results).

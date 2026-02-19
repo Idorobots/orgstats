@@ -463,6 +463,7 @@ def test_display_category() -> None:
             (frequencies, time_ranges, exclude_set, relations_dict),
             (10, 3, 50, None, None),
             lambda item: -item[1].total,
+            10,
         )
 
         output = sys.stdout.getvalue()
@@ -502,6 +503,7 @@ def test_display_category_with_time_ranges() -> None:
             (frequencies, time_ranges, exclude_set, relations_dict),
             (10, 3, 50, None, None),
             lambda item: -item[1].total,
+            10,
         )
 
         output = sys.stdout.getvalue()
@@ -531,12 +533,44 @@ def test_display_category_with_relations() -> None:
             (frequencies, time_ranges, exclude_set, relations_dict),
             (10, 3, 50, None, None),
             lambda item: -item[1].total,
+            10,
         )
 
         output = sys.stdout.getvalue()
 
         assert "django (5)" in output
         assert "flask (3)" in output
+
+    finally:
+        sys.stdout = original_stdout
+
+
+def test_display_category_with_max_items_zero() -> None:
+    """Test display_category with max_items=0 omits section entirely."""
+    from orgstats.analyze import Frequency, Relations, TimeRange
+    from orgstats.cli import display_category
+
+    frequencies = {"python": Frequency(total=10), "java": Frequency(total=8)}
+    time_ranges: dict[str, TimeRange] = {}
+    exclude_set: set[str] = set()
+    relations_dict: dict[str, Relations] = {}
+
+    original_stdout = sys.stdout
+    try:
+        sys.stdout = StringIO()
+
+        display_category(
+            "test tags",
+            (frequencies, time_ranges, exclude_set, relations_dict),
+            (10, 3, 50, None, None),
+            lambda item: -item[1].total,
+            0,
+        )
+
+        output = sys.stdout.getvalue()
+
+        assert output == ""
+        assert "Top test tags:" not in output
 
     finally:
         sys.stdout = original_stdout
@@ -572,7 +606,7 @@ def test_display_results_with_tag_groups() -> None:
     )
 
     args = argparse.Namespace(
-        show="tags", max_results=10, max_relations=3, min_group_size=3, buckets=50
+        show="tags", max_results=10, max_tags=5, max_relations=3, min_group_size=3, buckets=50
     )
 
     original_stdout = sys.stdout
@@ -623,7 +657,7 @@ def test_display_results_tag_groups_filtered_by_min_size() -> None:
     )
 
     args = argparse.Namespace(
-        show="tags", max_results=10, max_relations=3, min_group_size=3, buckets=50
+        show="tags", max_results=10, max_tags=5, max_relations=3, min_group_size=3, buckets=50
     )
 
     original_stdout = sys.stdout
@@ -675,7 +709,7 @@ def test_display_results_tag_groups_with_excluded_tags() -> None:
     )
 
     args = argparse.Namespace(
-        show="tags", max_results=10, max_relations=3, min_group_size=2, buckets=50
+        show="tags", max_results=10, max_tags=5, max_relations=3, min_group_size=2, buckets=50
     )
 
     original_stdout = sys.stdout
@@ -721,7 +755,7 @@ def test_display_results_no_tag_groups() -> None:
     )
 
     args = argparse.Namespace(
-        show="tags", max_results=10, max_relations=3, min_group_size=3, buckets=50
+        show="tags", max_results=10, max_tags=5, max_relations=3, min_group_size=3, buckets=50
     )
 
     original_stdout = sys.stdout
