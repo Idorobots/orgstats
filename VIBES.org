@@ -3,15 +3,18 @@
 #+TODO: | CANCELLED(c@/!) REWORKED(r@/!)
 
 * Goals
-The goal of the project was to attempt to achieve the fabled 10x productivity boost by vibe-coding as much of the project, while only focusing attention on the parts that matter. Simply put, go as fast as possible, break things and run out of quota. That last part was certainly achieved.
 
 ** Initial state
+The goal of the project was to attempt to achieve the fabled 10x productivity boost by vibe-coding as much of the project, while only focusing attention on the parts that matter. Simply put, go as fast as possible, break things and run out of quota. That last part was certainly achieved.
+
 The project started as a very simple script that would do rudimentary task counting using ~orgparse~ (about 115 lines of Python, no tests). The remainder was implemented by Claude Sonnet 4.5 (with a touch of Opus and Haiku) on the Pro plan via Emacs agent-shell & OpenCode. It was sloperated along the way to a small extent.
 
 Following are the prompts I used for expanding the project.
 Whenever clarifying questions were asked I provided answers (not included). Each time a plan was made with the ~plan~ agent, then I would switch the agent to ~build~ and ask it to proceed according to the plan. Some manual intervention was needed here and there to contain the slop.
 
 The Quota on the Pro plan was quick to run out due to a myriad of individual tool calls when making edits and repeated, duplicate command runs (e.g ~pytest~ followed by ~pytest --cov~), a set of helpers was introduced manually to try to contain the AI's thirst for spinning in circles.
+
+Eventually, the project evolved into a more full-featured Org-Mode CLI tool that can be used for agentic AI workflow tracking. I also started using different models. I think there's a speed up, but not 10x for sure.
 
 * Features built with AI
 Here's what the states mean:
