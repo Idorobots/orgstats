@@ -606,7 +606,13 @@ def test_display_results_with_tag_groups() -> None:
     )
 
     args = argparse.Namespace(
-        show="tags", max_results=10, max_tags=5, max_relations=3, min_group_size=3, buckets=50
+        show="tags",
+        max_results=10,
+        max_tags=5,
+        max_relations=3,
+        min_group_size=3,
+        max_groups=5,
+        buckets=50,
     )
 
     original_stdout = sys.stdout
@@ -657,7 +663,13 @@ def test_display_results_tag_groups_filtered_by_min_size() -> None:
     )
 
     args = argparse.Namespace(
-        show="tags", max_results=10, max_tags=5, max_relations=3, min_group_size=3, buckets=50
+        show="tags",
+        max_results=10,
+        max_tags=5,
+        max_relations=3,
+        min_group_size=3,
+        max_groups=5,
+        buckets=50,
     )
 
     original_stdout = sys.stdout
@@ -709,7 +721,13 @@ def test_display_results_tag_groups_with_excluded_tags() -> None:
     )
 
     args = argparse.Namespace(
-        show="tags", max_results=10, max_tags=5, max_relations=3, min_group_size=2, buckets=50
+        show="tags",
+        max_results=10,
+        max_tags=5,
+        max_relations=3,
+        min_group_size=2,
+        max_groups=5,
+        buckets=50,
     )
 
     original_stdout = sys.stdout
@@ -755,7 +773,13 @@ def test_display_results_no_tag_groups() -> None:
     )
 
     args = argparse.Namespace(
-        show="tags", max_results=10, max_tags=5, max_relations=3, min_group_size=3, buckets=50
+        show="tags",
+        max_results=10,
+        max_tags=5,
+        max_relations=3,
+        min_group_size=3,
+        max_groups=5,
+        buckets=50,
     )
 
     original_stdout = sys.stdout
@@ -766,7 +790,7 @@ def test_display_results_no_tag_groups() -> None:
 
         output = sys.stdout.getvalue()
 
-        assert "Tag groups:" not in output
+        assert "Tag groups:" in output
 
     finally:
         sys.stdout = original_stdout
@@ -846,7 +870,7 @@ def test_main_with_tag_groups_high_min_size() -> None:
     )
 
     assert result.returncode == 0
-    assert "Tag groups:" not in result.stdout
+    assert "Tag groups:" in result.stdout
 
 
 def test_filter_nodes_deprecated() -> None:
@@ -937,3 +961,78 @@ def test_main_entry_point() -> None:
 
     assert result.returncode == 0
     assert "Total tasks:" in result.stdout
+
+
+def test_display_groups_with_max_groups_zero() -> None:
+    """Test display_groups with max_groups=0 omits section entirely."""
+    from orgstats.analyze import Group, TimeRange
+    from orgstats.cli import display_groups
+
+    groups = [Group(tags=["python", "test"], time_range=TimeRange())]
+    exclude_set: set[str] = set()
+
+    original_stdout = sys.stdout
+    try:
+        sys.stdout = StringIO()
+
+        display_groups(groups, exclude_set, (2, 50, None, None), 0)
+
+        output = sys.stdout.getvalue()
+
+        assert output == ""
+        assert "Tag groups:" not in output
+
+    finally:
+        sys.stdout = original_stdout
+
+
+def test_display_groups_with_max_groups_limit() -> None:
+    """Test display_groups respects max_groups limit."""
+    from orgstats.analyze import Group, TimeRange
+    from orgstats.cli import display_groups
+
+    groups = [
+        Group(tags=["a", "b", "c"], time_range=TimeRange()),
+        Group(tags=["d", "e"], time_range=TimeRange()),
+        Group(tags=["f", "g"], time_range=TimeRange()),
+    ]
+    exclude_set: set[str] = set()
+
+    original_stdout = sys.stdout
+    try:
+        sys.stdout = StringIO()
+
+        display_groups(groups, exclude_set, (2, 50, None, None), 2)
+
+        output = sys.stdout.getvalue()
+
+        assert "Tag groups:" in output
+        assert "a, b, c" in output
+        assert "d, e" in output
+        assert "f, g" not in output
+
+    finally:
+        sys.stdout = original_stdout
+
+
+def test_display_groups_shows_empty_section() -> None:
+    """Test display_groups shows section heading with no groups when max_groups > 0."""
+    from orgstats.analyze import Group, TimeRange
+    from orgstats.cli import display_groups
+
+    groups = [Group(tags=["a", "b"], time_range=TimeRange())]
+    exclude_set: set[str] = set()
+
+    original_stdout = sys.stdout
+    try:
+        sys.stdout = StringIO()
+
+        display_groups(groups, exclude_set, (100, 50, None, None), 5)
+
+        output = sys.stdout.getvalue()
+
+        assert "Tag groups:" in output
+        assert "a, b" not in output
+
+    finally:
+        sys.stdout = original_stdout

@@ -289,6 +289,7 @@ def display_groups(
     groups: list[Group],
     exclude_set: set[str],
     config: tuple[int, int, datetime | None, datetime | None],
+    max_groups: int,
 ) -> None:
     """Display tag groups with timelines.
 
@@ -296,10 +297,12 @@ def display_groups(
         groups: List of Group objects
         exclude_set: Set of tags to exclude
         config: Tuple of (min_group_size, num_buckets, date_from, date_until)
+        max_groups: Maximum number of groups to display (0 to omit section entirely)
     """
-    min_group_size, num_buckets, date_from, date_until = config
-    if not groups:
+    if max_groups == 0:
         return
+
+    min_group_size, num_buckets, date_from, date_until = config
 
     filtered_groups = []
     for group in groups:
@@ -308,35 +311,35 @@ def display_groups(
             filtered_groups.append((filtered_tags, group.time_range))
 
     filtered_groups.sort(key=lambda x: len(x[0]), reverse=True)
+    filtered_groups = filtered_groups[:max_groups]
 
-    if filtered_groups:
-        print("\nTag groups:")
-        for idx, (group_tags, time_range) in enumerate(filtered_groups):
-            if idx > 0:
-                print()
+    print("\nTag groups:")
+    for idx, (group_tags, time_range) in enumerate(filtered_groups):
+        if idx > 0:
+            print()
 
-            if date_from and date_until:
-                earliest_date = date_from.date()
-                latest_date = date_until.date()
-            elif time_range.earliest and time_range.latest:
-                earliest_date = time_range.earliest.date()
-                latest_date = time_range.latest.date()
-            else:
-                earliest_date = None
-                latest_date = None
+        if date_from and date_until:
+            earliest_date = date_from.date()
+            latest_date = date_until.date()
+        elif time_range.earliest and time_range.latest:
+            earliest_date = time_range.earliest.date()
+            latest_date = time_range.latest.date()
+        else:
+            earliest_date = None
+            latest_date = None
 
-            if earliest_date and latest_date:
-                date_line, chart_line, underline = render_timeline_chart(
-                    time_range.timeline,
-                    earliest_date,
-                    latest_date,
-                    num_buckets,
-                )
-                print(f"  {date_line}")
-                print(f"  {chart_line}")
-                print(f"  {underline}")
+        if earliest_date and latest_date:
+            date_line, chart_line, underline = render_timeline_chart(
+                time_range.timeline,
+                earliest_date,
+                latest_date,
+                num_buckets,
+            )
+            print(f"  {date_line}")
+            print(f"  {chart_line}")
+            print(f"  {underline}")
 
-            print(f"  {', '.join(group_tags)}")
+        print(f"  {', '.join(group_tags)}")
 
 
 def get_most_recent_timestamp(node: orgparse.node.OrgNode) -> datetime | None:
@@ -505,9 +508,17 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--min-group-size",
         type=int,
-        default=3,
+        default=2,
         metavar="N",
-        help="Minimum group size to display (default: 3)",
+        help="Minimum group size to display (default: 2)",
+    )
+
+    parser.add_argument(
+        "--max-groups",
+        type=int,
+        default=5,
+        metavar="N",
+        help="Maximum number of tag groups to display (default: 5, use 0 to omit section)",
     )
 
     parser.add_argument(
@@ -1165,6 +1176,7 @@ def display_results(
         result.tag_groups,
         exclude_set,
         (args.min_group_size, args.buckets, date_from, date_until),
+        args.max_groups,
     )
 
 
@@ -1186,6 +1198,10 @@ def validate_arguments(args: argparse.Namespace) -> tuple[list[str], list[str]]:
 
     if args.max_tags < 0:
         print("Error: --max-tags must be non-negative", file=sys.stderr)
+        sys.exit(1)
+
+    if args.max_groups < 0:
+        print("Error: --max-groups must be non-negative", file=sys.stderr)
         sys.exit(1)
 
     if args.min_group_size < 0:

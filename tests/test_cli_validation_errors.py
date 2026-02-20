@@ -375,3 +375,33 @@ def test_main_filter_property_no_equals() -> None:
 
     assert result.returncode == 1
     assert "Error: --filter-property must be in KEY=VALUE format" in result.stderr
+
+
+def test_main_max_groups_negative() -> None:
+    """Test that --max-groups with negative value causes error."""
+    fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
+
+    result = subprocess.run(
+        [sys.executable, "-m", "orgstats", "--max-groups", "-1", fixture_path],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "Error: --max-groups must be non-negative" in result.stderr
+
+
+def test_main_max_groups_negative_large() -> None:
+    """Test that --max-groups with large negative value causes error."""
+    fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
+
+    result = subprocess.run(
+        [sys.executable, "-m", "orgstats", "--max-groups", "-100", fixture_path],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "Error: --max-groups must be non-negative" in result.stderr
