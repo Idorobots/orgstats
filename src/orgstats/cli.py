@@ -1190,14 +1190,23 @@ def display_results(
     for line in histogram_lines:
         print(f"  {line}")
 
-    print("\nTask category histogram:")
+    print("\nTask categories:")
     category_order = ["simple", "regular", "hard"]
     histogram_lines = render_histogram(result.task_categories, args.buckets, category_order)
     for line in histogram_lines:
         print(f"  {line}")
 
-    print("\nTask day of week histogram:")
-    day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    print("\nTask occurence day of week:")
+    day_order = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+        "unknown",
+    ]
     histogram_lines = render_histogram(result.task_days, args.buckets, day_order)
     for line in histogram_lines:
         print(f"  {line}")

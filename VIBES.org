@@ -1219,7 +1219,11 @@ Update the CLI output to include the extra information. The values should be dis
 
 The computed values should follow the group contents name and be indented an extra level.
 
-** TODO Analysis inconsistencies fixes                                                  :UX:Cleanup:
+** CANCELLED Analysis inconsistencies fixes                                             :UX:Cleanup:
+:LOGBOOK:
+- State "CANCELLED"  from "TODO"       [2026-02-20 Fri 19:15] \\
+  The AI got the functionality right, but then decided not to update the test cases fully and ended up with 52 broken tests that needed to be reworked.
+:END:
 The analysis yields inconsistent results:
 - Task counts for total tasks don't always match the task state histogram sum,
 - Day of week histogram counts should sum up to the same value as the completed tasks.
@@ -1243,6 +1247,36 @@ To validate:
 - Make sure to check that task counts for global total tasks are equal to the sum of the day-of-week histogram values.
 
 Don't worry about backwards compatibility, completed task stats can be fetched explicitly with ~--filter-completed~.
+
+** Broken test slop                                                                   :Test:Cleanup:
+*** DONE Cleanup and removal
+:LOGBOOK:
+- State "DONE"       from              [2026-02-20 Fri 19:27] \\
+  This worked well and reduced the suite size from 919 cases to 873.
+:END:
+Please fix the remaining failing test cases. If their functionality no longer makes sense, please remove them. We'll handle the coverage in the next step.
+
+*** CANCELLED Test redundancy cleanup
+:LOGBOOK:
+- State "CANCELLED"  from              [2026-02-20 Fri 19:47] \\
+  AI cleaned up a bit, but then opted out of fixing linting errors, saying it's super fine because it's just test code.
+:END:
+Please analyze the test suite and determine if there are any test cases that are the same, or very close to one another. Determine if these test cases can be combined without sacrificing test covarege and if so, please merge them.
+The goal is to reduce the number of individual testcases without sacrificing the coverage too much.
+Be aggressive, it's better to have fewer test cases over-all, at a slightly smaller coverage. We can improve the coverage as the next step.
+
+*** REWORKED Test typing slop cleanup
+:LOGBOOK:
+- State "REWORKED"       from              [2026-02-20 Fri 19:51] \\
+  Third time's the charm, I guess. Still itroduced Any slop.
+:END:
+Please fix the linter errors in tests. The test code is as important as the main functionality and has to have proper typings. Only run ~poetry run task check~ to validate that everything works, no other, weaker commands.
+
+*** CANCELLED Day of week histogram still inconsistent
+:LOGBOOK:
+- State "CANCELLED"  from              [2026-02-20 Fri 19:39] \\
+  Did this myself. Turns out it was due to the missing "unknown" category display.
+:END:
 
 ** TODO Display inconsistencies fixes                                                       :UX:Bug:
 There are some inconsistencies in data display. I'd like to fix those inconsistencies:
