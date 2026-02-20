@@ -33,7 +33,7 @@ from orgstats.filters import (
     filter_repeats_above,
     filter_repeats_below,
     filter_tag,
-    gamify_exp,
+    get_gamify_category,
 )
 from orgstats.histogram import render_histogram
 from orgstats.plot import render_timeline_chart
@@ -455,21 +455,7 @@ def filter_nodes(nodes: list[orgparse.node.OrgNode], task_type: str) -> list[org
     if task_type == "all":
         return nodes
 
-    filtered = []
-    for node in nodes:
-        exp = gamify_exp(node)
-
-        if exp is None:
-            if task_type == "regular":
-                filtered.append(node)
-        elif (
-            (task_type == "simple" and exp < 10)
-            or (task_type == "regular" and 10 <= exp < 20)
-            or (task_type == "hard" and exp >= 20)
-        ):
-            filtered.append(node)
-
-    return filtered
+    return [node for node in nodes if task_type == get_gamify_category(node)]
 
 
 def parse_arguments() -> argparse.Namespace:

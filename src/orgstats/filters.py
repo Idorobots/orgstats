@@ -89,7 +89,7 @@ def parse_gamify_exp(gamify_exp_value: str | None) -> int | None:
     return None
 
 
-def gamify_exp(node: orgparse.node.OrgNode) -> int | None:
+def get_gamify_exp(node: orgparse.node.OrgNode) -> int | None:
     """Extract gamify_exp value from an org-mode node.
 
     Args:
@@ -101,6 +101,27 @@ def gamify_exp(node: orgparse.node.OrgNode) -> int | None:
     gamify_exp_raw = node.properties.get("gamify_exp", None)
     gamify_exp_str = str(gamify_exp_raw) if gamify_exp_raw is not None else None
     return parse_gamify_exp(gamify_exp_str)
+
+
+def get_gamify_category(node: orgparse.node.OrgNode) -> str:
+    """Extract gamify_exp value from an org-mode node and decide what category it belongs to.
+
+    Args:
+        node: Org-mode node to extract gamify_exp from
+
+    Returns:
+        String representing the category
+    """
+
+    exp_value = get_gamify_exp(node)
+
+    if exp_value is None:
+        return "regular"
+    if exp_value < 10:
+        return "simple"
+    if exp_value < 20:
+        return "regular"
+    return "hard"
 
 
 def get_repeat_count(node: orgparse.node.OrgNode) -> int:
@@ -159,7 +180,7 @@ def filter_gamify_exp_above(
     Returns:
         Filtered list of nodes
     """
-    return [node for node in nodes if (gamify_exp(node) or 10) > threshold]
+    return [node for node in nodes if (get_gamify_exp(node) or 10) > threshold]
 
 
 def filter_gamify_exp_below(
@@ -176,7 +197,7 @@ def filter_gamify_exp_below(
     Returns:
         Filtered list of nodes
     """
-    return [node for node in nodes if (gamify_exp(node) or 10) < threshold]
+    return [node for node in nodes if (get_gamify_exp(node) or 10) < threshold]
 
 
 def filter_repeats_above(

@@ -5,7 +5,7 @@ from datetime import date, datetime
 
 import orgparse
 
-from orgstats.filters import parse_gamify_exp
+from orgstats.filters import get_gamify_category
 from orgstats.histogram import Histogram
 from orgstats.timestamp import extract_timestamp
 
@@ -388,20 +388,7 @@ def compute_category_histogram(
         done_count = _compute_done_count(node, done_keys)
 
         if done_count > 0:
-            gamify_exp_raw = node.properties.get("gamify_exp", None)
-            gamify_exp_str = str(gamify_exp_raw) if gamify_exp_raw is not None else None
-
-            exp_value = parse_gamify_exp(gamify_exp_str)
-
-            if exp_value is None:
-                category = "regular"
-            elif exp_value < 10:
-                category = "simple"
-            elif exp_value < 20:
-                category = "regular"
-            else:
-                category = "hard"
-
+            category = get_gamify_category(node)
             task_categories.update(category, done_count)
 
     return task_categories
