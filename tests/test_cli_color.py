@@ -51,8 +51,8 @@ def test_section_headers_are_colored() -> None:
     )
 
     assert result.returncode == 0
-    assert "\x1b[1;37mTASKS:" in result.stdout or "TASKS:" in result.stdout
-    assert "\x1b[1;37mTAGS:" in result.stdout or "TAGS:" in result.stdout
+    assert "\x1b[1;37mTASKS:" in result.stdout or "TASKS" in result.stdout
+    assert "\x1b[1;37mTAGS:" in result.stdout or "TAGS" in result.stdout
 
 
 def test_statistics_values_are_colored_magenta() -> None:
@@ -139,7 +139,7 @@ def test_cancelled_state_is_bright_red() -> None:
 
 
 def test_tasks_section_has_colored_filenames() -> None:
-    """Test that filenames in TASKS section are colored green."""
+    """Test that filenames in TASKS section are colored dim white."""
     fixture_path = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
@@ -150,8 +150,8 @@ def test_tasks_section_has_colored_filenames() -> None:
     )
 
     assert result.returncode == 0
-    if "TASKS:" in result.stdout:
-        assert "\x1b[32m" in result.stdout
+    if "TASKS" in result.stdout:
+        assert "\x1b[2m\x1b[37m" in result.stdout or "\x1b[2;37m" in result.stdout
 
 
 def test_color_output_contains_reset_codes() -> None:
@@ -198,6 +198,6 @@ def test_no_color_with_all_sections() -> None:
 
     assert result.returncode == 0
     assert "\x1b[" not in result.stdout
-    assert "TASKS:" in result.stdout
-    assert "TAGS:" in result.stdout
+    assert "TASKS" in result.stdout
+    assert "TAGS" in result.stdout
     assert "Task states:" in result.stdout

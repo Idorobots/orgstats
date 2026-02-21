@@ -59,7 +59,7 @@ def test_cli_outputs_statistics() -> None:
     assert result.returncode == 0
     assert "Total tasks:" in result.stdout
     assert "Task states:" in result.stdout
-    assert "TAGS:" in result.stdout
+    assert "TAGS" in result.stdout
 
 
 def test_cli_with_archive_small() -> None:
@@ -283,9 +283,9 @@ def test_cli_displays_top_tasks() -> None:
     )
 
     assert result.returncode == 0
-    assert "TASKS:" in result.stdout
-    assert "TAGS:" in result.stdout
+    assert "TASKS" in result.stdout
+    assert "TAGS" in result.stdout
     # Top tasks should appear before Top tags
-    top_tasks_pos = result.stdout.index("TASKS:")
-    top_tags_pos = result.stdout.index("TAGS:")
+    top_tasks_pos = result.stdout.index("TASKS")
+    top_tags_pos = result.stdout.index("TAGS")
     assert top_tasks_pos < top_tags_pos

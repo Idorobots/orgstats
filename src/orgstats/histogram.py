@@ -1,5 +1,6 @@
 """Histogram data structure and rendering functions."""
 
+import re
 from dataclasses import dataclass, field
 
 from colorama import Style
@@ -25,6 +26,31 @@ class Histogram:
             amount: The amount to add
         """
         self.values[key] = self.values.get(key, 0) + amount
+
+
+def _strip_ansi(text: str) -> str:
+    """Remove ANSI escape codes from text.
+
+    Args:
+        text: Text that may contain ANSI codes
+
+    Returns:
+        Text with ANSI codes removed
+    """
+    ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+    return ansi_escape.sub("", text)
+
+
+def _visual_len(text: str) -> int:
+    """Get visual length of text (excluding ANSI codes).
+
+    Args:
+        text: Text that may contain ANSI codes
+
+    Returns:
+        Visual length of the text
+    """
+    return len(_strip_ansi(text))
 
 
 @dataclass
@@ -86,11 +112,18 @@ def render_histogram(
                 colored_name = display_name
             colored_bars = bright_blue(bars, render_config.color_enabled)
         else:
-            colored_name = display_name
+            colored_name = dim_white(display_name, render_config.color_enabled)
             colored_bars = bright_blue(bars, render_config.color_enabled)
 
         delimiter = dim_white("┊", render_config.color_enabled)
-        line = f"{colored_name:9s}{delimiter}{colored_bars} {value}"
+
+        if render_config.color_enabled:
+            visual_width = _visual_len(colored_name)
+            padding = " " * (9 - visual_width)
+            line = f"{colored_name}{padding}{delimiter}{colored_bars} {value}"
+        else:
+            line = f"{colored_name:9s}{delimiter}{colored_bars} {value}"
+
         lines.append(line)
 
     return lines

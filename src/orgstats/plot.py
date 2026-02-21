@@ -2,7 +2,7 @@
 
 from datetime import date, timedelta
 
-from orgstats.color import dim_white, green, magenta
+from orgstats.color import bright_blue, dim_white, magenta
 
 
 def expand_timeline(timeline: dict[date, int], earliest: date, latest: date) -> dict[date, int]:
@@ -110,7 +110,7 @@ def render_timeline_chart(
     max_value = max(buckets) if buckets else 0
 
     bars = "".join(_map_value_to_bar(value, max_value) for value in buckets)
-    colored_bars = green(bars, color_enabled)
+    colored_bars = bright_blue(bars, color_enabled)
 
     start_date_str = earliest.isoformat()
     end_date_str = latest.isoformat()

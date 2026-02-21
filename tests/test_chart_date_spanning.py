@@ -173,7 +173,7 @@ def test_chart_spanning_with_show_heading() -> None:
 
     assert result.returncode == 0
     assert "Processing" in result.stdout
-    assert "HEADING WORDS:" in result.stdout
+    assert "HEADING WORDS" in result.stdout
 
 
 def test_chart_spanning_with_show_body() -> None:
@@ -198,7 +198,7 @@ def test_chart_spanning_with_show_body() -> None:
 
     assert result.returncode == 0
     assert "Processing" in result.stdout
-    assert "BODY WORDS:" in result.stdout
+    assert "BODY WORDS" in result.stdout
 
 
 def test_chart_spanning_with_time_component() -> None:

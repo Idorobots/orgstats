@@ -43,11 +43,11 @@ def test_max_tags_limits_tags_section() -> None:
 
     assert result_default.returncode == 0
     assert result_limited.returncode == 0
-    assert "TAGS:" in result_default.stdout
-    assert "TAGS:" in result_limited.stdout
+    assert "TAGS" in result_default.stdout
+    assert "TAGS" in result_limited.stdout
 
-    tags_default = result_default.stdout[result_default.stdout.index("TAGS:") :]
-    tags_limited = result_limited.stdout[result_limited.stdout.index("TAGS:") :]
+    tags_default = result_default.stdout[result_default.stdout.index("TAGS") :]
+    tags_limited = result_limited.stdout[result_limited.stdout.index("TAGS") :]
 
     assert len(tags_limited) < len(tags_default)
 
@@ -64,7 +64,7 @@ def test_max_tags_zero_omits_section() -> None:
     )
 
     assert result.returncode == 0
-    assert "TAGS:" not in result.stdout
+    assert "TAGS" not in result.stdout
 
 
 def test_max_tags_negative_fails() -> None:
@@ -104,8 +104,8 @@ def test_max_tags_with_show_heading() -> None:
     )
 
     assert result.returncode == 0
-    assert "HEADING WORDS:" in result.stdout
-    assert "TAGS:" not in result.stdout
+    assert "HEADING WORDS" in result.stdout
+    assert "TAGS" not in result.stdout
 
 
 def test_max_tags_with_show_body() -> None:
@@ -130,8 +130,8 @@ def test_max_tags_with_show_body() -> None:
     )
 
     assert result.returncode == 0
-    assert "BODY WORDS:" in result.stdout
-    assert "TAGS:" not in result.stdout
+    assert "BODY WORDS" in result.stdout
+    assert "TAGS" not in result.stdout
 
 
 def test_max_tags_with_fewer_results() -> None:
@@ -146,7 +146,7 @@ def test_max_tags_with_fewer_results() -> None:
     )
 
     assert result.returncode == 0
-    assert "TAGS:" in result.stdout
+    assert "TAGS" in result.stdout
 
 
 def test_max_tags_zero_with_show_heading() -> None:
@@ -170,7 +170,7 @@ def test_max_tags_zero_with_show_heading() -> None:
     )
 
     assert result.returncode == 0
-    assert "HEADING WORDS:" not in result.stdout
+    assert "HEADING WORDS" not in result.stdout
 
 
 def test_max_tags_with_max_results() -> None:
@@ -194,8 +194,8 @@ def test_max_tags_with_max_results() -> None:
     )
 
     assert result.returncode == 0
-    assert "TAGS:" in result.stdout
-    assert "TASKS:" in result.stdout
+    assert "TAGS" in result.stdout
+    assert "TASKS" in result.stdout
 
 
 def test_max_tags_one() -> None:
@@ -210,4 +210,4 @@ def test_max_tags_one() -> None:
     )
 
     assert result.returncode == 0
-    assert "TAGS:" in result.stdout
+    assert "TAGS" in result.stdout

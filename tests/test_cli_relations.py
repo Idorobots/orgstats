@@ -286,7 +286,7 @@ def test_cli_relations_with_show_heading() -> None:
     )
 
     assert result.returncode == 0
-    assert "HEADING WORDS:" in result.stdout
+    assert "HEADING WORDS" in result.stdout
 
 
 def test_cli_relations_with_show_body() -> None:
@@ -311,7 +311,7 @@ def test_cli_relations_with_show_body() -> None:
     )
 
     assert result.returncode == 0
-    assert "BODY WORDS:" in result.stdout
+    assert "BODY WORDS" in result.stdout
 
 
 def test_cli_relations_filtered_by_exclude() -> None:
@@ -484,7 +484,7 @@ def test_cli_max_relations_shows_no_results() -> None:
 
         output = sys.stdout.getvalue()
 
-        assert "TEST TAGS:" in output
+        assert "TEST TAGS" in output
         assert "Top relations:" not in output
 
     finally:

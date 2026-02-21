@@ -481,7 +481,7 @@ def test_display_category() -> None:
 
         output = sys.stdout.getvalue()
 
-        assert "TEST TAGS:" in output
+        assert "TEST TAGS" in output
         assert "python" in output
         assert "java" in output
 
@@ -602,7 +602,7 @@ def test_display_category_with_max_items_zero() -> None:
         output = sys.stdout.getvalue()
 
         assert output == ""
-        assert "TEST TAGS:" not in output
+        assert "TEST TAGS" not in output
 
     finally:
         sys.stdout = original_stdout
@@ -666,7 +666,7 @@ def test_display_results_with_tag_groups() -> None:
 
         output = sys.stdout.getvalue()
 
-        assert "GROUPS:" in output
+        assert "GROUPS" in output
         assert "python, programming, coding" in output
 
     finally:
@@ -738,7 +738,7 @@ def test_display_results_tag_groups_filtered_by_min_size() -> None:
 
         output = sys.stdout.getvalue()
 
-        assert "GROUPS:" in output
+        assert "GROUPS" in output
         assert "java, programming, coding" in output
         assert "python, programming" not in output
 
@@ -811,7 +811,7 @@ def test_display_results_tag_groups_with_excluded_tags() -> None:
 
         output = sys.stdout.getvalue()
 
-        assert "GROUPS:" in output
+        assert "GROUPS" in output
         assert "python, programming, coding" in output
         assert "java" not in output
 
@@ -867,7 +867,7 @@ def test_display_results_no_tag_groups() -> None:
 
         output = sys.stdout.getvalue()
 
-        assert "GROUPS:" in output
+        assert "GROUPS" in output
 
     finally:
         sys.stdout = original_stdout
@@ -932,7 +932,7 @@ def test_main_with_tag_groups() -> None:
     )
 
     assert result.returncode == 0
-    assert "GROUPS:" in result.stdout
+    assert "GROUPS" in result.stdout
 
 
 def test_main_with_tag_groups_high_min_size() -> None:
@@ -947,7 +947,7 @@ def test_main_with_tag_groups_high_min_size() -> None:
     )
 
     assert result.returncode == 0
-    assert "GROUPS:" in result.stdout
+    assert "GROUPS" in result.stdout
 
 
 def test_filter_nodes_deprecated() -> None:
@@ -1065,7 +1065,7 @@ def test_display_groups_with_max_groups_zero() -> None:
         output = sys.stdout.getvalue()
 
         assert output == ""
-        assert "GROUPS:" not in output
+        assert "GROUPS" not in output
 
     finally:
         sys.stdout = original_stdout
@@ -1109,7 +1109,7 @@ def test_display_groups_with_max_groups_limit() -> None:
 
         output = sys.stdout.getvalue()
 
-        assert "GROUPS:" in output
+        assert "GROUPS" in output
         assert "a, b, c" in output
         assert "d, e" in output
         assert "f, g" not in output
@@ -1142,7 +1142,7 @@ def test_display_groups_shows_empty_section() -> None:
 
         output = sys.stdout.getvalue()
 
-        assert "GROUPS:" in output
+        assert "GROUPS" in output
         assert "a, b" not in output
 
     finally:

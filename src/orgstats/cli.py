@@ -21,7 +21,7 @@ from orgstats.analyze import (
     analyze,
     clean,
 )
-from orgstats.color import bright_white, get_state_color, green, magenta, should_use_color
+from orgstats.color import bright_white, dim_white, get_state_color, magenta, should_use_color
 from orgstats.filters import (
     filter_body,
     filter_completed,
@@ -303,7 +303,7 @@ def display_category(
     cleaned = clean(exclude_set, tags)
     sorted_items = sorted(cleaned.items(), key=order_fn)[0:max_items]
 
-    section_header = bright_white(f"\n{category_name.upper()}:", color_enabled)
+    section_header = bright_white(f"\n{category_name.upper()}", color_enabled)
     print(section_header)
 
     if not sorted_items:
@@ -385,7 +385,7 @@ def display_groups(
     filtered_groups.sort(key=lambda x: len(x[0]), reverse=True)
     filtered_groups = filtered_groups[:max_groups]
 
-    section_header = bright_white("\nGROUPS:", color_enabled)
+    section_header = bright_white("\nGROUPS", color_enabled)
     print(section_header)
 
     if not filtered_groups:
@@ -476,11 +476,11 @@ def display_top_tasks(
     if not top_tasks:
         return
 
-    section_header = bright_white("\nTASKS:", color_enabled)
+    section_header = bright_white("\nTASKS", color_enabled)
     print(section_header)
     for node in top_tasks:
         filename = node.env.filename if hasattr(node, "env") and node.env.filename else "unknown"
-        colored_filename = green(filename, color_enabled)
+        colored_filename = dim_white(f"{filename}:", color_enabled)
         todo_state = node.todo if node.todo else ""
         heading = node.heading if node.heading else ""
 
@@ -490,9 +490,9 @@ def display_top_tasks(
                 colored_state = f"{state_color}{todo_state}{Style.RESET_ALL}"
             else:
                 colored_state = todo_state
-            print(f"  {colored_filename}: {colored_state} {heading}".strip())
+            print(f"  {colored_filename} {colored_state} {heading}".strip())
         else:
-            print(f"  {colored_filename}: {heading}".strip())
+            print(f"  {colored_filename} {heading}".strip())
 
 
 def filter_nodes(nodes: list[orgparse.node.OrgNode], task_type: str) -> list[orgparse.node.OrgNode]:

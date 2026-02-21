@@ -52,11 +52,11 @@ def test_max_groups_limits_groups_section() -> None:
 
     assert result_default.returncode == 0
     assert result_limited.returncode == 0
-    assert "GROUPS:" in result_default.stdout
-    assert "GROUPS:" in result_limited.stdout
+    assert "GROUPS" in result_default.stdout
+    assert "GROUPS" in result_limited.stdout
 
-    groups_default = result_default.stdout[result_default.stdout.index("GROUPS:") :]
-    groups_limited = result_limited.stdout[result_limited.stdout.index("GROUPS:") :]
+    groups_default = result_default.stdout[result_default.stdout.index("GROUPS") :]
+    groups_limited = result_limited.stdout[result_limited.stdout.index("GROUPS") :]
 
     assert len(groups_limited) < len(groups_default)
 
@@ -73,7 +73,7 @@ def test_max_groups_zero_omits_section() -> None:
     )
 
     assert result.returncode == 0
-    assert "GROUPS:" not in result.stdout
+    assert "GROUPS" not in result.stdout
 
 
 def test_max_groups_negative_fails() -> None:
@@ -103,7 +103,7 @@ def test_max_groups_with_fewer_groups() -> None:
     )
 
     assert result.returncode == 0
-    assert "GROUPS:" in result.stdout
+    assert "GROUPS" in result.stdout
 
 
 def test_max_groups_with_min_group_size() -> None:
@@ -127,7 +127,7 @@ def test_max_groups_with_min_group_size() -> None:
     )
 
     assert result.returncode == 0
-    assert "GROUPS:" in result.stdout
+    assert "GROUPS" in result.stdout
 
 
 def test_max_groups_one() -> None:
@@ -151,7 +151,7 @@ def test_max_groups_one() -> None:
     )
 
     assert result.returncode == 0
-    assert "GROUPS:" in result.stdout
+    assert "GROUPS" in result.stdout
 
 
 def test_max_groups_shows_section_with_no_results() -> None:
@@ -175,7 +175,7 @@ def test_max_groups_shows_section_with_no_results() -> None:
     )
 
     assert result.returncode == 0
-    assert "GROUPS:" in result.stdout
+    assert "GROUPS" in result.stdout
 
 
 def test_min_group_size_default_is_2() -> None:

@@ -1370,7 +1370,11 @@ Please make sure that the current tests pass by setting the color switch to fals
 This one was a big one, with lots of intermediate steps. I expected the AI to goof something up along the way.
 It took more than 60% of the quota, but it one-shot it. It did introduce a display bug and the color scheme as described wasn't great, so it needed some adjustments.
 
-** TODO Color & other adjustments                                                           :UX:TUI:
+** REWORKED Color & other adjustments                                                       :UX:TUI:
+:LOGBOOK:
+- State "REWORKED"   from "TODO"       [2026-02-21 Sat 09:09] \\
+  The AI fixed the misaligned histogram, but broke the other two in the process. Needed reprompting.
+:END:
 I'd like to make some adjustments:
 
 - The frequency plot bars should be made bright blue, much like is done for the histograms.
@@ -1380,7 +1384,6 @@ I'd like to make some adjustments:
 - The "none" category of the task state histogram should be made dim white (like TODO).
 - The task state histogram should be aligned to the 10th column when colored, just like the other histograms.
 - The categories and occurrences histograms categories should be made dim white (gray-ish).
-
 
 ** TODO Gamify handling                                                                     :UX:CLI:
 Extract gamify_exp handling into a separate preprocessing step that will go through the list of filtered nodes, determine their "category" based on the gamify_exp property (same algorithm as currently) and update each node's properties with a new property of ~CATEGORY~ with the computed category as the value. If a node already has a ~CATEGORY~ property, its value should be overwritten.

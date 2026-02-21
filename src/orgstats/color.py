@@ -172,7 +172,7 @@ def get_state_color(state: str, done_keys: list[str], todo_keys: list[str], enab
             return str(Style.BRIGHT + Fore.RED)
         return str(Style.BRIGHT + Fore.GREEN)
 
-    if state in todo_keys:
+    if state in todo_keys or state == "" or state.lower() == "none":
         return str(Style.DIM + Fore.WHITE)
 
     return str(Style.BRIGHT + Fore.YELLOW)
