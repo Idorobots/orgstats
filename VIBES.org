@@ -1385,7 +1385,11 @@ I'd like to make some adjustments:
 - The task state histogram should be aligned to the 10th column when colored, just like the other histograms.
 - The categories and occurrences histograms categories should be made dim white (gray-ish).
 
-** TODO Gamify handling                                                                     :UX:CLI:
+** DONE Gamify handling                                                                     :UX:CLI:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2026-02-21 Sat 10:07] \\
+  Seems to be working fine.
+:END:
 Extract gamify_exp handling into a separate preprocessing step that will go through the list of filtered nodes, determine their "category" based on the gamify_exp property (same algorithm as currently) and update each node's properties with a new property of ~CATEGORY~ with the computed category as the value. If a node already has a ~CATEGORY~ property, its value should be overwritten.
 
 A new CLI switch named ~--with-gamify~ will control the preprocessing step. It should be disabled by default. When the switch is disabled, the preprocessing step doesn't run, when it is enabled, all nodes will receive a gamify category based on the exp value.

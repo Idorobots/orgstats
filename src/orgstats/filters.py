@@ -52,6 +52,52 @@ class _FilteredOrgNode(orgparse.node.OrgNode):
         return getattr(self._original_node, name)
 
 
+class _PropertyEnrichedOrgNode(orgparse.node.OrgNode):
+    """Wrapper for OrgNode that adds/overrides properties without copying the entire node.
+
+    This class delegates all attribute access to the original node except for properties,
+    which is extended with additional key-value pairs. This avoids deep copying.
+    """
+
+    def __init__(
+        self,
+        original_node: orgparse.node.OrgNode,
+        additional_properties: dict[str, str],
+    ) -> None:
+        """Initialize with original node and additional properties.
+
+        Args:
+            original_node: The original OrgNode to wrap
+            additional_properties: Properties to add/override
+        """
+        self._original_node = original_node
+        self._additional_properties = additional_properties
+
+    @property
+    def properties(self) -> typing.Any:  # noqa: ANN401
+        """Return merged properties (original + additional).
+
+        Additional properties override original ones with same key.
+
+        Returns:
+            Merged properties dictionary
+        """
+        merged = dict(self._original_node.properties)
+        merged.update(self._additional_properties)
+        return merged
+
+    def __getattr__(self, name: str) -> typing.Any:  # noqa: ANN401
+        """Delegate attribute access to the original node.
+
+        Args:
+            name: Attribute name
+
+        Returns:
+            Attribute value from original node
+        """
+        return getattr(self._original_node, name)
+
+
 def parse_gamify_exp(gamify_exp_value: str | None) -> int | None:
     """Parse gamify_exp property and return the numeric value.
 
@@ -475,3 +521,50 @@ def filter_body(
     """
     pattern = re.compile(body_pattern, re.MULTILINE)
     return [node for node in nodes if node.body and pattern.search(node.body)]
+
+
+def filter_category(
+    nodes: list[orgparse.node.OrgNode], category_property: str, category_value: str
+) -> list[orgparse.node.OrgNode]:
+    """Filter nodes by category property value.
+
+    Args:
+        nodes: List of nodes to filter
+        category_property: Name of property to check
+        category_value: Value to match (empty string matches "", "none" matches missing property)
+
+    Returns:
+        Filtered list of nodes
+    """
+    result = []
+    for node in nodes:
+        node_category = node.properties.get(category_property)
+        if node_category is None or node_category == "":
+            node_category = "none"
+        if node_category == category_value:
+            result.append(node)
+    return result
+
+
+def preprocess_gamify_categories(
+    nodes: list[orgparse.node.OrgNode],
+    category_property: str,
+) -> list[orgparse.node.OrgNode]:
+    """Add category property to nodes based on gamify_exp value.
+
+    For each node, computes category from gamify_exp and wraps the node
+    to include the category property.
+
+    Args:
+        nodes: List of nodes to preprocess
+        category_property: Name of property to set (e.g., "CATEGORY")
+
+    Returns:
+        List of wrapped nodes with category property set
+    """
+    result: list[orgparse.node.OrgNode] = []
+    for node in nodes:
+        category = get_gamify_category(node)
+        wrapped = _PropertyEnrichedOrgNode(node, {category_property: category})
+        result.append(wrapped)
+    return result

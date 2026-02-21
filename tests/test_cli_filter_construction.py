@@ -12,31 +12,30 @@ PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 
 def test_handle_preset_filter_simple() -> None:
-    """Test that 'simple' preset expands to gamify_exp < 10 filter."""
+    """Test that 'simple' preset creates category filter."""
     from orgstats.cli import handle_preset_filter
 
-    filters = handle_preset_filter("simple")
+    filters = handle_preset_filter("simple", "CATEGORY")
 
     assert len(filters) == 1
     assert filters[0].filter is not None
 
 
 def test_handle_preset_filter_regular() -> None:
-    """Test that 'regular' preset expands to two filters."""
+    """Test that 'regular' preset creates category filter."""
     from orgstats.cli import handle_preset_filter
 
-    filters = handle_preset_filter("regular")
+    filters = handle_preset_filter("regular", "CATEGORY")
 
-    assert len(filters) == 2
+    assert len(filters) == 1
     assert filters[0].filter is not None
-    assert filters[1].filter is not None
 
 
 def test_handle_preset_filter_hard() -> None:
-    """Test that 'hard' preset expands to gamify_exp >= 20 filter."""
+    """Test that 'hard' preset creates category filter."""
     from orgstats.cli import handle_preset_filter
 
-    filters = handle_preset_filter("hard")
+    filters = handle_preset_filter("hard", "CATEGORY")
 
     assert len(filters) == 1
     assert filters[0].filter is not None
@@ -46,7 +45,7 @@ def test_handle_preset_filter_all() -> None:
     """Test that 'all' preset returns empty list."""
     from orgstats.cli import handle_preset_filter
 
-    filters = handle_preset_filter("all")
+    filters = handle_preset_filter("all", "CATEGORY")
 
     assert len(filters) == 0
     assert filters == []
@@ -232,7 +231,8 @@ def test_create_filter_specs_simple_preset() -> None:
     from orgstats.cli import create_filter_specs_from_args
 
     args = argparse.Namespace(
-        filter="simple",
+        filter_category="simple",
+        category_property="CATEGORY",
         filter_gamify_exp_above=None,
         filter_gamify_exp_below=None,
         filter_repeats_above=None,
@@ -245,7 +245,7 @@ def test_create_filter_specs_simple_preset() -> None:
         filter_not_completed=False,
     )
 
-    filter_order = ["--filter"]
+    filter_order = ["--filter-category"]
     filters = create_filter_specs_from_args(args, filter_order)
 
     assert len(filters) == 1
@@ -256,7 +256,8 @@ def test_create_filter_specs_regular_preset() -> None:
     from orgstats.cli import create_filter_specs_from_args
 
     args = argparse.Namespace(
-        filter="regular",
+        filter_category="regular",
+        category_property="CATEGORY",
         filter_gamify_exp_above=None,
         filter_gamify_exp_below=None,
         filter_repeats_above=None,
@@ -269,10 +270,10 @@ def test_create_filter_specs_regular_preset() -> None:
         filter_not_completed=False,
     )
 
-    filter_order = ["--filter"]
+    filter_order = ["--filter-category"]
     filters = create_filter_specs_from_args(args, filter_order)
 
-    assert len(filters) == 2
+    assert len(filters) == 1
 
 
 def test_create_filter_specs_multiple_filters() -> None:
@@ -280,7 +281,8 @@ def test_create_filter_specs_multiple_filters() -> None:
     from orgstats.cli import create_filter_specs_from_args
 
     args = argparse.Namespace(
-        filter="all",
+        filter_category="all",
+        category_property="CATEGORY",
         filter_gamify_exp_above=10,
         filter_gamify_exp_below=None,
         filter_repeats_above=None,
@@ -294,7 +296,7 @@ def test_create_filter_specs_multiple_filters() -> None:
     )
 
     filter_order = [
-        "--filter",
+        "--filter-category",
         "--filter-gamify-exp-above",
         "--filter-date-from",
         "--filter-property",
@@ -311,7 +313,8 @@ def test_create_filter_specs_property_order() -> None:
     from orgstats.cli import create_filter_specs_from_args
 
     args = argparse.Namespace(
-        filter="all",
+        filter_category="all",
+        category_property="CATEGORY",
         filter_gamify_exp_above=None,
         filter_gamify_exp_below=None,
         filter_repeats_above=None,
@@ -335,7 +338,8 @@ def test_create_filter_specs_tag_order() -> None:
     from orgstats.cli import create_filter_specs_from_args
 
     args = argparse.Namespace(
-        filter="all",
+        filter_category="all",
+        category_property="CATEGORY",
         filter_gamify_exp_above=None,
         filter_gamify_exp_below=None,
         filter_repeats_above=None,
@@ -359,7 +363,8 @@ def test_build_filter_chain() -> None:
     from orgstats.cli import build_filter_chain
 
     args = argparse.Namespace(
-        filter="simple",
+        filter_category="simple",
+        category_property="CATEGORY",
         filter_gamify_exp_above=None,
         filter_gamify_exp_below=None,
         filter_repeats_above=None,
@@ -372,7 +377,7 @@ def test_build_filter_chain() -> None:
         filter_not_completed=False,
     )
 
-    argv = ["orgstats", "--filter", "simple", "file.org"]
+    argv = ["orgstats", "--filter-category", "simple", "file.org"]
     filters = build_filter_chain(args, argv)
 
     assert len(filters) == 1
@@ -950,37 +955,13 @@ def test_main_with_tag_groups_high_min_size() -> None:
     assert "GROUPS" in result.stdout
 
 
-def test_filter_nodes_deprecated() -> None:
-    """Test deprecated filter_nodes function still works."""
-    from orgstats.cli import filter_nodes, load_nodes
-
-    fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
-    nodes, _, _ = load_nodes([fixture_path], ["TODO"], ["DONE"], [])
-
-    filtered = filter_nodes(nodes, "simple")
-
-    assert len(filtered) <= len(nodes)
-
-
-def test_filter_nodes_all() -> None:
-    """Test filter_nodes with 'all' returns all nodes."""
-    from orgstats.cli import filter_nodes, load_nodes
-
-    fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
-    nodes, _, _ = load_nodes([fixture_path], ["TODO"], ["DONE"], [])
-
-    filtered = filter_nodes(nodes, "all")
-
-    assert len(filtered) == len(nodes)
-
-
 def test_parse_filter_order_from_argv() -> None:
     """Test parse_filter_order_from_argv extracts filter args."""
     from orgstats.cli import parse_filter_order_from_argv
 
     argv = [
         "orgstats",
-        "--filter",
+        "--filter-category",
         "simple",
         "--filter-gamify-exp-above",
         "10",
@@ -989,7 +970,7 @@ def test_parse_filter_order_from_argv() -> None:
 
     result = parse_filter_order_from_argv(argv)
 
-    assert result == ["--filter", "--filter-gamify-exp-above"]
+    assert result == ["--filter-category", "--filter-gamify-exp-above"]
 
 
 def test_parse_filter_order_from_argv_no_filters() -> None:

@@ -32,7 +32,7 @@ def test_integration_all_fixtures_parseable() -> None:
 
     for fixture_file in fixture_files:
         nodes = load_org_file(fixture_file)
-        result = analyze(nodes, {}, category="tags", max_relations=3)
+        result = analyze(nodes, {}, category="tags", max_relations=3, category_property="CATEGORY")
 
         assert result.total_tasks >= 0
         assert isinstance(result.task_states.values, dict)
@@ -43,7 +43,7 @@ def test_integration_24_00_time_handling() -> None:
     """Test that 24:00 timestamps are handled correctly."""
     nodes = load_org_file("edge_cases.org")
 
-    result = analyze(nodes, {}, category="tags", max_relations=3)
+    result = analyze(nodes, {}, category="tags", max_relations=3, category_property="CATEGORY")
 
     assert result.total_tasks >= 0
 
@@ -61,6 +61,7 @@ def test_integration_with_mapping() -> None:
         },
         category="tags",
         max_relations=3,
+        category_property="CATEGORY",
     )
 
     assert result.total_tasks > 0

@@ -143,11 +143,20 @@ def test_cli_tag_filtering() -> None:
 
 
 def test_cli_filter_simple_sorting() -> None:
-    """Test that --filter simple filters simple tasks."""
+    """Test that --filter-category simple filters simple tasks."""
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "simple", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--with-gamify",
+            "--filter-category",
+            "simple",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -161,11 +170,20 @@ def test_cli_filter_simple_sorting() -> None:
 
 
 def test_cli_filter_hard_sorting() -> None:
-    """Test that --filter hard filters hard tasks."""
+    """Test that --filter-category hard filters hard tasks."""
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "hard", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--with-gamify",
+            "--filter-category",
+            "hard",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -181,7 +199,7 @@ def test_cli_filter_output_format() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "all", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-category", "all", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -209,7 +227,7 @@ def test_cli_filter_combined_options() -> None:
             sys.executable,
             "-m",
             "orgstats",
-            "--filter",
+            "--filter-category",
             "regular",
             "-n",
             "5",
