@@ -1305,7 +1305,11 @@ There are some inconsistencies in data display. I'd like to fix those inconsiste
 :END:
 Computing filtered node lists for each group is pretty slow. This needs to be improved, so that we iterate over the nodes once as that's a much larger set.
 
-** TODO Output colors etc                                                                   :TUI:UX:
+** REWORKED Output colors etc                                                               :TUI:UX:
+:LOGBOOK:
+- State "REWORKED"   from "TODO"       [2026-02-21 Sat 01:22] \\
+  Needs some work, see COMMENT.
+:END:
 Please add a boolean CLI switch called ~--color~ that defaults to ~true~. This switch should be used to enable/disable the coloring of the CLI output. When the switch is set to ~true~, the CLI output should be colored. If the switch is set to ~false~ then the output should not be colored (same as currently). The details of how the coloring should be done follows soon.
 
 Please rename the sections as follows:
@@ -1316,51 +1320,70 @@ Please rename the sections as follows:
 Please add colors to the CLI output:
 
 1. General
-- All text should be white.
-- Section names should be made bright white.
+  - All text should be white.
+  - Section names should be made bright white.
 
 2. Global statistics section
-- Global statistics names (~Total tasks~, etc) should be white.
-- Global statistics values should be magenta.
+  - Global statistics names (~Total tasks~, etc) should be white.
+  - Global statistics values should be magenta.
 
 3. Frequency plots
-- Lines that delieate the chart should be dim white.
-- Value bars on the frequency plot should be green.
-- Top day value should also be magenta.
-- Dates should be white.
+  - Lines that delieate the chart should be dim white.
+  - Value bars on the frequency plot should be green.
+  - Top day value should also be magenta.
+  - Dates should be white.
 
 4. Task state histogram
-- Histogram labels from the ~done-keys~ set should be bright green or bright red (`CANCELLED` if present should be red, other should be bright green).
-- Histogram labels from the ~todo-keys~ set should be dim white.
-- Other labels should be bright yellow.
-- Value bars should be bright blue.
+  - Histogram labels from the ~done-keys~ set should be bright green or bright red (~CANCELLED~ if present should be red, other should be bright green).
+  - Histogram labels from the ~todo-keys~ set should be dim white.
+  - Other labels should be bright yellow.
+  - Value bars should be bright blue.
 
 5. Day histogram
-- Lines that delineate the chart should be dim white.
-- Labels should be white (same as regular text).
-- Value bars should be bright blue.
+  - Lines that delineate the chart should be dim white.
+  - Labels should be white (same as regular text).
+  - Value bars should be bright blue.
 
 6. Category histogram
-- Lines that delineate the chart should be dim white.
-- Labels should be white (same as regular text).
-- Value bars should be bright blue.
+  - Lines that delineate the chart should be dim white.
+  - Labels should be white (same as regular text).
+  - Value bars should be bright blue.
 
 7. Tag statistics section
-- Tag statistics names (~Total tasks~, etc) should be white.
-- Tag statistics values should be magenta.
+  - Tag statistics names (~Total tasks~, etc) should be white.
+  - Tag statistics values should be magenta.
 
 8. Group statistics section
-- Tag statistics names (~Total tasks~, etc) should be white.
-- Tag statistics values should be magenta.
+  - Tag statistics names (~Total tasks~, etc) should be white.
+  - Tag statistics values should be magenta.
 
 9. Relevant tasks section
-- Filename should be green.
-- Task todo state should be either bright green, bright red or dim white. Same logic as for task state histogram categories.
-- Task heading should be white.
+  - Filename should be green.
+  - Task todo state should be either bright green, bright red or dim white. Same logic as for task state histogram categories.
+  - Task heading should be white.
 
 You can use Python's ~colorama~ library to get colors in.
 
 Please make sure that the current tests pass by setting the color switch to false. Please add additional tests that specifically test for the colored output.
+
+*** COMMENT
+This one was a big one, with lots of intermediate steps. I expected the AI to goof something up along the way.
+It took more than 60% of the quota, but it one-shot it. It did introduce a display bug and the color scheme as described wasn't great, so it needed some adjustments.
+
+** REWORKED Color & other adjustments                                                       :UX:TUI:
+:LOGBOOK:
+- State "REWORKED"   from "TODO"       [2026-02-21 Sat 09:09] \\
+  The AI fixed the misaligned histogram, but broke the other two in the process. Needed reprompting.
+:END:
+I'd like to make some adjustments:
+
+- The frequency plot bars should be made bright blue, much like is done for the histograms.
+- The "TASKS", "TAGS" and "GROUPS" section headers should not be followed by a collon.
+- The "TASKS", "TAGS" and "GROUPS" section headers should be made bright white.
+- The file names in the TASKS section should be made dim white (including the collon).
+- The "none" category of the task state histogram should be made dim white (like TODO).
+- The task state histogram should be aligned to the 10th column when colored, just like the other histograms.
+- The categories and occurrences histograms categories should be made dim white (gray-ish).
 
 ** TODO Gamify handling                                                                     :UX:CLI:
 Extract gamify_exp handling into a separate preprocessing step that will go through the list of filtered nodes, determine their "category" based on the gamify_exp property (same algorithm as currently) and update each node's properties with a new property of ~CATEGORY~ with the computed category as the value. If a node already has a ~CATEGORY~ property, its value should be overwritten.

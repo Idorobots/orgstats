@@ -15,7 +15,7 @@ def test_cli_runs_successfully() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -33,7 +33,7 @@ def test_cli_with_multiple_files() -> None:
     fixture2 = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture1, fixture2],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture1, fixture2],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -50,7 +50,7 @@ def test_cli_outputs_statistics() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -59,7 +59,7 @@ def test_cli_outputs_statistics() -> None:
     assert result.returncode == 0
     assert "Total tasks:" in result.stdout
     assert "Task states:" in result.stdout
-    assert "Top tags:" in result.stdout
+    assert "TAGS" in result.stdout
 
 
 def test_cli_with_archive_small() -> None:
@@ -67,7 +67,7 @@ def test_cli_with_archive_small() -> None:
     archive_path = os.path.join(PROJECT_ROOT, "examples", "ARCHIVE_small")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", archive_path],
+        [sys.executable, "-m", "orgstats", "--no-color", archive_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -85,7 +85,7 @@ def test_cli_via_cli_module() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -100,7 +100,7 @@ def test_cli_handles_24_00_time() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "edge_cases.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -114,7 +114,10 @@ def test_cli_handles_24_00_time() -> None:
 def test_cli_no_arguments() -> None:
     """Test CLI behavior with no arguments."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats"], cwd=PROJECT_ROOT, capture_output=True, text=True
+        [sys.executable, "-m", "orgstats", "--no-color"],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
     )
 
     # Should report that at least one file is required.
@@ -126,7 +129,7 @@ def test_cli_tag_filtering() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -144,7 +147,7 @@ def test_cli_filter_simple_sorting() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter", "simple", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "simple", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -162,7 +165,7 @@ def test_cli_filter_hard_sorting() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter", "hard", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "hard", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -178,7 +181,7 @@ def test_cli_filter_output_format() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter", "all", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "all", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -228,7 +231,7 @@ def test_cli_outputs_time_ranges() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -244,7 +247,7 @@ def test_cli_time_ranges_format() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -258,7 +261,7 @@ def test_cli_time_ranges_format() -> None:
 def test_cli_default_max_results_is_10() -> None:
     """Test that default max_results is 10."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--help"],
+        [sys.executable, "-m", "orgstats", "--no-color", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -269,20 +272,20 @@ def test_cli_default_max_results_is_10() -> None:
 
 
 def test_cli_displays_top_tasks() -> None:
-    """Test that CLI displays Top tasks section."""
+    """Test that CLI displays TASKS section."""
     fixture_path = os.path.join(FIXTURES_DIR, "repeated_tasks.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture_path, "-n", "3"],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture_path, "-n", "3"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
     assert result.returncode == 0
-    assert "Top tasks:" in result.stdout
-    assert "Top tags:" in result.stdout
+    assert "TASKS" in result.stdout
+    assert "TAGS" in result.stdout
     # Top tasks should appear before Top tags
-    top_tasks_pos = result.stdout.index("Top tasks:")
-    top_tags_pos = result.stdout.index("Top tags:")
+    top_tasks_pos = result.stdout.index("TASKS")
+    top_tags_pos = result.stdout.index("TAGS")
     assert top_tasks_pos < top_tags_pos

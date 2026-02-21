@@ -2,6 +2,8 @@
 
 from datetime import date, timedelta
 
+from orgstats.color import bright_blue, dim_white, magenta
+
 
 def expand_timeline(timeline: dict[date, int], earliest: date, latest: date) -> dict[date, int]:
     """Fill in missing dates with 0 activity to create a complete timeline.
@@ -85,7 +87,11 @@ def _map_value_to_bar(value: int, max_value: int) -> str:
 
 
 def render_timeline_chart(
-    timeline: dict[date, int], earliest: date, latest: date, num_buckets: int
+    timeline: dict[date, int],
+    earliest: date,
+    latest: date,
+    num_buckets: int,
+    color_enabled: bool = False,
 ) -> tuple[str, str, str]:
     """Create ASCII bar chart from timeline data.
 
@@ -94,6 +100,7 @@ def render_timeline_chart(
         earliest: First date in the range
         latest: Last date in the range
         num_buckets: Number of buckets (bars) in the chart
+        color_enabled: Whether to apply colors to the output
 
     Returns:
         Tuple of (date_line, chart_line, underline)
@@ -103,6 +110,7 @@ def render_timeline_chart(
     max_value = max(buckets) if buckets else 0
 
     bars = "".join(_map_value_to_bar(value, max_value) for value in buckets)
+    colored_bars = bright_blue(bars, color_enabled)
 
     start_date_str = earliest.isoformat()
     end_date_str = latest.isoformat()
@@ -119,8 +127,11 @@ def render_timeline_chart(
     else:
         top_day_str = "0"
 
-    chart_line = f"┊{bars}┊ {top_day_str}"
+    colored_top_day = magenta(top_day_str, color_enabled)
+    delimiter = dim_white("┊", color_enabled)
 
-    underline = "‾" * chart_width
+    chart_line = f"{delimiter}{colored_bars}{delimiter} {colored_top_day}"
+
+    underline = dim_white("‾" * chart_width, color_enabled)
 
     return (date_line, chart_line, underline)

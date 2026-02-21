@@ -12,7 +12,7 @@ FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 def test_max_groups_default_is_5() -> None:
     """Test that default max_groups is 5."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--help"],
+        [sys.executable, "-m", "orgstats", "--no-color", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -28,7 +28,7 @@ def test_max_groups_limits_groups_section() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "tag_groups_test.org")
 
     result_default = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--min-group-size", "2", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--min-group-size", "2", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -52,11 +52,11 @@ def test_max_groups_limits_groups_section() -> None:
 
     assert result_default.returncode == 0
     assert result_limited.returncode == 0
-    assert "Tag groups:" in result_default.stdout
-    assert "Tag groups:" in result_limited.stdout
+    assert "GROUPS" in result_default.stdout
+    assert "GROUPS" in result_limited.stdout
 
-    groups_default = result_default.stdout[result_default.stdout.index("Tag groups:") :]
-    groups_limited = result_limited.stdout[result_limited.stdout.index("Tag groups:") :]
+    groups_default = result_default.stdout[result_default.stdout.index("GROUPS") :]
+    groups_limited = result_limited.stdout[result_limited.stdout.index("GROUPS") :]
 
     assert len(groups_limited) < len(groups_default)
 
@@ -66,14 +66,14 @@ def test_max_groups_zero_omits_section() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "tag_groups_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-groups", "0", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-groups", "0", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
     assert result.returncode == 0
-    assert "Tag groups:" not in result.stdout
+    assert "GROUPS" not in result.stdout
 
 
 def test_max_groups_negative_fails() -> None:
@@ -81,7 +81,7 @@ def test_max_groups_negative_fails() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-groups", "-1", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-groups", "-1", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -96,14 +96,14 @@ def test_max_groups_with_fewer_groups() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "tag_groups_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-groups", "100", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-groups", "100", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
     assert result.returncode == 0
-    assert "Tag groups:" in result.stdout
+    assert "GROUPS" in result.stdout
 
 
 def test_max_groups_with_min_group_size() -> None:
@@ -127,7 +127,7 @@ def test_max_groups_with_min_group_size() -> None:
     )
 
     assert result.returncode == 0
-    assert "Tag groups:" in result.stdout
+    assert "GROUPS" in result.stdout
 
 
 def test_max_groups_one() -> None:
@@ -151,7 +151,7 @@ def test_max_groups_one() -> None:
     )
 
     assert result.returncode == 0
-    assert "Tag groups:" in result.stdout
+    assert "GROUPS" in result.stdout
 
 
 def test_max_groups_shows_section_with_no_results() -> None:
@@ -175,13 +175,13 @@ def test_max_groups_shows_section_with_no_results() -> None:
     )
 
     assert result.returncode == 0
-    assert "Tag groups:" in result.stdout
+    assert "GROUPS" in result.stdout
 
 
 def test_min_group_size_default_is_2() -> None:
     """Test that default min_group_size is 2."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--help"],
+        [sys.executable, "-m", "orgstats", "--no-color", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,

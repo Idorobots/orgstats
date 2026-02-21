@@ -14,7 +14,7 @@ def test_cli_filter_tag_regex_basic() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-tag", "tag.*", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-tag", "tag.*", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -29,7 +29,7 @@ def test_cli_filter_tag_regex_exact() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-tag", "^tag1$", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-tag", "^tag1$", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -44,7 +44,7 @@ def test_cli_filter_tag_regex_alternation() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-tag", "tag1|tag2", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-tag", "tag1|tag2", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -59,7 +59,7 @@ def test_cli_filter_tag_invalid_regex() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-tag", "[invalid", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-tag", "[invalid", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -75,7 +75,7 @@ def test_cli_filter_heading_basic() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-heading", "Task", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-heading", "Task", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -90,7 +90,15 @@ def test_cli_filter_heading_alternation() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-heading", "bug|fix", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter-heading",
+            "bug|fix",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -104,7 +112,15 @@ def test_cli_filter_heading_word_boundary() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-heading", r"\btest\b", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter-heading",
+            r"\btest\b",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -118,7 +134,15 @@ def test_cli_filter_heading_invalid_regex() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-heading", "(unclosed", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter-heading",
+            "(unclosed",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -134,7 +158,7 @@ def test_cli_filter_body_basic() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-body", "content", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-body", "content", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -149,7 +173,7 @@ def test_cli_filter_body_multiline_anchor() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-body", "^TODO:", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-body", "^TODO:", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -163,7 +187,15 @@ def test_cli_filter_body_alternation() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-body", "TODO|FIXME", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter-body",
+            "TODO|FIXME",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -177,7 +209,7 @@ def test_cli_filter_body_invalid_regex() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-body", "*invalid", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-body", "*invalid", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -286,7 +318,7 @@ def test_cli_filter_regex_with_other_filters() -> None:
 def test_cli_help_shows_regex_options() -> None:
     """Test that --help displays regex filter options."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--help"],
+        [sys.executable, "-m", "orgstats", "--no-color", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -304,7 +336,7 @@ def test_cli_filter_tag_case_sensitive() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-tag", "Tag1", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-tag", "Tag1", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -318,7 +350,7 @@ def test_cli_filter_heading_case_sensitive() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-heading", "task", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-heading", "task", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -332,7 +364,7 @@ def test_cli_filter_body_case_sensitive() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-body", "Content", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-body", "Content", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
