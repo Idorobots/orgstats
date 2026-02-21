@@ -8,6 +8,8 @@ import sys
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, datetime
+from pathlib import Path
+from typing import TypeGuard, cast
 
 import orgparse
 from colorama import Style
@@ -137,6 +139,16 @@ class Filter:
     filter: Callable[[list[orgparse.node.OrgNode]], list[orgparse.node.OrgNode]]
 
 
+@dataclass
+class ConfigOptions:
+    """Config option mapping metadata."""
+
+    int_options: dict[str, tuple[str, int | None]]
+    bool_options: dict[str, str]
+    str_options: dict[str, str]
+    list_options: dict[str, str]
+
+
 def load_exclude_list(filepath: str | None) -> set[str]:
     """Load exclude list from a file (one word per line).
 
@@ -205,6 +217,266 @@ def load_mapping(filepath: str | None) -> dict[str, str]:
     except json.JSONDecodeError as e:
         print(f"Error: Invalid JSON in '{filepath}': {e}", file=sys.stderr)
         sys.exit(1)
+
+
+def load_config(filepath: str) -> tuple[dict[str, object], bool]:
+    """Load config from JSON file.
+
+    Args:
+        filepath: Path to config file
+
+    Returns:
+        Tuple of (config dict, malformed flag)
+    """
+    try:
+        with open(filepath, encoding="utf-8") as f:
+            config = json.load(f)
+    except FileNotFoundError:
+        return ({}, False)
+    except PermissionError:
+        return ({}, True)
+    except OSError:
+        return ({}, True)
+    except json.JSONDecodeError:
+        return ({}, True)
+
+    if not isinstance(config, dict):
+        return ({}, True)
+
+    return (config, False)
+
+
+def is_valid_date_argument(value: str) -> bool:
+    """Check if date string is valid for parse_date_argument."""
+    if not value or not value.strip():
+        return False
+
+    try:
+        datetime.fromisoformat(value)
+        return True
+    except ValueError:
+        pass
+
+    try:
+        datetime.fromisoformat(value.replace(" ", "T"))
+        return True
+    except ValueError:
+        return False
+
+
+def is_valid_keys_string(value: str) -> bool:
+    """Check if comma-separated keys string is valid."""
+    if not value or not value.strip():
+        return False
+
+    keys = [k.strip() for k in value.split(",") if k.strip()]
+    if not keys:
+        return False
+
+    return all("|" not in key for key in keys)
+
+
+def is_string_list(value: object) -> TypeGuard[list[str]]:
+    """Check if value is list[str]."""
+    return isinstance(value, list) and all(isinstance(item, str) for item in value)
+
+
+def parse_color_defaults(config: dict[str, object]) -> tuple[dict[str, object], bool]:
+    """Parse color-related config defaults."""
+    defaults: dict[str, object] = {}
+    color_value = config.get("--color")
+    no_color_value = config.get("--no-color")
+
+    if "--color" in config and not isinstance(color_value, bool):
+        return ({}, False)
+    if "--no-color" in config and not isinstance(no_color_value, bool):
+        return ({}, False)
+    if (
+        isinstance(color_value, bool)
+        and isinstance(no_color_value, bool)
+        and color_value
+        and no_color_value
+    ):
+        return ({}, False)
+
+    if color_value is True:
+        defaults["color_flag"] = True
+    if no_color_value is True:
+        defaults["color_flag"] = False
+
+    return (defaults, True)
+
+
+def validate_int_option(value: object, min_value: int | None) -> int | None:
+    """Validate integer option value."""
+    if not isinstance(value, int):
+        return None
+    if min_value is not None and value < min_value:
+        return None
+    return value
+
+
+def validate_str_option(key: str, value: object) -> str | None:
+    """Validate string option value."""
+    if not isinstance(value, str):
+        return None
+    if key in ("--exclude", "--mapping", "--config") and not value.strip():
+        return None
+    if key == "--use" and value not in {"tags", "heading", "body"}:
+        return None
+    if key in ("--todo-keys", "--done-keys") and not is_valid_keys_string(value):
+        return None
+    if key in ("--filter-date-from", "--filter-date-until") and not is_valid_date_argument(value):
+        return None
+    return value
+
+
+def validate_list_option(key: str, value: object) -> list[str] | None:
+    """Validate list option value."""
+    if not is_string_list(value):
+        return None
+    if key == "--filter-property" and any("=" not in item for item in value):
+        return None
+    if key == "--filter-tag" and any(not is_valid_regex(item) for item in value):
+        return None
+    if key == "--filter-heading" and any(not is_valid_regex(item) for item in value):
+        return None
+    if key == "--filter-body" and any(
+        not is_valid_regex(item, use_multiline=True) for item in value
+    ):
+        return None
+    return list(value)
+
+
+def apply_config_entry(
+    key: str,
+    value: object,
+    defaults: dict[str, object],
+    append_defaults: dict[str, list[str]],
+    options: ConfigOptions,
+) -> bool:
+    """Apply a config entry to defaults if valid."""
+    valid = True
+
+    if key in options.int_options:
+        dest, min_value = options.int_options[key]
+        int_value = validate_int_option(value, min_value)
+        if int_value is None:
+            valid = False
+        else:
+            defaults[dest] = int_value
+    elif key in options.bool_options:
+        if not isinstance(value, bool):
+            valid = False
+        else:
+            defaults[options.bool_options[key]] = value
+    elif key in options.str_options:
+        str_value = validate_str_option(key, value)
+        if str_value is None:
+            valid = False
+        else:
+            defaults[options.str_options[key]] = str_value
+    elif key in options.list_options:
+        list_value = validate_list_option(key, value)
+        if list_value is None:
+            valid = False
+        else:
+            append_defaults[options.list_options[key]] = list_value
+
+    return valid
+
+
+def build_config_defaults(
+    config: dict[str, object],
+) -> tuple[dict[str, object], dict[str, list[str]]] | None:
+    """Validate config values and build defaults.
+
+    Args:
+        config: Raw config dict
+
+    Returns:
+        Tuple of (defaults, append_defaults) or None if malformed
+    """
+    defaults: dict[str, object] = {}
+    append_defaults: dict[str, list[str]] = {}
+    valid = True
+
+    color_defaults, color_valid = parse_color_defaults(config)
+    if not color_valid:
+        return None
+    defaults.update(color_defaults)
+
+    int_options: dict[str, tuple[str, int | None]] = {
+        "--max-results": ("max_results", None),
+        "--max-tags": ("max_tags", 0),
+        "--max-relations": ("max_relations", 0),
+        "--min-group-size": ("min_group_size", 0),
+        "--max-groups": ("max_groups", 0),
+        "--buckets": ("buckets", 20),
+        "--filter-gamify-exp-above": ("filter_gamify_exp_above", None),
+        "--filter-gamify-exp-below": ("filter_gamify_exp_below", None),
+        "--filter-repeats-above": ("filter_repeats_above", None),
+        "--filter-repeats-below": ("filter_repeats_below", None),
+    }
+
+    bool_options: dict[str, str] = {
+        "--with-gamify-category": "with_gamify_category",
+        "--with-tags-as-category": "with_tags_as_category",
+        "--filter-completed": "filter_completed",
+        "--filter-not-completed": "filter_not_completed",
+    }
+
+    str_options: dict[str, str] = {
+        "--exclude": "exclude",
+        "--mapping": "mapping",
+        "--filter-category": "filter_category",
+        "--category-property": "category_property",
+        "--use": "use",
+        "--todo-keys": "todo_keys",
+        "--done-keys": "done_keys",
+        "--filter-date-from": "filter_date_from",
+        "--filter-date-until": "filter_date_until",
+        "--config": "config",
+    }
+
+    list_options: dict[str, str] = {
+        "--filter-property": "filter_properties",
+        "--filter-tag": "filter_tags",
+        "--filter-heading": "filter_headings",
+        "--filter-body": "filter_bodies",
+    }
+
+    options = ConfigOptions(
+        int_options=int_options,
+        bool_options=bool_options,
+        str_options=str_options,
+        list_options=list_options,
+    )
+
+    for key, value in config.items():
+        if key in ("--color", "--no-color"):
+            continue
+
+        if not apply_config_entry(key, value, defaults, append_defaults, options):
+            valid = False
+            break
+
+    if not valid:
+        return None
+
+    return (defaults, append_defaults)
+
+
+def is_valid_regex(pattern: str, use_multiline: bool = False) -> bool:
+    """Check if a string is a valid regex pattern."""
+    try:
+        if use_multiline:
+            re.compile(pattern, re.MULTILINE)
+        else:
+            re.compile(pattern)
+    except re.error:
+        return False
+    return True
 
 
 def get_top_day_info(time_range: TimeRange | None) -> tuple[str, int] | None:
@@ -497,16 +769,20 @@ def display_top_tasks(
             print(f"  {colored_filename} {heading}".strip())
 
 
-def parse_arguments() -> argparse.Namespace:
-    """Parse command-line arguments.
-
-    Returns:
-        Parsed arguments namespace
-    """
+def create_parser() -> argparse.ArgumentParser:
+    """Create argument parser for CLI."""
     parser = argparse.ArgumentParser(
         prog="orgstats",
         description="Analyze Emacs Org-mode archive files for task statistics.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "--config",
+        type=str,
+        default=".org-cli.json",
+        metavar="FILE",
+        help="Config file name to load from current directory (default: .org-cli.json)",
     )
 
     parser.add_argument(
@@ -745,7 +1021,48 @@ def parse_arguments() -> argparse.Namespace:
         help="Disable colored output",
     )
 
-    return parser.parse_args()
+    return parser
+
+
+def parse_config_argument(argv: list[str]) -> str:
+    """Parse only the --config argument from argv."""
+    config_parser = argparse.ArgumentParser(add_help=False)
+    config_parser.add_argument("--config", type=str, default=".org-cli.json")
+    config_args, _ = config_parser.parse_known_args(argv[1:])
+    return cast(str, config_args.config)
+
+
+def parse_arguments() -> argparse.Namespace:
+    """Parse command-line arguments.
+
+    Returns:
+        Parsed arguments namespace
+    """
+    parser = create_parser()
+
+    config_name = parse_config_argument(sys.argv)
+    config_path = Path.cwd() / config_name
+    config, load_error = load_config(str(config_path))
+
+    append_defaults: dict[str, list[str]] = {}
+    if load_error:
+        print("Malformed config", file=sys.stderr)
+    else:
+        config_defaults = build_config_defaults(config)
+        if config_defaults is None:
+            print("Malformed config", file=sys.stderr)
+        else:
+            defaults, append_defaults = config_defaults
+            if defaults:
+                parser.set_defaults(**defaults)
+
+    args = parser.parse_args()
+
+    for dest, values in append_defaults.items():
+        if getattr(args, dest) is None:
+            setattr(args, dest, values)
+
+    return args
 
 
 def validate_and_parse_keys(keys_str: str, option_name: str) -> list[str]:
@@ -962,6 +1279,43 @@ def parse_filter_order_from_argv(argv: list[str]) -> list[str]:
     ]
 
     return [arg for arg in argv if arg in filter_args]
+
+
+def count_filter_values(value: list[str] | None) -> int:
+    """Count filter values for append-style filters."""
+    return len(value) if value else 0
+
+
+def extend_filter_order_with_defaults(
+    filter_order: list[str], args: argparse.Namespace
+) -> list[str]:
+    """Extend filter order to include config-provided filters."""
+    filter_headings = getattr(args, "filter_headings", None)
+    filter_bodies = getattr(args, "filter_bodies", None)
+    expected_counts = {
+        "--filter-category": 1 if args.filter_category != "all" else 0,
+        "--filter-gamify-exp-above": 1 if args.filter_gamify_exp_above is not None else 0,
+        "--filter-gamify-exp-below": 1 if args.filter_gamify_exp_below is not None else 0,
+        "--filter-repeats-above": 1 if args.filter_repeats_above is not None else 0,
+        "--filter-repeats-below": 1 if args.filter_repeats_below is not None else 0,
+        "--filter-date-from": 1 if args.filter_date_from is not None else 0,
+        "--filter-date-until": 1 if args.filter_date_until is not None else 0,
+        "--filter-property": count_filter_values(args.filter_properties),
+        "--filter-tag": count_filter_values(args.filter_tags),
+        "--filter-heading": count_filter_values(filter_headings),
+        "--filter-body": count_filter_values(filter_bodies),
+        "--filter-completed": 1 if args.filter_completed else 0,
+        "--filter-not-completed": 1 if args.filter_not_completed else 0,
+    }
+
+    full_order = list(filter_order)
+    for arg_name, expected in expected_counts.items():
+        existing = full_order.count(arg_name)
+        missing = expected - existing
+        if missing > 0:
+            full_order.extend([arg_name] * missing)
+
+    return full_order
 
 
 def handle_preset_filter(preset: str, category_property: str) -> list[Filter]:
@@ -1201,6 +1555,7 @@ def build_filter_chain(args: argparse.Namespace, argv: list[str]) -> list[Filter
         List of filter specs to apply sequentially
     """
     filter_order = parse_filter_order_from_argv(argv)
+    filter_order = extend_filter_order_with_defaults(filter_order, args)
     return create_filter_specs_from_args(args, filter_order)
 
 

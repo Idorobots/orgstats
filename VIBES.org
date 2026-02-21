@@ -1435,6 +1435,30 @@ Filtering can't be done in advance, since the category filter uses the enriched 
 
 This will be handled at some future point, when orgparse is updated to be able to modify the nodes.
 
+** TODO .org.json config                                                                    :UX:CLI:
+It is inconvenient to pass all the parameters to the CLI command each time. I'd like the command to parse an optional configuration file (named ~.org-cli.json~) that is found in the current working directory (doesn't matter if there are any files or directories passed to the command). If that file is absent or malformed, the usual defaults should be used.
+
+If the file is present, it is opened, parsed and the values stored in it should be used as the default values for the command switches.  CLI passed arguments take precedence over the supplied values, so the precedence should be: CLI arguments, config file, code defaults.
+
+The content of the file should be a JSON object with key-value pairs representing each CLI switch and the desired default value. Here's an example:
+
+#+begin_src js
+{
+  "--max-results": 10,
+  "--filter": "simple",
+  "--show": "heading"
+}
+#+end_src
+
+Keys are optional, so if a key is not found in the file, then the code defaults should be used instead. Specifically, an empty JSON object is also a valid configuration file.
+
+A new CLI parameter called ~--config~ should be added that names the config file to search for. By default its value should be ~.org-cli.json~. The value of this switch can itself be found in the config file, but that won't affect how the configuration is loaded.
+
+*** COMMENT
+This task was done with two models, Claude Sonnet 4.5 did the planning while Codex 5.2 did the implementation.
+Codex took a while to implement the plan and didn't validate it in one go, but made fewer mistakes that needed to be mended.
+It made ~--config~ work in a weird way (just passing a filename to search for in the current directory) that needed reprompting.
+
 ** TODO Default FILE to *.org in cwd                                                        :UX:CLI:
 When a ~FILE~ is not provided to the CLI command  we currently return an error. I'd like to change that to search the current working directory for all *.org files and if any are found, the command will analyze them.
 In addition to that, the command should accept a root directory and search it for all *.org files for processing.
@@ -1462,25 +1486,6 @@ orgstats path/to1 path/to2
 # Mixed - all passed files and directories are searched and processed
 orgstats path/to/file.org path/to2
 #+end_example
-
-** TODO .org.json config                                                                    :UX:CLI:
-It is inconvenient to pass all the parameters to the CLI command each time. I'd like the command to parse an optional configuration file (named ~.org-cli.json~) that is found in the current working directory (doesn't matter if there are any files or directories passed to the command). If that file is absent or malformed, the usual defaults should be used.
-
-If the file is present, it is opened, parsed and the values stored in it should be used as the default values for the command switches.  CLI passed arguments take precedence over the supplied values, so the precedence should be: CLI arguments, config file, code defaults.
-
-The content of the file should be a JSON object with key-value pairs representing each CLI switch and the desired default value. Here's an example:
-
-#+begin_src js
-{
-  "--max-results": 10,
-  "--filter": "simple",
-  "--show": "heading"
-}
-#+end_src
-
-Keys are optional, so if a key is not found in the file, then the code defaults should be used instead. Specifically, an empty JSON object is also a valid configuration file.
-
-A new CLI parameter called ~--config~ should be added that names the config file to search for. By default its value should be ~.org-cli.json~. The value of this switch can itself be found in the config file, but that won't affect how the configuration is loaded.
 
 ** TODO Stats command                                                                 :CLI:Analysis:
 Wrap the current analysis logic into a dedicated ~stats~ command. There will be more commands to come in the future.
