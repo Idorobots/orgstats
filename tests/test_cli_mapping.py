@@ -15,7 +15,17 @@ def test_cli_accepts_mapping_parameter() -> None:
     mapping_path = os.path.join(FIXTURES_DIR, "custom_mapping.json")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--mapping", mapping_path, fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--mapping",
+            mapping_path,
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -28,7 +38,7 @@ def test_cli_accepts_mapping_parameter() -> None:
 def test_cli_mapping_help_text() -> None:
     """Test that --mapping appears in help text."""
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--help"],
+        [sys.executable, "-m", "org", "stats", "summary", "--no-color", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -49,6 +59,8 @@ def test_cli_mapping_with_valid_json() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--no-color",
             "--mapping",
             mapping_path,
@@ -77,6 +89,8 @@ def test_cli_mapping_with_empty_json() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--no-color",
             "--mapping",
             mapping_path,
@@ -98,7 +112,17 @@ def test_cli_mapping_with_nonexistent_file() -> None:
     mapping_path = os.path.join(FIXTURES_DIR, "nonexistent_mapping.json")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--mapping", mapping_path, fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--mapping",
+            mapping_path,
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -115,7 +139,17 @@ def test_cli_mapping_with_malformed_json() -> None:
     mapping_path = os.path.join(FIXTURES_DIR, "malformed_mapping.json")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--mapping", mapping_path, fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--mapping",
+            mapping_path,
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -132,7 +166,17 @@ def test_cli_mapping_with_array_json() -> None:
     mapping_path = os.path.join(FIXTURES_DIR, "array_mapping.json")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--mapping", mapping_path, fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--mapping",
+            mapping_path,
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -149,7 +193,17 @@ def test_cli_mapping_with_invalid_value_types() -> None:
     mapping_path = os.path.join(FIXTURES_DIR, "invalid_mapping.json")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--mapping", mapping_path, fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--mapping",
+            mapping_path,
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -165,7 +219,17 @@ def test_cli_without_mapping_uses_default() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "mapping_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "-n", "10", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "-n",
+            "10",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -184,6 +248,8 @@ def test_cli_mapping_with_other_options() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--mapping",
             mapping_path,
             "-n",
@@ -211,6 +277,8 @@ def test_cli_mapping_affects_all_categories() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--mapping",
             mapping_path,
             "--use",
@@ -229,6 +297,8 @@ def test_cli_mapping_affects_all_categories() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--mapping",
             mapping_path,
             "--use",
@@ -247,6 +317,8 @@ def test_cli_mapping_affects_all_categories() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--mapping",
             mapping_path,
             "--use",
@@ -277,6 +349,8 @@ def test_cli_mapping_case_sensitive() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--no-color",
             "--mapping",
             mapping_path,

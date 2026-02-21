@@ -22,10 +22,13 @@ def test_main_function_directly() -> None:
 
         # Set argv to test with a fixture file
         fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
-        sys.argv = ["cli.py", fixture_path]
+        sys.argv = ["cli.py", "stats", "summary", fixture_path]
 
         # Call main()
-        main()
+        try:
+            main()
+        except SystemExit as exc:
+            assert exc.code == 0
 
         # Get output
         output = sys.stdout.getvalue()
@@ -53,9 +56,12 @@ def test_main_with_multiple_files_direct() -> None:
 
         fixture1 = os.path.join(FIXTURES_DIR, "simple.org")
         fixture2 = os.path.join(FIXTURES_DIR, "single_task.org")
-        sys.argv = ["cli.py", fixture1, fixture2]
+        sys.argv = ["cli.py", "stats", "summary", fixture1, fixture2]
 
-        main()
+        try:
+            main()
+        except SystemExit as exc:
+            assert exc.code == 0
 
         output = sys.stdout.getvalue()
 
@@ -68,7 +74,7 @@ def test_main_with_multiple_files_direct() -> None:
 
 
 def test_main_with_filter_parameter() -> None:
-    """Test main function with --filter parameter."""
+    """Test main function with filter parameters."""
     from org.cli import main
 
     original_argv = sys.argv
@@ -80,15 +86,19 @@ def test_main_with_filter_parameter() -> None:
         fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
         sys.argv = [
             "cli.py",
+            "stats",
+            "summary",
             "--config",
             "missing.json",
-            "--with-gamify-category",
-            "--filter-category",
-            "hard",
+            "--filter-gamify-exp-above",
+            "0",
             fixture_path,
         ]
 
-        main()
+        try:
+            main()
+        except SystemExit as exc:
+            assert exc.code == 0
 
         output = sys.stdout.getvalue()
 
@@ -114,9 +124,19 @@ def test_main_with_custom_todo_keys() -> None:
         sys.stdout = StringIO()
 
         fixture_path = os.path.join(FIXTURES_DIR, "custom_states.org")
-        sys.argv = ["cli.py", "--todo-keys", "TODO,WAITING,IN-PROGRESS", fixture_path]
+        sys.argv = [
+            "cli.py",
+            "stats",
+            "summary",
+            "--todo-keys",
+            "TODO,WAITING,IN-PROGRESS",
+            fixture_path,
+        ]
 
-        main()
+        try:
+            main()
+        except SystemExit as exc:
+            assert exc.code == 0
 
         output = sys.stdout.getvalue()
 
@@ -140,9 +160,19 @@ def test_main_with_custom_done_keys() -> None:
         sys.stdout = StringIO()
 
         fixture_path = os.path.join(FIXTURES_DIR, "custom_states.org")
-        sys.argv = ["cli.py", "--done-keys", "DONE,CANCELLED,ARCHIVED", fixture_path]
+        sys.argv = [
+            "cli.py",
+            "stats",
+            "summary",
+            "--done-keys",
+            "DONE,CANCELLED,ARCHIVED",
+            fixture_path,
+        ]
 
-        main()
+        try:
+            main()
+        except SystemExit as exc:
+            assert exc.code == 0
 
         output = sys.stdout.getvalue()
 
@@ -168,6 +198,8 @@ def test_main_with_both_todo_and_done_keys() -> None:
         fixture_path = os.path.join(FIXTURES_DIR, "custom_states.org")
         sys.argv = [
             "cli.py",
+            "stats",
+            "summary",
             "--todo-keys",
             "TODO,WAITING",
             "--done-keys",
@@ -175,7 +207,10 @@ def test_main_with_both_todo_and_done_keys() -> None:
             fixture_path,
         ]
 
-        main()
+        try:
+            main()
+        except SystemExit as exc:
+            assert exc.code == 0
 
         output = sys.stdout.getvalue()
 
@@ -199,9 +234,12 @@ def test_main_displays_none_state() -> None:
         sys.stdout = StringIO()
 
         fixture_path = os.path.join(FIXTURES_DIR, "custom_states.org")
-        sys.argv = ["cli.py", fixture_path]
+        sys.argv = ["cli.py", "stats", "summary", fixture_path]
 
-        main()
+        try:
+            main()
+        except SystemExit as exc:
+            assert exc.code == 0
 
         output = sys.stdout.getvalue()
 

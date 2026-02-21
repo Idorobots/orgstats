@@ -11,6 +11,8 @@ def test_cli_with_buckets_parameter() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--no-color",
             "--buckets",
             "30",
@@ -26,7 +28,15 @@ def test_cli_with_buckets_parameter() -> None:
 def test_cli_buckets_default_value() -> None:
     """Test that default bucket value (50) is used when not specified."""
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "examples/ARCHIVE_small"],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "examples/ARCHIVE_small",
+        ],
         capture_output=True,
         text=True,
     )
@@ -41,6 +51,8 @@ def test_cli_buckets_validation_minimum() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--no-color",
             "--buckets",
             "10",
@@ -60,6 +72,8 @@ def test_cli_buckets_validation_exact_minimum() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--no-color",
             "--buckets",
             "20",
@@ -75,7 +89,15 @@ def test_cli_buckets_validation_exact_minimum() -> None:
 def test_cli_output_shows_global_chart() -> None:
     """Test that global chart is present."""
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "examples/ARCHIVE_small"],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "examples/ARCHIVE_small",
+        ],
         capture_output=True,
         text=True,
     )
@@ -93,7 +115,15 @@ def test_cli_output_shows_global_chart() -> None:
 def test_cli_output_shows_per_tag_charts() -> None:
     """Test that charts appear under each tag."""
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "examples/ARCHIVE_small"],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "examples/ARCHIVE_small",
+        ],
         capture_output=True,
         text=True,
     )
@@ -109,7 +139,15 @@ def test_cli_output_shows_per_tag_charts() -> None:
 def test_cli_chart_format_in_output() -> None:
     """Test that charts have expected format."""
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "examples/ARCHIVE_small"],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "examples/ARCHIVE_small",
+        ],
         capture_output=True,
         text=True,
     )
@@ -132,6 +170,8 @@ def test_cli_buckets_different_values() -> None:
                 sys.executable,
                 "-m",
                 "org",
+                "stats",
+                "summary",
                 "--no-color",
                 "--buckets",
                 str(buckets),
@@ -147,7 +187,7 @@ def test_cli_buckets_different_values() -> None:
 def test_cli_help_shows_buckets() -> None:
     """Test that --buckets appears in help text."""
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--help"],
+        [sys.executable, "-m", "org", "stats", "summary", "--no-color", "--help"],
         capture_output=True,
         text=True,
     )

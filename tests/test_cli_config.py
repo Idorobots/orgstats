@@ -6,8 +6,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-from pytest import CaptureFixture, MonkeyPatch
-
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 
@@ -18,73 +16,109 @@ def write_config(path: Path, data: dict[str, object]) -> None:
         json.dump(data, f)
 
 
-def test_config_applies_defaults(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+def test_config_applies_defaults(tmp_path: Path) -> None:
     """Config values should become defaults when CLI omits them."""
-    from org.cli import parse_arguments
-
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
     config_path = tmp_path / ".org-cli.json"
     write_config(config_path, {"--use": "heading"})
 
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(sys, "argv", ["org", fixture_path])
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            fixture_path,
+        ],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+    )
 
-    args = parse_arguments()
-    assert args.use == "heading"
+    assert result.returncode == 0
+    assert "HEADING WORDS" in result.stdout
 
 
-def test_cli_overrides_config(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+def test_cli_overrides_config(tmp_path: Path) -> None:
     """CLI arguments should override config defaults."""
-    from org.cli import parse_arguments
-
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
     config_path = tmp_path / ".org-cli.json"
     write_config(config_path, {"--use": "heading"})
 
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(sys, "argv", ["org", "--use", "body", fixture_path])
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--use",
+            "body",
+            fixture_path,
+        ],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+    )
 
-    args = parse_arguments()
-    assert args.use == "body"
+    assert result.returncode == 0
+    assert "BODY WORDS" in result.stdout
 
 
-def test_malformed_json_prints_and_ignored(
-    tmp_path: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
-) -> None:
+def test_malformed_json_prints_and_ignored(tmp_path: Path) -> None:
     """Malformed JSON should print warning and use defaults."""
-    from org.cli import parse_arguments
-
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
     config_path = tmp_path / ".org-cli.json"
     with config_path.open("w", encoding="utf-8") as f:
         f.write("{bad json")
 
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(sys, "argv", ["org", fixture_path])
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            fixture_path,
+        ],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+    )
 
-    args = parse_arguments()
-    captured = capsys.readouterr()
-    assert "Malformed config" in captured.err
-    assert args.use == "tags"
+    assert result.returncode == 0
+    assert "Malformed config" in result.stderr
+    assert "TAGS" in result.stdout
 
 
-def test_malformed_value_prints_and_ignored(
-    tmp_path: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
-) -> None:
+def test_malformed_value_prints_and_ignored(tmp_path: Path) -> None:
     """Malformed config values should print warning and use defaults."""
-    from org.cli import parse_arguments
-
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
     config_path = tmp_path / ".org-cli.json"
     write_config(config_path, {"--max-results": "ten"})
 
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(sys, "argv", ["org", fixture_path])
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            fixture_path,
+        ],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+    )
 
-    args = parse_arguments()
-    captured = capsys.readouterr()
-    assert "Malformed config" in captured.err
-    assert args.max_results == 10
+    assert result.returncode == 0
+    assert "Malformed config" in result.stderr
+    assert "TAGS" in result.stdout
 
 
 def test_config_filter_applies_with_no_cli_order(tmp_path: Path) -> None:
@@ -94,7 +128,7 @@ def test_config_filter_applies_with_no_cli_order(tmp_path: Path) -> None:
     write_config(config_path, {"--filter-tag": ["this-tag-does-not-exist"]})
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", fixture_path],
+        [sys.executable, "-m", "org", "stats", "summary", "--no-color", fixture_path],
         cwd=str(tmp_path),
         capture_output=True,
         text=True,
@@ -104,38 +138,58 @@ def test_config_filter_applies_with_no_cli_order(tmp_path: Path) -> None:
     assert "No results" in result.stdout
 
 
-def test_config_custom_name(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+def test_config_custom_name(tmp_path: Path) -> None:
     """Custom config name should be respected."""
-    from org.cli import parse_arguments
-
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
     config_path = tmp_path / "custom.json"
     write_config(config_path, {"--use": "heading"})
 
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(sys, "argv", ["org", "--config", "custom.json", fixture_path])
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--config",
+            "custom.json",
+            fixture_path,
+        ],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+    )
 
-    args = parse_arguments()
-    assert args.use == "heading"
+    assert result.returncode == 0
+    assert "HEADING WORDS" in result.stdout
 
 
-def test_config_absolute_path(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+def test_config_absolute_path(tmp_path: Path) -> None:
     """Absolute config path should be respected."""
-    from org.cli import parse_arguments
-
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
     config_path = tmp_path / "absolute.json"
     write_config(config_path, {"--use": "body"})
 
-    monkeypatch.chdir("/")
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        ["org", "--config", str(config_path.resolve()), fixture_path],
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--config",
+            str(config_path.resolve()),
+            fixture_path,
+        ],
+        cwd="/",
+        capture_output=True,
+        text=True,
     )
 
-    args = parse_arguments()
-    assert args.use == "body"
+    assert result.returncode == 0
+    assert "BODY WORDS" in result.stdout
 
 
 def test_config_inline_mapping(tmp_path: Path) -> None:
@@ -148,7 +202,7 @@ def test_config_inline_mapping(tmp_path: Path) -> None:
     )
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", fixture_path],
+        [sys.executable, "-m", "org", "stats", "summary", "--no-color", fixture_path],
         cwd=str(tmp_path),
         capture_output=True,
         text=True,
@@ -167,7 +221,7 @@ def test_config_inline_exclude(tmp_path: Path) -> None:
     write_config(config_path, {"--exclude": ["test", "debugging"]})
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", fixture_path],
+        [sys.executable, "-m", "org", "stats", "summary", "--no-color", fixture_path],
         cwd=str(tmp_path),
         capture_output=True,
         text=True,

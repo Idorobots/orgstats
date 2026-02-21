@@ -196,7 +196,17 @@ def test_main_max_relations_zero() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--max-relations", "0", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--max-relations",
+            "0",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -211,7 +221,17 @@ def test_main_max_relations_negative() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--max-relations", "-1", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--max-relations",
+            "-1",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -226,7 +246,17 @@ def test_main_min_group_size_negative() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--min-group-size", "-1", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--min-group-size",
+            "-1",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -241,7 +271,17 @@ def test_main_min_group_size_negative_large() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--min-group-size", "-100", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--min-group-size",
+            "-100",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -256,7 +296,17 @@ def test_main_todo_keys_empty() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--todo-keys", "", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--todo-keys",
+            "",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -271,7 +321,17 @@ def test_main_done_keys_empty() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--done-keys", "", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--done-keys",
+            "",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -290,6 +350,8 @@ def test_main_todo_keys_with_pipe() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--no-color",
             "--todo-keys",
             "TODO|WAITING",
@@ -313,6 +375,8 @@ def test_main_done_keys_with_pipe() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--no-color",
             "--done-keys",
             "DONE|CANCELLED",
@@ -336,6 +400,8 @@ def test_main_filter_date_from_invalid() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--filter-date-from",
             "2025/01/15",
             fixture_path,
@@ -358,6 +424,8 @@ def test_main_filter_date_until_invalid() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--filter-date-until",
             "invalid-date",
             fixture_path,
@@ -380,6 +448,8 @@ def test_main_filter_property_no_equals() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
+            "summary",
             "--filter-property",
             "invalid_format",
             fixture_path,
@@ -398,7 +468,17 @@ def test_main_max_groups_negative() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--max-groups", "-1", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--max-groups",
+            "-1",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -413,7 +493,17 @@ def test_main_max_groups_negative_large() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--max-groups", "-100", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "summary",
+            "--no-color",
+            "--max-groups",
+            "-100",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
