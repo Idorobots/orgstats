@@ -221,8 +221,6 @@ def test_cli_max_relations_with_other_options() -> None:
             "orgstats",
             "--max-relations",
             "2",
-            "--filter-category",
-            "all",
             "-n",
             "5",
             fixture_path,

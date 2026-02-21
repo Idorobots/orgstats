@@ -1410,7 +1410,11 @@ The reasoning is that gamify_exp is optional, and by default unused by most peop
 :END:
 Please rename the ~--show~ CLI switch to ~--use~ as it makes more sense. The logic behind it should stay unchanged.
 
-** TODO --with-tags-as-category                                                             :CLI:UX:
+** REWORKED --with-tags-as-category                                                         :CLI:UX:
+:LOGBOOK:
+- State "REWORKED"       from "TODO"       [2026-02-21 Sat 13:24] \\
+  It did implement everything correctly. Upon closer inspection, it turns out that a lot of slop was introduced and a performance regression.
+:END:
 Please add a new switch ~--with-tags-as-category~ that is disabled by default.
 The switch will run a preprocessing step similar to ~--with-gamify~ that assigns the category named by ~--category-property~ based on the leading tag on a task.
 That is, if set, all nodes will be preprocessed to store a category property that's value is the same as the very first tag on the node.
@@ -1419,6 +1423,17 @@ If the node does not have any tags, omit the category.
 The switch can be combined with ~--with-gamify~ and will just overwrite the category, so whichever comes last will be the one that's used.
 
 Please rename ~--with-gamify~ to ~--with-gamify-category~.
+
+** CANCELLED Enrichment optimization                                                  :Optimization:
+:LOGBOOK:
+- State "CANCELLED"  from "TODO"       [2026-02-21 Sat 14:32] \\
+  Decided to do this myself, couldn't find a simple solution so left it for later.
+:END:
+Enrichment adds an extra indirection layer that slows down the analysis considerably.
+
+Filtering can't be done in advance, since the category filter uses the enriched results.
+
+This will be handled at some future point, when orgparse is updated to be able to modify the nodes.
 
 ** TODO Default FILE to *.org in cwd                                                        :UX:CLI:
 When a ~FILE~ is not provided to the CLI command  we currently return an error. I'd like to change that to search the current working directory for all *.org files and if any are found, the command will analyze them.

@@ -968,14 +968,12 @@ def handle_preset_filter(preset: str, category_property: str) -> list[Filter]:
     """Handle --filter-category preset expansion.
 
     Args:
-        preset: Category value to filter by (e.g., simple, regular, hard, none, all, etc.)
+        preset: Category value to filter by (e.g., simple, regular, hard, none, etc.)
         category_property: Name of property to check
 
     Returns:
         List of Filter objects for the preset
     """
-    if preset == "all":
-        return []
 
     return [Filter(lambda nodes: filter_category(nodes, category_property, preset))]
 

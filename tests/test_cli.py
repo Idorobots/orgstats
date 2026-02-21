@@ -199,7 +199,7 @@ def test_cli_filter_output_format() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--no-color", "--filter-category", "all", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,

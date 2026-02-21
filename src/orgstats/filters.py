@@ -71,10 +71,12 @@ class _PropertyEnrichedOrgNode(orgparse.node.OrgNode):
             additional_properties: Properties to add/override
         """
         self._original_node = original_node
-        self._additional_properties = additional_properties
+        self._merged_properties = {}
+        self._merged_properties.update(original_node.properties)
+        self._merged_properties.update(additional_properties)
 
     @property
-    def properties(self) -> typing.Any:  # noqa: ANN401
+    def properties(self) -> dict[str, typing.Any]:
         """Return merged properties (original + additional).
 
         Additional properties override original ones with same key.
@@ -82,9 +84,8 @@ class _PropertyEnrichedOrgNode(orgparse.node.OrgNode):
         Returns:
             Merged properties dictionary
         """
-        merged = dict(self._original_node.properties)
-        merged.update(self._additional_properties)
-        return merged
+
+        return self._merged_properties
 
     def __getattr__(self, name: str) -> typing.Any:  # noqa: ANN401
         """Delegate attribute access to the original node.
@@ -536,14 +537,12 @@ def filter_category(
     Returns:
         Filtered list of nodes
     """
-    result = []
-    for node in nodes:
-        node_category = node.properties.get(category_property)
-        if node_category is None or node_category == "":
-            node_category = "none"
-        if node_category == category_value:
-            result.append(node)
-    return result
+    return [
+        # NOTE "" category is treated as "none" to avoid weird display behaviour.
+        node
+        for node in nodes
+        if category_value == (node.properties.get(category_property) or "none")
+    ]
 
 
 def preprocess_gamify_categories(
@@ -562,12 +561,11 @@ def preprocess_gamify_categories(
     Returns:
         List of wrapped nodes with category property set
     """
-    result: list[orgparse.node.OrgNode] = []
-    for node in nodes:
-        category = get_gamify_category(node)
-        wrapped = _PropertyEnrichedOrgNode(node, {category_property: category})
-        result.append(wrapped)
-    return result
+    # FIXME This is pretty slow, should be refactored in the future.
+    return [
+        _PropertyEnrichedOrgNode(node, {category_property: get_gamify_category(node)})
+        for node in nodes
+    ]
 
 
 def preprocess_tags_as_category(
@@ -587,14 +585,12 @@ def preprocess_tags_as_category(
     Returns:
         List of nodes with category property set (wrapped if has tags, unwrapped if not)
     """
+    # FIXME This is pretty slow, should be refactored in the future.
     result: list[orgparse.node.OrgNode] = []
     for node in nodes:
-        if hasattr(node, "_tags") and node._tags:
+        # FIXME node.tags is a set, but we want the ordered occurances.
+        if node._tags and len(node._tags) > 0:
             first_tag = node._tags[0]
-            wrapped = _PropertyEnrichedOrgNode(node, {category_property: first_tag})
-            result.append(wrapped)
-        elif node.tags:
-            first_tag = sorted(node.tags)[0]
             wrapped = _PropertyEnrichedOrgNode(node, {category_property: first_tag})
             result.append(wrapped)
         else:

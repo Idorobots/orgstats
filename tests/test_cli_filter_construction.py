@@ -11,46 +11,6 @@ FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 
-def test_handle_preset_filter_simple() -> None:
-    """Test that 'simple' preset creates category filter."""
-    from orgstats.cli import handle_preset_filter
-
-    filters = handle_preset_filter("simple", "CATEGORY")
-
-    assert len(filters) == 1
-    assert filters[0].filter is not None
-
-
-def test_handle_preset_filter_regular() -> None:
-    """Test that 'regular' preset creates category filter."""
-    from orgstats.cli import handle_preset_filter
-
-    filters = handle_preset_filter("regular", "CATEGORY")
-
-    assert len(filters) == 1
-    assert filters[0].filter is not None
-
-
-def test_handle_preset_filter_hard() -> None:
-    """Test that 'hard' preset creates category filter."""
-    from orgstats.cli import handle_preset_filter
-
-    filters = handle_preset_filter("hard", "CATEGORY")
-
-    assert len(filters) == 1
-    assert filters[0].filter is not None
-
-
-def test_handle_preset_filter_all() -> None:
-    """Test that 'all' preset returns empty list."""
-    from orgstats.cli import handle_preset_filter
-
-    filters = handle_preset_filter("all", "CATEGORY")
-
-    assert len(filters) == 0
-    assert filters == []
-
-
 def test_handle_simple_filter_gamify_exp_above() -> None:
     """Test handle_simple_filter creates gamify_exp_above filter."""
     from orgstats.cli import handle_simple_filter
