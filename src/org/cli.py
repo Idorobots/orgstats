@@ -149,6 +149,17 @@ class ConfigOptions:
     list_options: dict[str, str]
 
 
+@dataclass
+class ConfigContext:
+    """Config default targets and option metadata."""
+
+    defaults: dict[str, object]
+    stats_defaults: dict[str, object]
+    append_defaults: dict[str, list[str]]
+    global_options: ConfigOptions
+    stats_options: ConfigOptions
+
+
 def load_exclude_list(filepath: str | None) -> set[str]:
     """Load exclude list from a file (one word per line).
 
@@ -427,23 +438,37 @@ def apply_config_entry_by_options(
 def apply_config_entry(
     key: str,
     value: object,
-    defaults: dict[str, object],
-    append_defaults: dict[str, list[str]],
-    options: ConfigOptions,
+    context: ConfigContext,
 ) -> bool:
     """Apply a config entry to defaults if valid."""
     if key == "--mapping":
-        return apply_mapping_config(value, defaults)
+        return apply_mapping_config(value, context.defaults)
 
     if key == "--exclude":
-        return apply_exclude_config(value, defaults)
+        return apply_exclude_config(value, context.defaults)
 
-    return apply_config_entry_by_options(key, value, defaults, append_defaults, options)
+    option_sets = (
+        (context.global_options, context.defaults),
+        (context.stats_options, context.stats_defaults),
+    )
+
+    for options, defaults in option_sets:
+        if (
+            key in options.int_options
+            or key in options.bool_options
+            or key in options.str_options
+            or key in options.list_options
+        ):
+            return apply_config_entry_by_options(
+                key, value, defaults, context.append_defaults, options
+            )
+
+    return False
 
 
 def build_config_defaults(
     config: dict[str, object],
-) -> tuple[dict[str, object], dict[str, list[str]]] | None:
+) -> tuple[dict[str, object], dict[str, object], dict[str, list[str]]] | None:
     """Validate config values and build defaults.
 
     Args:
@@ -453,6 +478,7 @@ def build_config_defaults(
         Tuple of (defaults, append_defaults) or None if malformed
     """
     defaults: dict[str, object] = {}
+    stats_defaults: dict[str, object] = {}
     append_defaults: dict[str, list[str]] = {}
     valid = True
 
@@ -461,30 +487,39 @@ def build_config_defaults(
         return None
     defaults.update(color_defaults)
 
-    int_options: dict[str, tuple[str, int | None]] = {
+    stats_int_options: dict[str, tuple[str, int | None]] = {
         "--max-results": ("max_results", None),
         "--max-tags": ("max_tags", 0),
         "--max-relations": ("max_relations", 0),
         "--min-group-size": ("min_group_size", 0),
         "--max-groups": ("max_groups", 0),
         "--buckets": ("buckets", 20),
+    }
+
+    global_int_options: dict[str, tuple[str, int | None]] = {
         "--filter-gamify-exp-above": ("filter_gamify_exp_above", None),
         "--filter-gamify-exp-below": ("filter_gamify_exp_below", None),
         "--filter-repeats-above": ("filter_repeats_above", None),
         "--filter-repeats-below": ("filter_repeats_below", None),
     }
 
-    bool_options: dict[str, str] = {
+    stats_bool_options: dict[str, str] = {
         "--with-gamify-category": "with_gamify_category",
         "--with-tags-as-category": "with_tags_as_category",
+    }
+
+    global_bool_options: dict[str, str] = {
         "--filter-completed": "filter_completed",
         "--filter-not-completed": "filter_not_completed",
     }
 
-    str_options: dict[str, str] = {
-        "--filter-category": "filter_category",
+    stats_str_options: dict[str, str] = {
         "--category-property": "category_property",
         "--use": "use",
+    }
+
+    global_str_options: dict[str, str] = {
+        "--filter-category": "filter_category",
         "--todo-keys": "todo_keys",
         "--done-keys": "done_keys",
         "--filter-date-from": "filter_date_from",
@@ -492,32 +527,47 @@ def build_config_defaults(
         "--config": "config",
     }
 
-    list_options: dict[str, str] = {
+    global_list_options: dict[str, str] = {
         "--filter-property": "filter_properties",
         "--filter-tag": "filter_tags",
         "--filter-heading": "filter_headings",
         "--filter-body": "filter_bodies",
     }
 
-    options = ConfigOptions(
-        int_options=int_options,
-        bool_options=bool_options,
-        str_options=str_options,
-        list_options=list_options,
+    global_options = ConfigOptions(
+        int_options=global_int_options,
+        bool_options=global_bool_options,
+        str_options=global_str_options,
+        list_options=global_list_options,
+    )
+
+    stats_options = ConfigOptions(
+        int_options=stats_int_options,
+        bool_options=stats_bool_options,
+        str_options=stats_str_options,
+        list_options={},
+    )
+
+    context = ConfigContext(
+        defaults=defaults,
+        stats_defaults=stats_defaults,
+        append_defaults=append_defaults,
+        global_options=global_options,
+        stats_options=stats_options,
     )
 
     for key, value in config.items():
         if key in ("--color", "--no-color"):
             continue
 
-        if not apply_config_entry(key, value, defaults, append_defaults, options):
+        if not apply_config_entry(key, value, context):
             valid = False
             break
 
     if not valid:
         return None
 
-    return (defaults, append_defaults)
+    return (defaults, stats_defaults, append_defaults)
 
 
 def is_valid_regex(pattern: str, use_multiline: bool = False) -> bool:
@@ -822,22 +872,8 @@ def display_top_tasks(
             print(f"  {colored_filename} {heading}".strip())
 
 
-def create_parser() -> argparse.ArgumentParser:
-    """Create argument parser for CLI."""
-    parser = argparse.ArgumentParser(
-        prog="org",
-        description="Analyze Emacs Org-mode archive files for task statistics.",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-
-    parser.add_argument(
-        "--config",
-        type=str,
-        default=".org-cli.json",
-        metavar="FILE",
-        help="Config file name to load from current directory (default: .org-cli.json)",
-    )
-
+def add_files_argument(parser: argparse.ArgumentParser) -> None:
+    """Add file arguments shared across commands."""
     parser.add_argument(
         "files",
         nargs="*",
@@ -845,21 +881,15 @@ def create_parser() -> argparse.ArgumentParser:
         help="Org-mode archive files or directories to analyze",
     )
 
-    parser.add_argument(
-        "--max-results",
-        "-n",
-        type=int,
-        default=10,
-        metavar="N",
-        help="Maximum number of results to display (default: 10)",
-    )
 
+def add_global_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add global CLI arguments shared across commands."""
     parser.add_argument(
-        "--max-tags",
-        type=int,
-        default=5,
-        metavar="N",
-        help="Maximum number of tags to display in TAGS section (default: 5, use 0 to omit section)",
+        "--config",
+        type=str,
+        default=".org-cli.json",
+        metavar="FILE",
+        help="Config file name to load from current directory (default: .org-cli.json)",
     )
 
     parser.add_argument(
@@ -881,63 +911,10 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
-        "--use",
-        type=str,
-        choices=["tags", "heading", "body"],
-        default="tags",
-        metavar="CATEGORY",
-        help="Category to display: tags, heading, or body (default: tags)",
-    )
-
-    parser.add_argument(
-        "--with-gamify-category",
-        action="store_true",
-        help="Preprocess nodes to set category property based on gamify_exp value",
-    )
-
-    parser.add_argument(
-        "--with-tags-as-category",
-        action="store_true",
-        help="Preprocess nodes to set category property based on first tag",
-    )
-
-    parser.add_argument(
-        "--category-property",
-        type=str,
-        default="CATEGORY",
-        metavar="PROPERTY",
-        help="Property name to use for category histogram and filtering (default: CATEGORY)",
-    )
-
-    parser.add_argument(
-        "--max-relations",
-        type=int,
-        default=5,
-        metavar="N",
-        help="Maximum number of relations to display per item (default: 5, use 0 to omit sections)",
-    )
-
-    parser.add_argument(
         "--mapping",
         type=str,
         metavar="FILE",
         help="JSON file containing tag mappings (dict[str, str])",
-    )
-
-    parser.add_argument(
-        "--min-group-size",
-        type=int,
-        default=2,
-        metavar="N",
-        help="Minimum group size to display (default: 2)",
-    )
-
-    parser.add_argument(
-        "--max-groups",
-        type=int,
-        default=5,
-        metavar="N",
-        help="Maximum number of tag groups to display (default: 5, use 0 to omit section)",
     )
 
     parser.add_argument(
@@ -1050,14 +1027,6 @@ def create_parser() -> argparse.ArgumentParser:
         help="Filter tasks with todo state in todo keys or without a todo state",
     )
 
-    parser.add_argument(
-        "--buckets",
-        type=int,
-        default=50,
-        metavar="N",
-        help="Number of time buckets for timeline charts (default: 50, minimum: 20)",
-    )
-
     color_group = parser.add_mutually_exclusive_group()
     color_group.add_argument(
         "--color",
@@ -1076,7 +1045,115 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser.set_defaults(mapping_inline=None, exclude_inline=None)
 
-    return parser
+
+def add_stats_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add stats command arguments."""
+    parser.add_argument(
+        "--max-results",
+        "-n",
+        type=int,
+        default=10,
+        metavar="N",
+        help="Maximum number of results to display (default: 10)",
+    )
+
+    parser.add_argument(
+        "--max-tags",
+        type=int,
+        default=5,
+        metavar="N",
+        help="Maximum number of tags to display in TAGS section (default: 5, use 0 to omit section)",
+    )
+
+    parser.add_argument(
+        "--use",
+        type=str,
+        choices=["tags", "heading", "body"],
+        default="tags",
+        metavar="CATEGORY",
+        help="Category to display: tags, heading, or body (default: tags)",
+    )
+
+    parser.add_argument(
+        "--with-gamify-category",
+        action="store_true",
+        help="Preprocess nodes to set category property based on gamify_exp value",
+    )
+
+    parser.add_argument(
+        "--with-tags-as-category",
+        action="store_true",
+        help="Preprocess nodes to set category property based on first tag",
+    )
+
+    parser.add_argument(
+        "--category-property",
+        type=str,
+        default="CATEGORY",
+        metavar="PROPERTY",
+        help="Property name to use for category histogram and filtering (default: CATEGORY)",
+    )
+
+    parser.add_argument(
+        "--max-relations",
+        type=int,
+        default=5,
+        metavar="N",
+        help="Maximum number of relations to display per item (default: 5, use 0 to omit sections)",
+    )
+
+    parser.add_argument(
+        "--min-group-size",
+        type=int,
+        default=2,
+        metavar="N",
+        help="Minimum group size to display (default: 2)",
+    )
+
+    parser.add_argument(
+        "--max-groups",
+        type=int,
+        default=5,
+        metavar="N",
+        help="Maximum number of tag groups to display (default: 5, use 0 to omit section)",
+    )
+
+    parser.add_argument(
+        "--buckets",
+        type=int,
+        default=50,
+        metavar="N",
+        help="Number of time buckets for timeline charts (default: 50, minimum: 20)",
+    )
+
+
+def create_parser() -> tuple[
+    argparse.ArgumentParser, argparse.ArgumentParser, argparse.ArgumentParser
+]:
+    """Create argument parser for CLI."""
+    shared_parent = argparse.ArgumentParser(add_help=False)
+    add_global_arguments(shared_parent)
+
+    parser = argparse.ArgumentParser(
+        prog="org",
+        description="Analyze Emacs Org-mode archive files for task statistics.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        parents=[shared_parent],
+    )
+
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    stats_parser = subparsers.add_parser(
+        "stats",
+        help="Analyze Org-mode archive files for task statistics.",
+        description="Analyze Emacs Org-mode archive files for task statistics.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        parents=[shared_parent],
+    )
+    add_files_argument(stats_parser)
+    add_stats_arguments(stats_parser)
+
+    return parser, stats_parser, shared_parent
 
 
 def parse_config_argument(argv: list[str]) -> str:
@@ -1093,7 +1170,7 @@ def parse_arguments() -> argparse.Namespace:
     Returns:
         Parsed arguments namespace
     """
-    parser = create_parser()
+    parser, stats_parser, shared_parent = create_parser()
 
     config_name = parse_config_argument(sys.argv)
     config_path = Path(config_name)
@@ -1109,9 +1186,12 @@ def parse_arguments() -> argparse.Namespace:
         if config_defaults is None:
             print("Malformed config", file=sys.stderr)
         else:
-            defaults, append_defaults = config_defaults
+            defaults, stats_defaults, append_defaults = config_defaults
             if defaults:
-                parser.set_defaults(**defaults)
+                shared_parent.set_defaults(**defaults)
+                stats_parser.set_defaults(**defaults)
+            if stats_defaults:
+                stats_parser.set_defaults(**stats_defaults)
 
     args = parser.parse_args()
 
@@ -1786,8 +1866,8 @@ def display_results(
     )
 
 
-def validate_arguments(args: argparse.Namespace) -> tuple[list[str], list[str]]:
-    """Validate command-line arguments.
+def validate_global_arguments(args: argparse.Namespace) -> tuple[list[str], list[str]]:
+    """Validate shared command-line arguments.
 
     Args:
         args: Parsed command-line arguments
@@ -1798,6 +1878,26 @@ def validate_arguments(args: argparse.Namespace) -> tuple[list[str], list[str]]:
     Raises:
         SystemExit: If validation fails
     """
+    todo_keys = validate_and_parse_keys(args.todo_keys, "--todo-keys")
+    done_keys = validate_and_parse_keys(args.done_keys, "--done-keys")
+
+    if args.filter_tags:
+        for pattern in args.filter_tags:
+            validate_pattern(pattern, "--filter-tag")
+
+    if args.filter_headings:
+        for pattern in args.filter_headings:
+            validate_pattern(pattern, "--filter-heading")
+
+    if args.filter_bodies:
+        for pattern in args.filter_bodies:
+            validate_pattern(pattern, "--filter-body", use_multiline=True)
+
+    return (todo_keys, done_keys)
+
+
+def validate_stats_arguments(args: argparse.Namespace) -> None:
+    """Validate stats command arguments."""
     if args.max_relations < 0:
         print("Error: --max-relations must be non-negative", file=sys.stderr)
         sys.exit(1)
@@ -1818,46 +1918,35 @@ def validate_arguments(args: argparse.Namespace) -> tuple[list[str], list[str]]:
         print("Error: --buckets must be at least 20", file=sys.stderr)
         sys.exit(1)
 
-    todo_keys = validate_and_parse_keys(args.todo_keys, "--todo-keys")
-    done_keys = validate_and_parse_keys(args.done_keys, "--done-keys")
 
-    if args.filter_tags:
-        for pattern in args.filter_tags:
-            validate_pattern(pattern, "--filter-tag")
-
-    if args.filter_headings:
-        for pattern in args.filter_headings:
-            validate_pattern(pattern, "--filter-heading")
-
-    if args.filter_bodies:
-        for pattern in args.filter_bodies:
-            validate_pattern(pattern, "--filter-body", use_multiline=True)
-
-    return (todo_keys, done_keys)
+def resolve_mapping(args: argparse.Namespace) -> dict[str, str]:
+    """Resolve mapping based on inline or file-based configuration."""
+    mapping_inline = args.mapping_inline
+    if mapping_inline is not None:
+        return mapping_inline or MAP
+    return load_mapping(args.mapping) or MAP
 
 
-def main() -> None:
-    """Main CLI entry point."""
-    args = parse_arguments()
+def resolve_exclude_set(args: argparse.Namespace) -> set[str]:
+    """Resolve exclude set based on inline or file-based configuration."""
+    exclude_inline = args.exclude_inline
+    if exclude_inline is not None:
+        return normalize_exclude_values(exclude_inline) or DEFAULT_EXCLUDE
+    return load_exclude_list(args.exclude) or DEFAULT_EXCLUDE
 
+
+def run_stats(args: argparse.Namespace) -> None:
+    """Run the stats command."""
     color_enabled = should_use_color(args.color_flag)
 
     if color_enabled:
         colorama_init(autoreset=True, strip=False)
 
-    todo_keys, done_keys = validate_arguments(args)
+    todo_keys, done_keys = validate_global_arguments(args)
+    validate_stats_arguments(args)
 
-    mapping_inline = args.mapping_inline
-    if mapping_inline is not None:
-        mapping = mapping_inline or MAP
-    else:
-        mapping = load_mapping(args.mapping) or MAP
-
-    exclude_inline = args.exclude_inline
-    if exclude_inline is not None:
-        exclude_set = normalize_exclude_values(exclude_inline) or DEFAULT_EXCLUDE
-    else:
-        exclude_set = load_exclude_list(args.exclude) or DEFAULT_EXCLUDE
+    mapping = resolve_mapping(args)
+    exclude_set = resolve_exclude_set(args)
 
     filters = build_filter_chain(args, sys.argv)
 
@@ -1892,6 +1981,14 @@ def main() -> None:
         args,
         (exclude_set, date_from, date_until, done_keys, todo_keys, color_enabled),
     )
+
+
+def main() -> None:
+    """Main CLI entry point."""
+    args = parse_arguments()
+
+    if args.command == "stats":
+        run_stats(args)
 
 
 if __name__ == "__main__":

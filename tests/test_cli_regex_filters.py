@@ -14,7 +14,16 @@ def test_cli_filter_tag_regex_basic() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--filter-tag", "tag.*", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--filter-tag",
+            "tag.*",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -29,7 +38,16 @@ def test_cli_filter_tag_regex_exact() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--filter-tag", "^tag1$", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--filter-tag",
+            "^tag1$",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -44,7 +62,16 @@ def test_cli_filter_tag_regex_alternation() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--filter-tag", "tag1|tag2", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--filter-tag",
+            "tag1|tag2",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -59,7 +86,16 @@ def test_cli_filter_tag_invalid_regex() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--filter-tag", "[invalid", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--filter-tag",
+            "[invalid",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -75,7 +111,16 @@ def test_cli_filter_heading_basic() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--filter-heading", "Task", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--filter-heading",
+            "Task",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -94,6 +139,7 @@ def test_cli_filter_heading_alternation() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--no-color",
             "--filter-heading",
             "bug|fix",
@@ -116,6 +162,7 @@ def test_cli_filter_heading_word_boundary() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--no-color",
             "--filter-heading",
             r"\btest\b",
@@ -138,6 +185,7 @@ def test_cli_filter_heading_invalid_regex() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--no-color",
             "--filter-heading",
             "(unclosed",
@@ -158,7 +206,16 @@ def test_cli_filter_body_basic() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--filter-body", "content", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--filter-body",
+            "content",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -173,7 +230,16 @@ def test_cli_filter_body_multiline_anchor() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--filter-body", "^TODO:", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--filter-body",
+            "^TODO:",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -191,6 +257,7 @@ def test_cli_filter_body_alternation() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--no-color",
             "--filter-body",
             "TODO|FIXME",
@@ -209,7 +276,16 @@ def test_cli_filter_body_invalid_regex() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--filter-body", "*invalid", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--filter-body",
+            "*invalid",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -229,6 +305,7 @@ def test_cli_filter_multiple_headings() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--filter-heading",
             "Task",
             "--filter-heading",
@@ -252,6 +329,7 @@ def test_cli_filter_multiple_bodies() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--filter-body",
             "content",
             "--filter-body",
@@ -275,6 +353,7 @@ def test_cli_filter_combined_regex_filters() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--filter-tag",
             "tag1",
             "--filter-heading",
@@ -300,6 +379,7 @@ def test_cli_filter_regex_with_other_filters() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--filter-completed",
             "--filter-tag",
             "tag.*",
@@ -336,7 +416,16 @@ def test_cli_filter_tag_case_sensitive() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--filter-tag", "Tag1", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--filter-tag",
+            "Tag1",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -350,7 +439,16 @@ def test_cli_filter_heading_case_sensitive() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--filter-heading", "task", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--filter-heading",
+            "task",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -364,7 +462,16 @@ def test_cli_filter_body_case_sensitive() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--filter-body", "Content", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--filter-body",
+            "Content",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,

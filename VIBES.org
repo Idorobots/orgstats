@@ -1521,12 +1521,16 @@ Installing ~org-cli~ should result in a command called ~org~ to be made availabl
 
 Please update the README.md and AGENTS.md with the updated names, code structure and command breakdown.
 
-** TODO Stats command                                                                 :CLI:Analysis:
+** DONE Stats command                                                                 :CLI:Analysis:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2026-02-21 Sat 18:53] \\
+  No comments here, was pretty easy.
+:END:
 Wrap the current analysis logic into a dedicated ~stats~ command. There will be more commands to come in the future.
 An example invocation of this command follows:
 
 #+begin_src bash
-org analyze -n 5 examples/ARCHIVE_small
+org stats -n 5 examples/ARCHIVE_small
 #+end_src
 
 The functionality of this command should be exactly the same as the whole application currently.
@@ -1545,7 +1549,8 @@ Some of the CLI switches will affect all commands, some will be used only by som
 The remaining switches should be recognized by the ~stats~ command.
 Some switches will be shared and semantically the same for a subset of commands, but should be recognized only by the commands they affect.
 
-** TODO Tags command                                                                        :CLI:UX:
+** TODO Tasks stats command                                                                 :CLI:UX:
+** TODO Tags stats command                                                                  :CLI:UX:
 Add a new ~stats tags~ command to the CLI that allows displaying tag stats for specific tags.
 An example invocation will look like this:
 
@@ -1611,7 +1616,7 @@ org stats tags --show Scala,Debugging,EmbeddedDevelopment path/to/file.org
 
 The output generated should include only the stats for ~Scala~, ~Debugging~ and ~EmbeddedDevelopment~.
 
-** TODO Groups command                                                                      :CLI:UX:
+** TODO Groups stats command                                                                :CLI:UX:
 Add a new ~stats tags~ command to the CLI that allows displaying tag stats for specific tags.
 An example invocation will look like this:
 
@@ -1690,7 +1695,7 @@ Some examples follow.
 
 Empty result:
 #+begin_example
-org tags --filter-not-complete VIBES.org
+org tasks --filter-not-complete VIBES.org
 #+end_example
 
 #+begin_example
@@ -1699,7 +1704,7 @@ No results.
 
 Results found:
 #+begin_example
-org tags --filter-complete VIBES.org
+org tasks --filter-complete VIBES.org
 #+end_example
 
 #+begin_example
@@ -1715,7 +1720,7 @@ The detailed display will show the entire Org Node prepended by a comment naming
 
 Example:
 #+begin_example
-org tags -n 4 --details tests/fixtures/simple.org
+org tasks -n 4 --details tests/fixtures/simple.org
 #+end_example
 
 : # tests/fixtures/simple.org

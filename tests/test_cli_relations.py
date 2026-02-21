@@ -15,7 +15,16 @@ def test_cli_accepts_max_relations_parameter() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--max-relations", "5", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--max-relations",
+            "5",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -28,7 +37,7 @@ def test_cli_accepts_max_relations_parameter() -> None:
 def test_cli_max_relations_default_is_5() -> None:
     """Test that default max_relations is 5."""
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--help"],
+        [sys.executable, "-m", "org", "stats", "--no-color", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -44,7 +53,16 @@ def test_cli_max_relations_displays_relations() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--max-relations", "3", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--max-relations",
+            "3",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -67,7 +85,16 @@ def test_cli_max_relations_limits_display() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--max-relations", "2", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--max-relations",
+            "2",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -103,7 +130,16 @@ def test_cli_max_relations_zero_omits_sections() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--max-relations", "0", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--max-relations",
+            "0",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -118,7 +154,16 @@ def test_cli_max_relations_negative_rejected() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--max-relations", "-1", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--max-relations",
+            "-1",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -137,6 +182,7 @@ def test_cli_max_relations_sorted_by_frequency() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--no-color",
             "--max-relations",
             "5",
@@ -183,6 +229,7 @@ def test_cli_relations_omitted_when_none() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--no-color",
             "--max-relations",
             "3",
@@ -219,6 +266,7 @@ def test_cli_max_relations_with_other_options() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--max-relations",
             "2",
             "-n",
@@ -240,7 +288,16 @@ def test_cli_max_relations_value_1() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "--max-relations", "1", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "org",
+            "stats",
+            "--no-color",
+            "--max-relations",
+            "1",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -272,6 +329,7 @@ def test_cli_relations_with_show_heading() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--max-relations",
             "2",
             "--use",
@@ -296,6 +354,7 @@ def test_cli_relations_with_show_body() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--no-color",
             "--max-relations",
             "2",
@@ -321,6 +380,7 @@ def test_cli_relations_filtered_by_exclude() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--no-color",
             "--max-relations",
             "5",
@@ -364,6 +424,7 @@ def test_cli_relations_filtered_with_custom_exclude_file() -> None:
                 sys.executable,
                 "-m",
                 "org",
+                "stats",
                 "--max-relations",
                 "5",
                 "-n",
@@ -417,6 +478,7 @@ def test_cli_relations_max_applied_after_filtering() -> None:
                 sys.executable,
                 "-m",
                 "org",
+                "stats",
                 "--max-relations",
                 "2",
                 "-n",

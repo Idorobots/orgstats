@@ -257,6 +257,7 @@ def test_main_exclude_file_not_found() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--exclude",
             "/nonexistent/exclude.txt",
             fixture_path,
@@ -280,6 +281,7 @@ def test_main_mapping_file_not_found() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--mapping",
             "/nonexistent/mapping.json",
             fixture_path,
@@ -305,6 +307,7 @@ def test_main_mapping_invalid_json(tmp_path: Path) -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--no-color",
             "--mapping",
             str(mapping_file),
@@ -330,6 +333,7 @@ def test_main_mapping_non_dict(tmp_path: Path) -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--no-color",
             "--mapping",
             str(mapping_file),
@@ -356,6 +360,7 @@ def test_main_mapping_non_string_values(tmp_path: Path) -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--no-color",
             "--mapping",
             str(mapping_file),
@@ -374,7 +379,7 @@ def test_main_mapping_non_string_values(tmp_path: Path) -> None:
 def test_main_org_file_not_found() -> None:
     """Test that non-existent org file causes error."""
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", "/nonexistent/file.org"],
+        [sys.executable, "-m", "org", "stats", "--no-color", "/nonexistent/file.org"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,

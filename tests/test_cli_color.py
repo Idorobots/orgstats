@@ -14,7 +14,7 @@ def test_color_flag_enables_colors() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--color", fixture_path],
+        [sys.executable, "-m", "org", "stats", "--color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -29,7 +29,7 @@ def test_no_color_flag_disables_colors() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", fixture_path],
+        [sys.executable, "-m", "org", "stats", "--no-color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -44,7 +44,7 @@ def test_section_headers_are_colored() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--color", fixture_path],
+        [sys.executable, "-m", "org", "stats", "--color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -60,7 +60,7 @@ def test_statistics_values_are_colored_magenta() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--color", fixture_path],
+        [sys.executable, "-m", "org", "stats", "--color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -75,7 +75,7 @@ def test_timeline_chart_has_colors() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--color", fixture_path],
+        [sys.executable, "-m", "org", "stats", "--color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -90,7 +90,7 @@ def test_histogram_has_colors() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--color", fixture_path],
+        [sys.executable, "-m", "org", "stats", "--color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -106,7 +106,7 @@ def test_done_state_is_bright_green() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--color", fixture_path],
+        [sys.executable, "-m", "org", "stats", "--color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -125,6 +125,7 @@ def test_cancelled_state_is_bright_red() -> None:
             sys.executable,
             "-m",
             "org",
+            "stats",
             "--color",
             "--done-keys",
             "DONE,CANCELLED",
@@ -143,7 +144,7 @@ def test_tasks_section_has_colored_filenames() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--color", fixture_path],
+        [sys.executable, "-m", "org", "stats", "--color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -159,7 +160,7 @@ def test_color_output_contains_reset_codes() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--color", fixture_path],
+        [sys.executable, "-m", "org", "stats", "--color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -175,7 +176,7 @@ def test_color_with_multiple_files() -> None:
     fixture2 = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--color", fixture1, fixture2],
+        [sys.executable, "-m", "org", "stats", "--color", fixture1, fixture2],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -190,7 +191,7 @@ def test_no_color_with_all_sections() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "org", "--no-color", fixture_path],
+        [sys.executable, "-m", "org", "stats", "--no-color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
