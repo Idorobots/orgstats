@@ -3,6 +3,7 @@
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 
 # Path to project root
@@ -111,17 +112,93 @@ def test_cli_handles_24_00_time() -> None:
     assert "Processing" in result.stdout
 
 
-def test_cli_no_arguments() -> None:
-    """Test CLI behavior with no arguments."""
+def test_cli_no_arguments_no_org_files(tmp_path: Path) -> None:
+    """Test CLI behavior with no arguments and no org files."""
     result = subprocess.run(
         [sys.executable, "-m", "orgstats", "--no-color"],
-        cwd=PROJECT_ROOT,
+        cwd=str(tmp_path),
         capture_output=True,
         text=True,
     )
 
-    # Should report that at least one file is required.
-    assert result.returncode == 2
+    assert result.returncode == 1
+    assert "No .org files found" in result.stderr
+
+
+def test_cli_no_arguments_with_org_files(tmp_path: Path) -> None:
+    """Test CLI behavior with no arguments when org files exist."""
+    (tmp_path / "sample.org").write_text("* TODO Task\n", encoding="utf-8")
+    (tmp_path / "another.org").write_text("* DONE Task\n", encoding="utf-8")
+
+    result = subprocess.run(
+        [sys.executable, "-m", "orgstats", "--no-color"],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert result.stdout.count("Processing") == 2
+
+
+def test_cli_directory_argument(tmp_path: Path) -> None:
+    """Test CLI behavior with a directory argument."""
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "sample.org").write_text("* TODO Task\n", encoding="utf-8")
+
+    result = subprocess.run(
+        [sys.executable, "-m", "orgstats", "--no-color", str(data_dir)],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert result.stdout.count("Processing") == 1
+
+
+def test_cli_directory_argument_no_org_files(tmp_path: Path) -> None:
+    """Test CLI behavior with a directory that has no org files."""
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "sample.txt").write_text("not org", encoding="utf-8")
+
+    result = subprocess.run(
+        [sys.executable, "-m", "orgstats", "--no-color", str(data_dir)],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "No .org files found" in result.stderr
+
+
+def test_cli_mixed_file_and_directory(tmp_path: Path) -> None:
+    """Test CLI behavior with mixed file and directory arguments."""
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "sample.org").write_text("* TODO Task\n", encoding="utf-8")
+    file_path = tmp_path / "direct.org"
+    file_path.write_text("* DONE Task\n", encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            str(file_path),
+            str(data_dir),
+        ],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert result.stdout.count("Processing") == 2
 
 
 def test_cli_tag_filtering() -> None:
@@ -152,6 +229,8 @@ def test_cli_filter_simple_sorting() -> None:
             "-m",
             "orgstats",
             "--no-color",
+            "--config",
+            "missing.json",
             "--with-gamify-category",
             "--filter-category",
             "simple",
@@ -179,6 +258,8 @@ def test_cli_filter_hard_sorting() -> None:
             "-m",
             "orgstats",
             "--no-color",
+            "--config",
+            "missing.json",
             "--with-gamify-category",
             "--filter-category",
             "hard",

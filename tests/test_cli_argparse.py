@@ -3,6 +3,7 @@
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 
 # Path to project root
@@ -335,18 +336,20 @@ def test_argparse_backward_compatibility() -> None:
     assert "Total tasks:" in result.stdout
 
 
-def test_argparse_no_files_provided() -> None:
+def test_argparse_no_files_provided(tmp_path: Path) -> None:
     """Test behavior when no files are provided."""
+    fixture_path = tmp_path / "simple.org"
+    fixture_path.write_text("* TODO Task\n", encoding="utf-8")
+
     result = subprocess.run(
         [sys.executable, "-m", "orgstats", "--no-color"],
-        cwd=PROJECT_ROOT,
+        cwd=str(tmp_path),
         capture_output=True,
         text=True,
     )
 
-    # It should complain than at least one FILE is required.
-    assert result.returncode == 2
-    assert "the following arguments are required:" in result.stderr
+    assert result.returncode == 0
+    assert "Processing" in result.stdout
 
 
 def test_argparse_options_before_files() -> None:
