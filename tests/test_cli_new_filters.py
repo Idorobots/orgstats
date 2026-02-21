@@ -14,7 +14,15 @@ def test_cli_filter_gamify_exp_above() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-gamify-exp-above", "20", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter-gamify-exp-above",
+            "20",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -30,7 +38,15 @@ def test_cli_filter_gamify_exp_below() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-gamify-exp-below", "10", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter-gamify-exp-below",
+            "10",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -45,7 +61,15 @@ def test_cli_filter_repeats_above() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-repeats-above", "2", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter-repeats-above",
+            "2",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -60,7 +84,15 @@ def test_cli_filter_repeats_below() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-repeats-below", "3", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter-repeats-below",
+            "3",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -209,7 +241,7 @@ def test_cli_filter_tag() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-tag", "tag1", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-tag", "tag1", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -247,7 +279,7 @@ def test_cli_filter_completed() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-completed", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-completed", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -262,7 +294,7 @@ def test_cli_filter_not_completed() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-not-completed", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-not-completed", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -277,7 +309,7 @@ def test_cli_preset_simple_still_works() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter", "simple", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "simple", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -292,7 +324,7 @@ def test_cli_preset_regular_still_works() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter", "regular", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "regular", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -307,7 +339,7 @@ def test_cli_preset_hard_still_works() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter", "hard", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "hard", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -435,7 +467,7 @@ def test_cli_invalid_property_format() -> None:
 def test_cli_help_shows_new_options() -> None:
     """Test that --help displays new filter options."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--help"],
+        [sys.executable, "-m", "orgstats", "--no-color", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -682,7 +714,7 @@ def test_cli_filter_date_invalid_format() -> None:
 def test_cli_filter_date_help_shows_formats() -> None:
     """Test that --help shows the new timestamp formats."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--help"],
+        [sys.executable, "-m", "orgstats", "--no-color", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,

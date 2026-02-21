@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from datetime import date, datetime
 
 import orgparse
+from colorama import Style
+from colorama import init as colorama_init
 
 from orgstats.analyze import (
     AnalysisResult,
@@ -19,6 +21,7 @@ from orgstats.analyze import (
     analyze,
     clean,
 )
+from orgstats.color import bright_white, get_state_color, green, magenta, should_use_color
 from orgstats.filters import (
     filter_body,
     filter_completed,
@@ -34,7 +37,7 @@ from orgstats.filters import (
     filter_tag,
     get_gamify_category,
 )
-from orgstats.histogram import render_histogram
+from orgstats.histogram import RenderConfig, render_histogram
 from orgstats.plot import render_timeline_chart
 from orgstats.timestamp import extract_timestamp_any
 
@@ -271,7 +274,7 @@ def select_latest_date(
 def display_category(
     category_name: str,
     tags: dict[str, Tag],
-    config: tuple[int, int, int, datetime | None, datetime | None, TimeRange, int, set[str]],
+    config: tuple[int, int, int, datetime | None, datetime | None, TimeRange, int, set[str], bool],
     order_fn: Callable[[tuple[str, Tag]], int],
 ) -> None:
     """Display formatted output for a single category.
@@ -280,7 +283,7 @@ def display_category(
         category_name: Display name for the category (e.g., "tags", "heading words")
         tags: Dictionary mapping tag names to Tag objects
         config: Tuple of (max_results, max_relations, num_buckets, date_from, date_until,
-                         global_timerange, max_items, exclude_set)
+                         global_timerange, max_items, exclude_set, color_enabled)
         order_fn: Function to sort items by
     """
     (
@@ -292,6 +295,7 @@ def display_category(
         global_timerange,
         max_items,
         exclude_set,
+        color_enabled,
     ) = config
 
     if max_items == 0:
@@ -299,7 +303,8 @@ def display_category(
     cleaned = clean(exclude_set, tags)
     sorted_items = sorted(cleaned.items(), key=order_fn)[0:max_items]
 
-    print(f"\nTop {category_name}:")
+    section_header = bright_white(f"\n{category_name.upper()}:", color_enabled)
+    print(section_header)
 
     if not sorted_items:
         print("  No results")
@@ -320,16 +325,20 @@ def display_category(
                     earliest_date,
                     latest_date,
                     num_buckets,
+                    color_enabled,
                 )
                 print(f"  {date_line}")
                 print(f"  {chart_line}")
                 print(f"  {underline}")
 
         print(f"  {name}")
-        print(f"    Total tasks: {tag.total_tasks}")
+        total_tasks_value = magenta(str(tag.total_tasks), color_enabled)
+        print(f"    Total tasks: {total_tasks_value}")
         if tag.time_range.earliest and tag.time_range.latest:
-            print(f"    Average tasks per day: {tag.avg_tasks_per_day:.2f}")
-            print(f"    Max tasks on a single day: {tag.max_single_day_count}")
+            avg_value = magenta(f"{tag.avg_tasks_per_day:.2f}", color_enabled)
+            max_value = magenta(str(tag.max_single_day_count), color_enabled)
+            print(f"    Average tasks per day: {avg_value}")
+            print(f"    Max tasks on a single day: {max_value}")
 
         if max_relations > 0 and tag.relations:
             filtered_relations = {
@@ -350,7 +359,7 @@ def display_category(
 def display_groups(
     groups: list[Group],
     exclude_set: set[str],
-    config: tuple[int, int, datetime | None, datetime | None, TimeRange],
+    config: tuple[int, int, datetime | None, datetime | None, TimeRange, bool],
     max_groups: int,
 ) -> None:
     """Display tag groups with timelines.
@@ -358,13 +367,14 @@ def display_groups(
     Args:
         groups: List of Group objects
         exclude_set: Set of tags to exclude
-        config: Tuple of (min_group_size, num_buckets, date_from, date_until, global_timerange)
+        config: Tuple of (min_group_size, num_buckets, date_from, date_until,
+                         global_timerange, color_enabled)
         max_groups: Maximum number of groups to display (0 to omit section entirely)
     """
     if max_groups == 0:
         return
 
-    min_group_size, num_buckets, date_from, date_until, global_timerange = config
+    min_group_size, num_buckets, date_from, date_until, global_timerange, color_enabled = config
 
     filtered_groups = []
     for group in groups:
@@ -375,7 +385,8 @@ def display_groups(
     filtered_groups.sort(key=lambda x: len(x[0]), reverse=True)
     filtered_groups = filtered_groups[:max_groups]
 
-    print("\nTag groups:")
+    section_header = bright_white("\nGROUPS:", color_enabled)
+    print(section_header)
 
     if not filtered_groups:
         print("  No results")
@@ -393,15 +404,19 @@ def display_groups(
                 earliest_date,
                 latest_date,
                 num_buckets,
+                color_enabled,
             )
             print(f"  {date_line}")
             print(f"  {chart_line}")
             print(f"  {underline}")
 
         print(f"  {', '.join(group_tags)}")
-        print(f"    Total tasks: {group.total_tasks}")
-        print(f"    Average tasks per day: {group.avg_tasks_per_day:.2f}")
-        print(f"    Max tasks on a single day: {group.max_single_day_count}")
+        total_tasks_value = magenta(str(group.total_tasks), color_enabled)
+        avg_value = magenta(f"{group.avg_tasks_per_day:.2f}", color_enabled)
+        max_value = magenta(str(group.max_single_day_count), color_enabled)
+        print(f"    Total tasks: {total_tasks_value}")
+        print(f"    Average tasks per day: {avg_value}")
+        print(f"    Max tasks on a single day: {max_value}")
 
 
 def get_most_recent_timestamp(node: orgparse.node.OrgNode) -> datetime | None:
@@ -440,24 +455,44 @@ def get_top_tasks(
     return [node for node, _ in sorted_nodes[:max_results]]
 
 
-def display_top_tasks(nodes: list[orgparse.node.OrgNode], max_results: int) -> None:
+def display_top_tasks(
+    nodes: list[orgparse.node.OrgNode],
+    max_results: int,
+    color_enabled: bool,
+    done_keys: list[str],
+    todo_keys: list[str],
+) -> None:
     """Display top tasks sorted by most recent timestamp.
 
     Args:
         nodes: List of org-mode nodes
         max_results: Maximum number of results to display
+        color_enabled: Whether to apply colors to the output
+        done_keys: List of done state keywords
+        todo_keys: List of todo state keywords
     """
     top_tasks = get_top_tasks(nodes, max_results)
 
     if not top_tasks:
         return
 
-    print("\nTop tasks:")
+    section_header = bright_white("\nTASKS:", color_enabled)
+    print(section_header)
     for node in top_tasks:
         filename = node.env.filename if hasattr(node, "env") and node.env.filename else "unknown"
+        colored_filename = green(filename, color_enabled)
         todo_state = node.todo if node.todo else ""
         heading = node.heading if node.heading else ""
-        print(f"  {filename}: {todo_state} {heading}".strip())
+
+        if todo_state:
+            state_color = get_state_color(todo_state, done_keys, todo_keys, color_enabled)
+            if color_enabled and state_color:
+                colored_state = f"{state_color}{todo_state}{Style.RESET_ALL}"
+            else:
+                colored_state = todo_state
+            print(f"  {colored_filename}: {colored_state} {heading}".strip())
+        else:
+            print(f"  {colored_filename}: {heading}".strip())
 
 
 def filter_nodes(nodes: list[orgparse.node.OrgNode], task_type: str) -> list[orgparse.node.OrgNode]:
@@ -509,7 +544,7 @@ def parse_arguments() -> argparse.Namespace:
         type=int,
         default=5,
         metavar="N",
-        help="Maximum number of tags to display in Top tags section (default: 5, use 0 to omit section)",
+        help="Maximum number of tags to display in TAGS section (default: 5, use 0 to omit section)",
     )
 
     parser.add_argument(
@@ -685,6 +720,22 @@ def parse_arguments() -> argparse.Namespace:
         default=50,
         metavar="N",
         help="Number of time buckets for timeline charts (default: 50, minimum: 20)",
+    )
+
+    color_group = parser.add_mutually_exclusive_group()
+    color_group.add_argument(
+        "--color",
+        action="store_true",
+        dest="color_flag",
+        default=None,
+        help="Force colored output (default: auto-detect based on TTY)",
+    )
+
+    color_group.add_argument(
+        "--no-color",
+        action="store_false",
+        dest="color_flag",
+        help="Disable colored output",
     )
 
     return parser.parse_args()
@@ -1157,7 +1208,7 @@ def display_results(
     result: AnalysisResult,
     nodes: list[orgparse.node.OrgNode],
     args: argparse.Namespace,
-    display_config: tuple[set[str], datetime | None, datetime | None, list[str], list[str]],
+    display_config: tuple[set[str], datetime | None, datetime | None, list[str], list[str], bool],
 ) -> None:
     """Display analysis results in formatted output.
 
@@ -1165,9 +1216,10 @@ def display_results(
         result: Analysis results to display
         nodes: Filtered org-mode nodes used for analysis
         args: Command-line arguments containing display configuration
-        display_config: Tuple of (exclude_set, date_from, date_until, done_keys, todo_keys)
+        display_config: Tuple of (exclude_set, date_from, date_until, done_keys, todo_keys,
+                                  color_enabled)
     """
-    exclude_set, date_from, date_until, done_keys, todo_keys = display_config
+    exclude_set, date_from, date_until, done_keys, todo_keys, color_enabled = display_config
     if result.timerange.earliest and result.timerange.latest and result.timerange.timeline:
         earliest_date = date_from.date() if date_from else result.timerange.earliest.date()
         latest_date = date_until.date() if date_until else result.timerange.latest.date()
@@ -1176,35 +1228,58 @@ def display_results(
             earliest_date,
             latest_date,
             args.buckets,
+            color_enabled,
         )
         print()
         print(date_line)
         print(chart_line)
         print(underline)
 
-    print(f"Total tasks: {result.total_tasks}")
+    total_tasks_value = magenta(str(result.total_tasks), color_enabled)
+    print(f"Total tasks: {total_tasks_value}")
 
     if result.timerange.earliest and result.timerange.latest:
-        print(f"Average tasks per day: {result.avg_tasks_per_day:.2f}")
-        print(f"Max tasks on a single day: {result.max_single_day_count}")
-        print(f"Max repeats of a single task: {result.max_repeat_count}")
+        avg_value = magenta(f"{result.avg_tasks_per_day:.2f}", color_enabled)
+        max_single_value = magenta(str(result.max_single_day_count), color_enabled)
+        max_repeat_value = magenta(str(result.max_repeat_count), color_enabled)
+        print(f"Average tasks per day: {avg_value}")
+        print(f"Max tasks on a single day: {max_single_value}")
+        print(f"Max repeats of a single task: {max_repeat_value}")
 
-    print("\nTask states:")
+    task_states_header = bright_white("\nTask states:", color_enabled)
+    print(task_states_header)
     remaining_states = sorted(
         set(result.task_states.values.keys()) - set(done_keys) - set(todo_keys)
     )
     state_order = done_keys + todo_keys + remaining_states
-    histogram_lines = render_histogram(result.task_states, args.buckets, state_order)
+    histogram_lines = render_histogram(
+        result.task_states,
+        args.buckets,
+        state_order,
+        RenderConfig(
+            color_enabled=color_enabled,
+            histogram_type="task_states",
+            done_keys=done_keys,
+            todo_keys=todo_keys,
+        ),
+    )
     for line in histogram_lines:
         print(f"  {line}")
 
-    print("\nTask categories:")
+    task_categories_header = bright_white("\nTask categories:", color_enabled)
+    print(task_categories_header)
     category_order = ["simple", "regular", "hard"]
-    histogram_lines = render_histogram(result.task_categories, args.buckets, category_order)
+    histogram_lines = render_histogram(
+        result.task_categories,
+        args.buckets,
+        category_order,
+        RenderConfig(color_enabled=color_enabled),
+    )
     for line in histogram_lines:
         print(f"  {line}")
 
-    print("\nTask occurrence by day of week:")
+    task_days_header = bright_white("\nTask occurrence by day of week:", color_enabled)
+    print(task_days_header)
     day_order = [
         "Monday",
         "Tuesday",
@@ -1215,11 +1290,13 @@ def display_results(
         "Sunday",
         "unknown",
     ]
-    histogram_lines = render_histogram(result.task_days, args.buckets, day_order)
+    histogram_lines = render_histogram(
+        result.task_days, args.buckets, day_order, RenderConfig(color_enabled=color_enabled)
+    )
     for line in histogram_lines:
         print(f"  {line}")
 
-    display_top_tasks(nodes, args.max_results)
+    display_top_tasks(nodes, args.max_results, color_enabled, done_keys, todo_keys)
 
     category_name = CATEGORY_NAMES[args.use]
 
@@ -1239,6 +1316,7 @@ def display_results(
             result.timerange,
             args.max_tags,
             exclude_set,
+            color_enabled,
         ),
         order_by_total,
     )
@@ -1246,7 +1324,7 @@ def display_results(
     display_groups(
         result.tag_groups,
         exclude_set,
-        (args.min_group_size, args.buckets, date_from, date_until, result.timerange),
+        (args.min_group_size, args.buckets, date_from, date_until, result.timerange, color_enabled),
         args.max_groups,
     )
 
@@ -1305,6 +1383,11 @@ def main() -> None:
     """Main CLI entry point."""
     args = parse_arguments()
 
+    color_enabled = should_use_color(args.color_flag)
+
+    if color_enabled:
+        colorama_init(autoreset=True, strip=False)
+
     todo_keys, done_keys = validate_arguments(args)
 
     mapping = load_mapping(args.mapping) or MAP
@@ -1327,7 +1410,12 @@ def main() -> None:
     if args.filter_date_until is not None:
         date_until = parse_date_argument(args.filter_date_until, "--filter-date-until")
 
-    display_results(result, nodes, args, (exclude_set, date_from, date_until, done_keys, todo_keys))
+    display_results(
+        result,
+        nodes,
+        args,
+        (exclude_set, date_from, date_until, done_keys, todo_keys, color_enabled),
+    )
 
 
 if __name__ == "__main__":

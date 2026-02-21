@@ -14,7 +14,7 @@ def test_chart_spanning_no_filters() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "comprehensive_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -173,7 +173,7 @@ def test_chart_spanning_with_show_heading() -> None:
 
     assert result.returncode == 0
     assert "Processing" in result.stdout
-    assert "Top heading words:" in result.stdout
+    assert "HEADING WORDS:" in result.stdout
 
 
 def test_chart_spanning_with_show_body() -> None:
@@ -198,7 +198,7 @@ def test_chart_spanning_with_show_body() -> None:
 
     assert result.returncode == 0
     assert "Processing" in result.stdout
-    assert "Top body words:" in result.stdout
+    assert "BODY WORDS:" in result.stdout
 
 
 def test_chart_spanning_with_time_component() -> None:

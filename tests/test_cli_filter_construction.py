@@ -475,13 +475,13 @@ def test_display_category() -> None:
         display_category(
             "test tags",
             tags,
-            (10, 3, 50, None, None, TimeRange(), 5, set()),
+            (10, 3, 50, None, None, TimeRange(), 5, set(), False),
             lambda item: -item[1].total_tasks,
         )
 
         output = sys.stdout.getvalue()
 
-        assert "Top test tags:" in output
+        assert "TEST TAGS:" in output
         assert "python" in output
         assert "java" in output
 
@@ -516,7 +516,7 @@ def test_display_category_with_time_ranges() -> None:
         display_category(
             "test tags",
             tags,
-            (10, 3, 50, None, None, TimeRange(), 5, set()),
+            (10, 3, 50, None, None, TimeRange(), 5, set(), False),
             lambda item: -item[1].total_tasks,
         )
 
@@ -551,7 +551,7 @@ def test_display_category_with_relations() -> None:
         display_category(
             "test tags",
             tags,
-            (10, 3, 50, None, None, TimeRange(), 5, set()),
+            (10, 3, 50, None, None, TimeRange(), 5, set(), False),
             lambda item: -item[1].total_tasks,
         )
 
@@ -595,14 +595,14 @@ def test_display_category_with_max_items_zero() -> None:
         display_category(
             "test tags",
             tags,
-            (10, 3, 50, None, None, TimeRange(), 0, set()),
+            (10, 3, 50, None, None, TimeRange(), 0, set(), False),
             lambda item: -item[1].total_tasks,
         )
 
         output = sys.stdout.getvalue()
 
         assert output == ""
-        assert "Top test tags:" not in output
+        assert "TEST TAGS:" not in output
 
     finally:
         sys.stdout = original_stdout
@@ -662,11 +662,11 @@ def test_display_results_with_tag_groups() -> None:
     try:
         sys.stdout = StringIO()
 
-        display_results(result, [], args, (set(), None, None, ["DONE"], ["TODO"]))
+        display_results(result, [], args, (set(), None, None, ["DONE"], ["TODO"], False))
 
         output = sys.stdout.getvalue()
 
-        assert "Tag groups:" in output
+        assert "GROUPS:" in output
         assert "python, programming, coding" in output
 
     finally:
@@ -734,11 +734,11 @@ def test_display_results_tag_groups_filtered_by_min_size() -> None:
     try:
         sys.stdout = StringIO()
 
-        display_results(result, [], args, (set(), None, None, ["DONE"], ["TODO"]))
+        display_results(result, [], args, (set(), None, None, ["DONE"], ["TODO"], False))
 
         output = sys.stdout.getvalue()
 
-        assert "Tag groups:" in output
+        assert "GROUPS:" in output
         assert "java, programming, coding" in output
         assert "python, programming" not in output
 
@@ -807,11 +807,11 @@ def test_display_results_tag_groups_with_excluded_tags() -> None:
     try:
         sys.stdout = StringIO()
 
-        display_results(result, [], args, ({"test"}, None, None, ["DONE"], ["TODO"]))
+        display_results(result, [], args, ({"test"}, None, None, ["DONE"], ["TODO"], False))
 
         output = sys.stdout.getvalue()
 
-        assert "Tag groups:" in output
+        assert "GROUPS:" in output
         assert "python, programming, coding" in output
         assert "java" not in output
 
@@ -863,11 +863,11 @@ def test_display_results_no_tag_groups() -> None:
     try:
         sys.stdout = StringIO()
 
-        display_results(result, [], args, (set(), None, None, ["DONE"], ["TODO"]))
+        display_results(result, [], args, (set(), None, None, ["DONE"], ["TODO"], False))
 
         output = sys.stdout.getvalue()
 
-        assert "Tag groups:" in output
+        assert "GROUPS:" in output
 
     finally:
         sys.stdout = original_stdout
@@ -925,14 +925,14 @@ def test_main_with_tag_groups() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "tag_groups_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--min-group-size", "2", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--min-group-size", "2", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
     assert result.returncode == 0
-    assert "Tag groups:" in result.stdout
+    assert "GROUPS:" in result.stdout
 
 
 def test_main_with_tag_groups_high_min_size() -> None:
@@ -940,14 +940,14 @@ def test_main_with_tag_groups_high_min_size() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "tag_groups_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--min-group-size", "100", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--min-group-size", "100", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
     assert result.returncode == 0
-    assert "Tag groups:" in result.stdout
+    assert "GROUPS:" in result.stdout
 
 
 def test_filter_nodes_deprecated() -> None:
@@ -1060,12 +1060,12 @@ def test_display_groups_with_max_groups_zero() -> None:
     try:
         sys.stdout = StringIO()
 
-        display_groups(groups, exclude_set, (2, 50, None, None, TimeRange()), 0)
+        display_groups(groups, exclude_set, (2, 50, None, None, TimeRange(), False), 0)
 
         output = sys.stdout.getvalue()
 
         assert output == ""
-        assert "Tag groups:" not in output
+        assert "GROUPS:" not in output
 
     finally:
         sys.stdout = original_stdout
@@ -1105,11 +1105,11 @@ def test_display_groups_with_max_groups_limit() -> None:
     try:
         sys.stdout = StringIO()
 
-        display_groups(groups, exclude_set, (2, 50, None, None, TimeRange()), 2)
+        display_groups(groups, exclude_set, (2, 50, None, None, TimeRange(), False), 2)
 
         output = sys.stdout.getvalue()
 
-        assert "Tag groups:" in output
+        assert "GROUPS:" in output
         assert "a, b, c" in output
         assert "d, e" in output
         assert "f, g" not in output
@@ -1138,11 +1138,11 @@ def test_display_groups_shows_empty_section() -> None:
     try:
         sys.stdout = StringIO()
 
-        display_groups(groups, exclude_set, (100, 50, None, None, TimeRange()), 5)
+        display_groups(groups, exclude_set, (100, 50, None, None, TimeRange(), False), 5)
 
         output = sys.stdout.getvalue()
 
-        assert "Tag groups:" in output
+        assert "GROUPS:" in output
         assert "a, b" not in output
 
     finally:

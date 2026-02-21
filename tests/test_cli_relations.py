@@ -15,7 +15,7 @@ def test_cli_accepts_max_relations_parameter() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-relations", "5", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-relations", "5", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -28,7 +28,7 @@ def test_cli_accepts_max_relations_parameter() -> None:
 def test_cli_max_relations_default_is_5() -> None:
     """Test that default max_relations is 5."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--help"],
+        [sys.executable, "-m", "orgstats", "--no-color", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -44,7 +44,7 @@ def test_cli_max_relations_displays_relations() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-relations", "3", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-relations", "3", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -67,7 +67,7 @@ def test_cli_max_relations_limits_display() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-relations", "2", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-relations", "2", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -103,7 +103,7 @@ def test_cli_max_relations_zero_omits_sections() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-relations", "0", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-relations", "0", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -118,7 +118,7 @@ def test_cli_max_relations_negative_rejected() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-relations", "-1", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-relations", "-1", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -133,7 +133,17 @@ def test_cli_max_relations_sorted_by_frequency() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-relations", "5", "-n", "5", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--max-relations",
+            "5",
+            "-n",
+            "5",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -169,7 +179,17 @@ def test_cli_relations_omitted_when_none() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-relations", "3", "-n", "20", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--max-relations",
+            "3",
+            "-n",
+            "20",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -222,7 +242,7 @@ def test_cli_max_relations_value_1() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-relations", "1", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-relations", "1", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -266,7 +286,7 @@ def test_cli_relations_with_show_heading() -> None:
     )
 
     assert result.returncode == 0
-    assert "Top heading words:" in result.stdout
+    assert "HEADING WORDS:" in result.stdout
 
 
 def test_cli_relations_with_show_body() -> None:
@@ -274,14 +294,24 @@ def test_cli_relations_with_show_body() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-relations", "2", "--use", "body", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--max-relations",
+            "2",
+            "--use",
+            "body",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
     assert result.returncode == 0
-    assert "Top body words:" in result.stdout
+    assert "BODY WORDS:" in result.stdout
 
 
 def test_cli_relations_filtered_by_exclude() -> None:
@@ -289,7 +319,17 @@ def test_cli_relations_filtered_by_exclude() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "relations_filter_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-relations", "5", "-n", "10", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--max-relations",
+            "5",
+            "-n",
+            "10",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -438,13 +478,13 @@ def test_cli_max_relations_shows_no_results() -> None:
         display_category(
             "test tags",
             tags,
-            (10, 3, 50, None, None, TimeRange(), 5, exclude_set),
+            (10, 3, 50, None, None, TimeRange(), 5, exclude_set, False),
             lambda item: -item[1].total_tasks,
         )
 
         output = sys.stdout.getvalue()
 
-        assert "Top test tags:" in output
+        assert "TEST TAGS:" in output
         assert "Top relations:" not in output
 
     finally:
@@ -476,7 +516,7 @@ def test_cli_max_relations_zero_skips_relations() -> None:
         display_category(
             "test tags",
             tags,
-            (10, 0, 50, None, None, TimeRange(), 5, set()),
+            (10, 0, 50, None, None, TimeRange(), 5, set(), False),
             lambda item: -item[1].total_tasks,
         )
 

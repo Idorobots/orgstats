@@ -7,7 +7,15 @@ import sys
 def test_cli_with_buckets_parameter() -> None:
     """Test that --buckets parameter is accepted."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--buckets", "30", "examples/ARCHIVE_small"],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--buckets",
+            "30",
+            "examples/ARCHIVE_small",
+        ],
         capture_output=True,
         text=True,
     )
@@ -18,7 +26,7 @@ def test_cli_with_buckets_parameter() -> None:
 def test_cli_buckets_default_value() -> None:
     """Test that default bucket value (50) is used when not specified."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "examples/ARCHIVE_small"],
+        [sys.executable, "-m", "orgstats", "--no-color", "examples/ARCHIVE_small"],
         capture_output=True,
         text=True,
     )
@@ -29,7 +37,15 @@ def test_cli_buckets_default_value() -> None:
 def test_cli_buckets_validation_minimum() -> None:
     """Test that error is raised when buckets < 20."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--buckets", "10", "examples/ARCHIVE_small"],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--buckets",
+            "10",
+            "examples/ARCHIVE_small",
+        ],
         capture_output=True,
         text=True,
     )
@@ -40,7 +56,15 @@ def test_cli_buckets_validation_minimum() -> None:
 def test_cli_buckets_validation_exact_minimum() -> None:
     """Test that buckets=20 is accepted."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--buckets", "20", "examples/ARCHIVE_small"],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--buckets",
+            "20",
+            "examples/ARCHIVE_small",
+        ],
         capture_output=True,
         text=True,
     )
@@ -51,7 +75,7 @@ def test_cli_buckets_validation_exact_minimum() -> None:
 def test_cli_output_shows_global_chart() -> None:
     """Test that global chart is present."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "examples/ARCHIVE_small"],
+        [sys.executable, "-m", "orgstats", "--no-color", "examples/ARCHIVE_small"],
         capture_output=True,
         text=True,
     )
@@ -69,7 +93,7 @@ def test_cli_output_shows_global_chart() -> None:
 def test_cli_output_shows_per_tag_charts() -> None:
     """Test that charts appear under each tag."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "examples/ARCHIVE_small"],
+        [sys.executable, "-m", "orgstats", "--no-color", "examples/ARCHIVE_small"],
         capture_output=True,
         text=True,
     )
@@ -85,7 +109,7 @@ def test_cli_output_shows_per_tag_charts() -> None:
 def test_cli_chart_format_in_output() -> None:
     """Test that charts have expected format."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "examples/ARCHIVE_small"],
+        [sys.executable, "-m", "orgstats", "--no-color", "examples/ARCHIVE_small"],
         capture_output=True,
         text=True,
     )
@@ -104,7 +128,15 @@ def test_cli_buckets_different_values() -> None:
     """Test CLI with different bucket values."""
     for buckets in [20, 30, 50, 100]:
         result = subprocess.run(
-            [sys.executable, "-m", "orgstats", "--buckets", str(buckets), "examples/ARCHIVE_small"],
+            [
+                sys.executable,
+                "-m",
+                "orgstats",
+                "--no-color",
+                "--buckets",
+                str(buckets),
+                "examples/ARCHIVE_small",
+            ],
             capture_output=True,
             text=True,
         )
@@ -115,7 +147,7 @@ def test_cli_buckets_different_values() -> None:
 def test_cli_help_shows_buckets() -> None:
     """Test that --buckets appears in help text."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--help"],
+        [sys.executable, "-m", "orgstats", "--no-color", "--help"],
         capture_output=True,
         text=True,
     )

@@ -12,7 +12,7 @@ FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 def test_max_tags_default_is_5() -> None:
     """Test that default max_tags is 5."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--help"],
+        [sys.executable, "-m", "orgstats", "--no-color", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -28,14 +28,14 @@ def test_max_tags_limits_tags_section() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result_default = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
     result_limited = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-tags", "1", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-tags", "1", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -43,28 +43,28 @@ def test_max_tags_limits_tags_section() -> None:
 
     assert result_default.returncode == 0
     assert result_limited.returncode == 0
-    assert "Top tags:" in result_default.stdout
-    assert "Top tags:" in result_limited.stdout
+    assert "TAGS:" in result_default.stdout
+    assert "TAGS:" in result_limited.stdout
 
-    tags_default = result_default.stdout[result_default.stdout.index("Top tags:") :]
-    tags_limited = result_limited.stdout[result_limited.stdout.index("Top tags:") :]
+    tags_default = result_default.stdout[result_default.stdout.index("TAGS:") :]
+    tags_limited = result_limited.stdout[result_limited.stdout.index("TAGS:") :]
 
     assert len(tags_limited) < len(tags_default)
 
 
 def test_max_tags_zero_omits_section() -> None:
-    """Test that --max-tags 0 omits the Top tags section entirely."""
+    """Test that --max-tags 0 omits the TAGS section entirely."""
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-tags", "0", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-tags", "0", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
     assert result.returncode == 0
-    assert "Top tags:" not in result.stdout
+    assert "TAGS:" not in result.stdout
 
 
 def test_max_tags_negative_fails() -> None:
@@ -72,7 +72,7 @@ def test_max_tags_negative_fails() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-tags", "-1", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-tags", "-1", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -87,15 +87,25 @@ def test_max_tags_with_show_heading() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--use", "heading", "--max-tags", "2", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--use",
+            "heading",
+            "--max-tags",
+            "2",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
     assert result.returncode == 0
-    assert "Top heading words:" in result.stdout
-    assert "Top tags:" not in result.stdout
+    assert "HEADING WORDS:" in result.stdout
+    assert "TAGS:" not in result.stdout
 
 
 def test_max_tags_with_show_body() -> None:
@@ -103,15 +113,25 @@ def test_max_tags_with_show_body() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--use", "body", "--max-tags", "2", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--use",
+            "body",
+            "--max-tags",
+            "2",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
     assert result.returncode == 0
-    assert "Top body words:" in result.stdout
-    assert "Top tags:" not in result.stdout
+    assert "BODY WORDS:" in result.stdout
+    assert "TAGS:" not in result.stdout
 
 
 def test_max_tags_with_fewer_results() -> None:
@@ -119,14 +139,14 @@ def test_max_tags_with_fewer_results() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "single_task.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-tags", "10", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-tags", "10", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
     assert result.returncode == 0
-    assert "Top tags:" in result.stdout
+    assert "TAGS:" in result.stdout
 
 
 def test_max_tags_zero_with_show_heading() -> None:
@@ -150,7 +170,7 @@ def test_max_tags_zero_with_show_heading() -> None:
     )
 
     assert result.returncode == 0
-    assert "Top heading words:" not in result.stdout
+    assert "HEADING WORDS:" not in result.stdout
 
 
 def test_max_tags_with_max_results() -> None:
@@ -174,8 +194,8 @@ def test_max_tags_with_max_results() -> None:
     )
 
     assert result.returncode == 0
-    assert "Top tags:" in result.stdout
-    assert "Top tasks:" in result.stdout
+    assert "TAGS:" in result.stdout
+    assert "TASKS:" in result.stdout
 
 
 def test_max_tags_one() -> None:
@@ -183,11 +203,11 @@ def test_max_tags_one() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-tags", "1", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-tags", "1", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
     assert result.returncode == 0
-    assert "Top tags:" in result.stdout
+    assert "TAGS:" in result.stdout

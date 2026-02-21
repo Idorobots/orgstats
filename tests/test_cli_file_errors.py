@@ -301,7 +301,15 @@ def test_main_mapping_invalid_json(tmp_path: Path) -> None:
     mapping_file.write_text('{"test": "testing",')
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--mapping", str(mapping_file), fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--mapping",
+            str(mapping_file),
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -318,7 +326,15 @@ def test_main_mapping_non_dict(tmp_path: Path) -> None:
     mapping_file.write_text('["test", "testing"]')
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--mapping", str(mapping_file), fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--mapping",
+            str(mapping_file),
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -336,7 +352,15 @@ def test_main_mapping_non_string_values(tmp_path: Path) -> None:
     mapping_file.write_text('{"test": 123}')
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--mapping", str(mapping_file), fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--mapping",
+            str(mapping_file),
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -350,7 +374,7 @@ def test_main_mapping_non_string_values(tmp_path: Path) -> None:
 def test_main_org_file_not_found() -> None:
     """Test that non-existent org file causes error."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "/nonexistent/file.org"],
+        [sys.executable, "-m", "orgstats", "--no-color", "/nonexistent/file.org"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,

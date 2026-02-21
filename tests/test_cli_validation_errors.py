@@ -196,7 +196,7 @@ def test_main_max_relations_zero() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-relations", "0", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-relations", "0", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -211,7 +211,7 @@ def test_main_max_relations_negative() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-relations", "-1", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-relations", "-1", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -226,7 +226,7 @@ def test_main_min_group_size_negative() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--min-group-size", "-1", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--min-group-size", "-1", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -241,7 +241,7 @@ def test_main_min_group_size_negative_large() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--min-group-size", "-100", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--min-group-size", "-100", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -256,7 +256,7 @@ def test_main_todo_keys_empty() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--todo-keys", "", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--todo-keys", "", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -271,7 +271,7 @@ def test_main_done_keys_empty() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--done-keys", "", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--done-keys", "", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -286,7 +286,15 @@ def test_main_todo_keys_with_pipe() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--todo-keys", "TODO|WAITING", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--todo-keys",
+            "TODO|WAITING",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -301,7 +309,15 @@ def test_main_done_keys_with_pipe() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--done-keys", "DONE|CANCELLED", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--done-keys",
+            "DONE|CANCELLED",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -382,7 +398,7 @@ def test_main_max_groups_negative() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-groups", "-1", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-groups", "-1", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -397,7 +413,7 @@ def test_main_max_groups_negative_large() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-groups", "-100", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--max-groups", "-100", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,

@@ -13,7 +13,7 @@ FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 def test_argparse_help() -> None:
     """Test --help output."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--help"],
+        [sys.executable, "-m", "orgstats", "--no-color", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -176,7 +176,7 @@ def test_parse_date_argument_empty_string() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter-date-from", "", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-date-from", "", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -191,7 +191,7 @@ def test_argparse_max_results_short() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "multiple_tags.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "-n", "10", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "-n", "10", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -207,7 +207,15 @@ def test_argparse_exclude() -> None:
     exclude_list_path = os.path.join(FIXTURES_DIR, "exclude_list_tags.txt")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--exclude", exclude_list_path, fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--exclude",
+            exclude_list_path,
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -248,7 +256,15 @@ def test_argparse_invalid_max_results() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--max-results", "not-a-number", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--max-results",
+            "not-a-number",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -265,7 +281,15 @@ def test_argparse_missing_exclude_list_file() -> None:
     nonexistent_file = os.path.join(FIXTURES_DIR, "does_not_exist.txt")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--exclude", nonexistent_file, fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--exclude",
+            nonexistent_file,
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -281,7 +305,7 @@ def test_argparse_empty_exclude_list_file() -> None:
     empty_file = os.path.join(FIXTURES_DIR, "exclude_list_empty.txt")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--exclude", empty_file, fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--exclude", empty_file, fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -299,7 +323,7 @@ def test_argparse_backward_compatibility() -> None:
 
     # Old style: just filenames as positional arguments
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture1, fixture2],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture1, fixture2],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -314,7 +338,7 @@ def test_argparse_backward_compatibility() -> None:
 def test_argparse_no_files_provided() -> None:
     """Test behavior when no files are provided."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats"],
+        [sys.executable, "-m", "orgstats", "--no-color"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -330,7 +354,7 @@ def test_argparse_options_before_files() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "-n", "50", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "-n", "50", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -345,7 +369,7 @@ def test_argparse_options_after_files() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture_path, "-n", "50"],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture_path, "-n", "50"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -381,7 +405,7 @@ def test_argparse_filter_default() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -398,7 +422,7 @@ def test_argparse_filter_simple() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter", "simple", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "simple", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -414,7 +438,7 @@ def test_argparse_filter_regular() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter", "regular", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "regular", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -429,7 +453,7 @@ def test_argparse_filter_hard() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter", "hard", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "hard", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -444,7 +468,7 @@ def test_argparse_filter_all() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter", "all", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "all", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -459,7 +483,7 @@ def test_argparse_filter_invalid() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter", "invalid", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "invalid", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -474,7 +498,17 @@ def test_argparse_filter_with_max_results() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--filter", "hard", "-n", "3", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter",
+            "hard",
+            "-n",
+            "3",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -487,7 +521,7 @@ def test_argparse_filter_with_max_results() -> None:
 def test_argparse_filter_in_help() -> None:
     """Test that --filter appears in help output."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--help"],
+        [sys.executable, "-m", "orgstats", "--no-color", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -506,7 +540,7 @@ def test_argparse_todo_keys_single() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "custom_states.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--todo-keys", "TODO", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--todo-keys", "TODO", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -544,7 +578,7 @@ def test_argparse_done_keys_single() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "custom_states.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--done-keys", "DONE", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--done-keys", "DONE", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -605,7 +639,7 @@ def test_argparse_todo_keys_empty() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--todo-keys", "", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--todo-keys", "", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -620,7 +654,7 @@ def test_argparse_todo_keys_whitespace_only() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--todo-keys", "   ", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--todo-keys", "   ", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -635,7 +669,7 @@ def test_argparse_todo_keys_with_commas_only() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--todo-keys", ",,,", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--todo-keys", ",,,", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -650,7 +684,7 @@ def test_argparse_done_keys_empty() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--done-keys", "", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--done-keys", "", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -665,7 +699,7 @@ def test_argparse_done_keys_whitespace_only() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--done-keys", "   ", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--done-keys", "   ", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -680,7 +714,15 @@ def test_argparse_todo_keys_with_pipe() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--todo-keys", "TODO|WAITING", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--todo-keys",
+            "TODO|WAITING",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -695,7 +737,15 @@ def test_argparse_done_keys_with_pipe() -> None:
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--done-keys", "DONE|CANCELLED", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--done-keys",
+            "DONE|CANCELLED",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -708,7 +758,7 @@ def test_argparse_done_keys_with_pipe() -> None:
 def test_argparse_todo_done_keys_in_help() -> None:
     """Test that --todo-keys and --done-keys appear in help output."""
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--help"],
+        [sys.executable, "-m", "orgstats", "--no-color", "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
