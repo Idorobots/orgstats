@@ -381,5 +381,6 @@ def test_main_org_file_not_found() -> None:
     )
 
     assert result.returncode == 1
-    assert "Error: File" in result.stderr
+    assert "Error: Path" in result.stderr
+    assert "not found" in result.stderr
     assert "not found" in result.stderr

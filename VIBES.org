@@ -1463,7 +1463,11 @@ This task was done with two models, Claude Sonnet 4.5 did the planning while Cod
 Codex took a while to implement the plan and didn't validate it in one go, but made fewer mistakes that needed to be mended.
 It made ~--config~ work in a weird way (just passing a filename to search for in the current directory) that needed reprompting.
 
-** TODO Better config handling                                                           :UX:Config:
+** DONE Better config handling                                                           :UX:Config:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2026-02-21 Sat 16:44] \\
+  That worked pretty well.
+:END:
 I see that the ~--config~ parameter accepts a file in the current directory. Can you make sure that an absolute path can be passed as well? The idea is to be ablet o run the command from anywhere and pass a config file that is some place else.
 
 I'd like to improve the usability of the config file. Currently, the ~--mapping~ and ~--exclude~ files are passed via the config as paths.
@@ -1472,7 +1476,11 @@ If the values in the configuration are strings plain, please treat them as paths
 
 Other switches should be left unchanged. The behaviour will be adjusted in the future.
 
-** TODO Default FILE to *.org in cwd                                                        :UX:CLI:
+** DONE Default FILE to *.org in cwd                                                        :UX:CLI:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2026-02-21 Sat 16:59] \\
+  This worked pretty well.
+:END:
 When a ~FILE~ is not provided to the CLI command  we currently return an error. I'd like to change that to search the current working directory for all *.org files and if any are found, the command will analyze them.
 In addition to that, the command should accept a root directory and search it for all *.org files for processing.
 

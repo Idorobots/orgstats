@@ -840,9 +840,9 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser.add_argument(
         "files",
-        nargs="+",
+        nargs="*",
         metavar="FILE",
-        help="Org-mode archive files to analyze",
+        help="Org-mode archive files or directories to analyze",
     )
 
     parser.add_argument(
@@ -1221,6 +1221,51 @@ def load_nodes(
             sys.exit(1)
 
     return all_nodes, list(all_todo_keys), list(all_done_keys)
+
+
+def resolve_input_paths(inputs: list[str]) -> list[str]:
+    """Resolve CLI inputs into a list of org files to process.
+
+    Args:
+        inputs: List of CLI path arguments (files and directories)
+
+    Returns:
+        List of file paths to process
+
+    Raises:
+        SystemExit: If a path does not exist or no org files are found
+    """
+    resolved_files: list[str] = []
+    searched_dirs: list[Path] = []
+
+    targets = inputs or ["."]
+    for raw_path in targets:
+        path = Path(raw_path)
+        if not path.exists():
+            print(f"Error: Path '{raw_path}' not found", file=sys.stderr)
+            sys.exit(1)
+
+        if path.is_dir():
+            searched_dirs.append(path)
+            resolved_files.extend(str(file_path) for file_path in sorted(path.glob("*.org")))
+            continue
+
+        if path.is_file():
+            resolved_files.append(str(path))
+            continue
+
+        print(f"Error: Path '{raw_path}' is not a file or directory", file=sys.stderr)
+        sys.exit(1)
+
+    if not resolved_files:
+        if searched_dirs:
+            searched_list = ", ".join(str(path) for path in searched_dirs)
+            print(f"Error: No .org files found in: {searched_list}", file=sys.stderr)
+        else:
+            print("Error: No .org files found", file=sys.stderr)
+        sys.exit(1)
+
+    return resolved_files
 
 
 def parse_date_argument(date_str: str, arg_name: str) -> datetime:
@@ -1816,7 +1861,8 @@ def main() -> None:
 
     filters = build_filter_chain(args, sys.argv)
 
-    nodes, todo_keys, done_keys = load_nodes(args.files, todo_keys, done_keys, [])
+    filenames = resolve_input_paths(args.files)
+    nodes, todo_keys, done_keys = load_nodes(filenames, todo_keys, done_keys, [])
 
     if args.with_gamify_category:
         nodes = preprocess_gamify_categories(nodes, args.category_property)
