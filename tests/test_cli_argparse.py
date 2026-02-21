@@ -418,11 +418,19 @@ def test_argparse_filter_default() -> None:
 
 
 def test_argparse_filter_simple() -> None:
-    """Test --filter simple flag."""
+    """Test --filter-category simple flag."""
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "simple", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter-category",
+            "simple",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -434,11 +442,19 @@ def test_argparse_filter_simple() -> None:
 
 
 def test_argparse_filter_regular() -> None:
-    """Test --filter regular flag."""
+    """Test --filter-category regular flag."""
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "regular", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter-category",
+            "regular",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -449,11 +465,11 @@ def test_argparse_filter_regular() -> None:
 
 
 def test_argparse_filter_hard() -> None:
-    """Test --filter hard flag."""
+    """Test --filter-category hard flag."""
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "hard", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-category", "hard", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -464,11 +480,11 @@ def test_argparse_filter_hard() -> None:
 
 
 def test_argparse_filter_all() -> None:
-    """Test explicit --filter all flag."""
+    """Test explicit --filter-category all flag."""
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "all", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-category", "all", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -479,18 +495,26 @@ def test_argparse_filter_all() -> None:
 
 
 def test_argparse_filter_invalid() -> None:
-    """Test invalid --filter value."""
+    """Test --filter-category with custom value returns no results."""
     fixture_path = os.path.join(FIXTURES_DIR, "simple.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "invalid", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter-category",
+            "nonexistent_category",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
     )
 
-    assert result.returncode != 0
-    assert "invalid choice" in result.stderr
+    assert result.returncode == 0
+    assert "No results" in result.stdout
 
 
 def test_argparse_filter_with_max_results() -> None:
@@ -503,7 +527,7 @@ def test_argparse_filter_with_max_results() -> None:
             "-m",
             "orgstats",
             "--no-color",
-            "--filter",
+            "--filter-category",
             "hard",
             "-n",
             "3",
@@ -528,7 +552,7 @@ def test_argparse_filter_in_help() -> None:
     )
 
     assert result.returncode == 0
-    assert "--filter" in result.stdout
+    assert "--filter-category" in result.stdout
     assert "simple" in result.stdout
     assert "regular" in result.stdout
     assert "hard" in result.stdout

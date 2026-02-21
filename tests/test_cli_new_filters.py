@@ -305,11 +305,19 @@ def test_cli_filter_not_completed() -> None:
 
 
 def test_cli_preset_simple_still_works() -> None:
-    """Test that old --filter simple preset still works."""
+    """Test that old --filter-category simple preset still works."""
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "simple", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter-category",
+            "simple",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -320,11 +328,19 @@ def test_cli_preset_simple_still_works() -> None:
 
 
 def test_cli_preset_regular_still_works() -> None:
-    """Test that old --filter regular preset still works."""
+    """Test that old --filter-category regular preset still works."""
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "regular", fixture_path],
+        [
+            sys.executable,
+            "-m",
+            "orgstats",
+            "--no-color",
+            "--filter-category",
+            "regular",
+            fixture_path,
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -335,11 +351,11 @@ def test_cli_preset_regular_still_works() -> None:
 
 
 def test_cli_preset_hard_still_works() -> None:
-    """Test that old --filter hard preset still works."""
+    """Test that old --filter-category hard preset still works."""
     fixture_path = os.path.join(FIXTURES_DIR, "gamify_exp_test.org")
 
     result = subprocess.run(
-        [sys.executable, "-m", "orgstats", "--no-color", "--filter", "hard", fixture_path],
+        [sys.executable, "-m", "orgstats", "--no-color", "--filter-category", "hard", fixture_path],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -358,7 +374,7 @@ def test_cli_preset_combined_with_explicit_filter() -> None:
             sys.executable,
             "-m",
             "orgstats",
-            "--filter",
+            "--filter-category",
             "simple",
             "--filter-tag",
             "tag1",

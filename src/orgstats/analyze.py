@@ -5,7 +5,6 @@ from datetime import date, datetime
 
 import orgparse
 
-from orgstats.filters import get_gamify_category
 from orgstats.histogram import Histogram
 from orgstats.timestamp import extract_timestamp_any
 
@@ -362,25 +361,30 @@ def compute_day_of_week_histogram(nodes: list[orgparse.node.OrgNode]) -> Histogr
     return task_days
 
 
-def compute_category_histogram(nodes: list[orgparse.node.OrgNode]) -> Histogram:
-    """Compute histogram of task categories across all tasks.
+def compute_category_histogram(
+    nodes: list[orgparse.node.OrgNode], category_property: str
+) -> Histogram:
+    """Compute histogram based on category property value.
 
-    Categorizes tasks by gamify_exp value:
-    - simple: gamify_exp < 10
-    - regular: 10 <= gamify_exp < 20 (or missing gamify_exp)
-    - hard: gamify_exp >= 20
+    Reads category from node.properties[category_property].
+    If the property doesn't exist or is empty, categorizes as "none".
 
     Args:
         nodes: List of org-mode nodes
+        category_property: Name of property to read category from
 
     Returns:
-        Histogram with counts for each category (simple, regular, hard)
+        Histogram with counts for each category value
     """
     task_categories = Histogram(values={})
 
     for node in nodes:
         count = max(1, len(node.repeated_tasks))
-        category = get_gamify_category(node)
+        category_value = node.properties.get(category_property)
+        if category_value is None or str(category_value) == "":
+            category = "none"
+        else:
+            category = str(category_value)
         task_categories.update(category, count)
 
     return task_categories
@@ -690,6 +694,7 @@ def analyze(
     mapping: dict[str, str],
     category: str,
     max_relations: int,
+    category_property: str,
 ) -> AnalysisResult:
     """Analyze org-mode nodes and extract task statistics.
 
@@ -698,6 +703,7 @@ def analyze(
         mapping: Dictionary mapping tags to canonical forms
         category: Which datum to analyze - "tags", "heading", or "body"
         max_relations: Maximum number of relations to consider for grouping
+        category_property: Name of property to use for category histogram
 
     Returns:
         AnalysisResult containing task counts and Tag objects for the selected category
@@ -708,7 +714,7 @@ def analyze(
     tags = compute_per_tag_statistics(tag_frequencies, tag_relations, tag_time_ranges)
     tag_groups = compute_groups(tags, max_relations, nodes, mapping, category)
     task_states = compute_task_state_histogram(nodes)
-    task_categories = compute_category_histogram(nodes)
+    task_categories = compute_category_histogram(nodes, category_property)
     task_days = compute_day_of_week_histogram(nodes)
     global_timerange = compute_global_timerange(nodes)
     total, max_repeat_count = compute_task_stats(nodes)

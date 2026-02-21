@@ -186,8 +186,6 @@ def test_cli_mapping_with_other_options() -> None:
             "orgstats",
             "--mapping",
             mapping_path,
-            "--filter",
-            "all",
             "-n",
             "5",
             "--max-relations",

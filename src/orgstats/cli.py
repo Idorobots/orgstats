@@ -24,6 +24,7 @@ from orgstats.analyze import (
 from orgstats.color import bright_white, dim_white, get_state_color, magenta, should_use_color
 from orgstats.filters import (
     filter_body,
+    filter_category,
     filter_completed,
     filter_date_from,
     filter_date_until,
@@ -35,7 +36,8 @@ from orgstats.filters import (
     filter_repeats_above,
     filter_repeats_below,
     filter_tag,
-    get_gamify_category,
+    preprocess_gamify_categories,
+    preprocess_tags_as_category,
 )
 from orgstats.histogram import RenderConfig, render_histogram
 from orgstats.plot import render_timeline_chart
@@ -495,22 +497,6 @@ def display_top_tasks(
             print(f"  {colored_filename} {heading}".strip())
 
 
-def filter_nodes(nodes: list[orgparse.node.OrgNode], task_type: str) -> list[orgparse.node.OrgNode]:
-    """Filter nodes based on task difficulty type.
-
-    Args:
-        nodes: List of org-mode nodes to filter
-        task_type: Type of tasks to include ("simple", "regular", "hard", or "all")
-
-    Returns:
-        Filtered list of nodes
-    """
-    if task_type == "all":
-        return nodes
-
-    return [node for node in nodes if task_type == get_gamify_category(node)]
-
-
 def parse_arguments() -> argparse.Namespace:
     """Parse command-line arguments.
 
@@ -555,13 +541,14 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--filter",
-        "-f",
+        "--filter-category",
         type=str,
-        choices=["simple", "regular", "hard", "all"],
         default="all",
-        metavar="TYPE",
-        help="Filter tasks by difficulty: simple, regular, hard, or all (default: all)",
+        metavar="VALUE",
+        help=(
+            "Filter tasks by category property value (e.g., simple, regular, hard, none, "
+            "or any custom value). Use 'all' to skip category filtering (default: all)"
+        ),
     )
 
     parser.add_argument(
@@ -571,6 +558,26 @@ def parse_arguments() -> argparse.Namespace:
         default="tags",
         metavar="CATEGORY",
         help="Category to display: tags, heading, or body (default: tags)",
+    )
+
+    parser.add_argument(
+        "--with-gamify-category",
+        action="store_true",
+        help="Preprocess nodes to set category property based on gamify_exp value",
+    )
+
+    parser.add_argument(
+        "--with-tags-as-category",
+        action="store_true",
+        help="Preprocess nodes to set category property based on first tag",
+    )
+
+    parser.add_argument(
+        "--category-property",
+        type=str,
+        default="CATEGORY",
+        metavar="PROPERTY",
+        help="Property name to use for category histogram and filtering (default: CATEGORY)",
     )
 
     parser.add_argument(
@@ -939,7 +946,7 @@ def parse_filter_order_from_argv(argv: list[str]) -> list[str]:
         List of filter arguments
     """
     filter_args = [
-        "--filter",
+        "--filter-category",
         "--filter-gamify-exp-above",
         "--filter-gamify-exp-below",
         "--filter-repeats-above",
@@ -957,25 +964,18 @@ def parse_filter_order_from_argv(argv: list[str]) -> list[str]:
     return [arg for arg in argv if arg in filter_args]
 
 
-def handle_preset_filter(preset: str) -> list[Filter]:
-    """Handle --filter preset expansion.
+def handle_preset_filter(preset: str, category_property: str) -> list[Filter]:
+    """Handle --filter-category preset expansion.
 
     Args:
-        preset: Preset name (simple, regular, hard, all)
+        preset: Category value to filter by (e.g., simple, regular, hard, none, etc.)
+        category_property: Name of property to check
 
     Returns:
         List of Filter objects for the preset
     """
-    if preset == "simple":
-        return [Filter(lambda nodes: filter_gamify_exp_below(nodes, 10))]
-    if preset == "regular":
-        return [
-            Filter(lambda nodes: filter_gamify_exp_above(nodes, 9)),
-            Filter(lambda nodes: filter_gamify_exp_below(nodes, 20)),
-        ]
-    if preset == "hard":
-        return [Filter(lambda nodes: filter_gamify_exp_above(nodes, 19))]
-    return []
+
+    return [Filter(lambda nodes: filter_category(nodes, category_property, preset))]
 
 
 def handle_simple_filter(arg_name: str, args: argparse.Namespace) -> list[Filter]:
@@ -1168,8 +1168,8 @@ def create_filter_specs_from_args(
     index_trackers = {"property": 0, "tag": 0, "heading": 0, "body": 0}
 
     for arg_name in filter_order:
-        if arg_name == "--filter":
-            filter_specs.extend(handle_preset_filter(args.filter))
+        if arg_name == "--filter-category":
+            filter_specs.extend(handle_preset_filter(args.filter_category, args.category_property))
         elif arg_name in (
             "--filter-gamify-exp-above",
             "--filter-gamify-exp-below",
@@ -1268,7 +1268,7 @@ def display_results(
 
     task_categories_header = bright_white("\nTask categories:", color_enabled)
     print(task_categories_header)
-    category_order = ["simple", "regular", "hard"]
+    category_order = sorted(result.task_categories.values.keys())
     histogram_lines = render_histogram(
         result.task_categories,
         args.buckets,
@@ -1395,13 +1395,22 @@ def main() -> None:
 
     filters = build_filter_chain(args, sys.argv)
 
-    nodes, todo_keys, done_keys = load_nodes(args.files, todo_keys, done_keys, filters)
+    nodes, todo_keys, done_keys = load_nodes(args.files, todo_keys, done_keys, [])
+
+    if args.with_gamify_category:
+        nodes = preprocess_gamify_categories(nodes, args.category_property)
+
+    if args.with_tags_as_category:
+        nodes = preprocess_tags_as_category(nodes, args.category_property)
+
+    for filter_spec in filters:
+        nodes = filter_spec.filter(nodes)
 
     if not nodes:
         print("No results")
         return
 
-    result = analyze(nodes, mapping, args.use, args.max_relations)
+    result = analyze(nodes, mapping, args.use, args.max_relations, args.category_property)
 
     date_from = None
     date_until = None
